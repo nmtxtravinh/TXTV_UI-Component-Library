@@ -1,0 +1,87 @@
+<!--
+  ============================================================================
+  TXUI – UI Component Library cho Google Apps Script
+  Nhà máy Túi xách Trà Vinh (Chi nhánh 7 – Công ty CP Đầu tư Thái Bình / TBS Group)
+  ----------------------------------------------------------------------------
+  File: TXUI_Head.html  –  Đặt trong <head> của mọi trang bằng scriptlet:
+      include('TXUI_Head')   (xem README – dùng thẻ "force-print" của Apps Script)
+  LƯU Ý: Không viết thẻ scriptlet Apps Script bên trong comment HTML,
+         vì HtmlService vẫn thực thi chúng.
+  Gồm: Font Inter, Font Awesome 6, Tailwind CSS (Play CDN) + cấu hình thương hiệu,
+       và toàn bộ style component (TXUI_Styles).
+  ============================================================================
+-->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<base target="_top">
+
+<!-- Font Inter -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
+
+<!-- Font Awesome 6 (Free) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+
+<!-- Tailwind CSS v3 (Play CDN) -->
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script>
+  /* ---------------------------------------------------------------
+   * Cấu hình Tailwind – màu thương hiệu TBS Group
+   *   brand  : xanh đậm logo  #00402A  (brand-900)
+   *   accent : xanh lá mạ     #A6CE39  (accent-400)
+   * --------------------------------------------------------------- */
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+          mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Consolas', 'monospace']
+        },
+        colors: {
+          brand: {
+            50: '#eef7f2', 100: '#d6ede1', 200: '#afdac5', 300: '#7dc0a2', 400: '#4ba17e',
+            500: '#278464', 600: '#156b4f', 700: '#0b5a41', 800: '#064c36', 900: '#00402a', 950: '#00261a',
+            DEFAULT: '#00402a'
+          },
+          accent: {
+            50: '#f7fbea', 100: '#eef6d0', 200: '#ddeea5', 300: '#c6e16f', 400: '#a6ce39',
+            500: '#8db82a', 600: '#6e921f', 700: '#546f1c', 800: '#45591c', 900: '#3b4c1c', 950: '#1e2a0a',
+            DEFAULT: '#a6ce39'
+          }
+        },
+        boxShadow: {
+          soft: '0 1px 2px rgba(15,23,42,.04), 0 4px 16px rgba(15,23,42,.06)'
+        },
+        keyframes: {
+          'fade-in':        { from: { opacity: 0 }, to: { opacity: 1 } },
+          'modal-in':       { from: { opacity: 0, transform: 'translateY(12px) scale(.97)' }, to: { opacity: 1, transform: 'none' } },
+          'slide-in-right': { from: { transform: 'translateX(100%)' }, to: { transform: 'none' } },
+          'slide-in-left':  { from: { transform: 'translateX(-100%)' }, to: { transform: 'none' } },
+          'toast-in':       { from: { opacity: 0, transform: 'translateX(24px)' }, to: { opacity: 1, transform: 'none' } },
+          'dropdown-in':    { from: { opacity: 0, transform: 'translateY(-4px) scale(.98)' }, to: { opacity: 1, transform: 'none' } },
+          'progress-stripes': { from: { backgroundPosition: '1rem 0' }, to: { backgroundPosition: '0 0' } },
+          'indeterminate':  { '0%': { transform: 'translateX(-100%)' }, '100%': { transform: 'translateX(250%)' } }
+        },
+        animation: {
+          'fade-in': 'fade-in .15s ease-out',
+          'modal-in': 'modal-in .2s ease-out',
+          'slide-in-right': 'slide-in-right .25s ease-out',
+          'slide-in-left': 'slide-in-left .25s ease-out',
+          'toast-in': 'toast-in .25s ease-out',
+          'dropdown-in': 'dropdown-in .12s ease-out',
+          'progress-stripes': 'progress-stripes 1s linear infinite',
+          'indeterminate': 'indeterminate 1.2s ease-in-out infinite'
+        }
+      }
+    }
+  };
+</script>
+
+<!-- Áp dụng Dark mode sớm để tránh nháy màn hình -->
+<script>
+  try { if (localStorage.getItem('txui-theme') === 'dark') document.documentElement.classList.add('dark'); } catch (e) {}
+</script>
+
+<?!= include('TXUI_Styles'); ?>

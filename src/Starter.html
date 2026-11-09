@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <?!= include('TXUI_Head'); ?>
+</head>
+<body>
+<!--
+  STARTER – Sao chép file này làm điểm bắt đầu cho Web App mới.
+  Bố cục: Sidebar + Topbar + Nội dung. Đổi menu, tiêu đề, nội dung theo dự án.
+-->
+<div class="app">
+  <aside class="app-sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-logo">TBS</div>
+      <div class="sidebar-brand-text">
+        <div class="text-sm font-bold">Tên ứng dụng</div>
+        <div class="text-[11px] text-white/50">Nhà máy Túi xách Trà Vinh</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">Chính</div>
+      <a class="nav-link active"><i class="fa-solid fa-gauge"></i><span class="nav-label">Tổng quan</span></a>
+      <a class="nav-link"><i class="fa-solid fa-clipboard-list"></i><span class="nav-label">Danh sách</span><span class="nav-badge">12</span></a>
+      <a class="nav-link"><i class="fa-solid fa-chart-pie"></i><span class="nav-label">Báo cáo</span></a>
+      <div class="nav-section-title">Hệ thống</div>
+      <a class="nav-link"><i class="fa-solid fa-gear"></i><span class="nav-label">Cài đặt</span></a>
+      <a class="nav-link" href="<?= BASE_URL ?>" target="_top"><i class="fa-solid fa-book"></i><span class="nav-label">Thư viện UI</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="flex items-center gap-3 rounded-lg bg-white/5 p-2">
+        <div class="avatar avatar-sm bg-accent-400 text-brand-950"><?= USER.initials ?></div>
+        <div class="sidebar-hide-collapsed min-w-0 text-xs"><div class="truncate font-semibold capitalize"><?= USER.name ?></div><div class="truncate text-white/50"><?= USER.email ?></div></div>
+      </div>
+    </div>
+  </aside>
+  <div class="app-backdrop"></div>
+
+  <div class="app-main">
+    <header class="app-topbar">
+      <button class="btn btn-ghost btn-icon" data-ui-toggle="sidebar" aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
+      <div class="input-icon hidden w-72 md:block"><i class="fa-solid fa-magnifying-glass text-xs"></i><input class="form-control" placeholder="Tìm kiếm..."></div>
+      <div class="ml-auto flex items-center gap-1">
+        <button class="btn btn-ghost btn-icon" data-ui-toggle="theme" aria-label="Giao diện"><i data-ui-theme-icon class="fa-solid fa-moon"></i></button>
+        <span class="avatar avatar-sm"><?= USER.initials ?></span>
+      </div>
+    </header>
+
+    <main class="app-content">
+      <div class="page-header">
+        <div>
+          <ol class="breadcrumb mb-1 text-xs"><li>Trang chủ</li><li>Tổng quan</li></ol>
+          <h1 class="page-title">Tổng quan</h1>
+          <p class="page-subtitle">Mô tả ngắn cho trang này</p>
+        </div>
+        <div class="flex gap-2">
+          <button class="btn btn-secondary"><i class="fa-solid fa-filter"></i> Lọc</button>
+          <button class="btn btn-primary" id="btnAdd"><i class="fa-solid fa-plus"></i> Thêm mới</button>
+        </div>
+      </div>
+
+      <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div class="stat"><div class="stat-icon"><i class="fa-solid fa-box"></i></div><div><div class="stat-label">Chỉ số 1</div><div class="stat-value">0</div></div></div>
+        <div class="stat"><div class="stat-icon bg-accent-100 text-accent-700"><i class="fa-solid fa-check"></i></div><div><div class="stat-label">Chỉ số 2</div><div class="stat-value">0</div></div></div>
+        <div class="stat"><div class="stat-icon bg-amber-50 text-amber-600"><i class="fa-solid fa-clock"></i></div><div><div class="stat-label">Chỉ số 3</div><div class="stat-value">0</div></div></div>
+        <div class="stat"><div class="stat-icon bg-red-50 text-red-600"><i class="fa-solid fa-xmark"></i></div><div><div class="stat-label">Chỉ số 4</div><div class="stat-value">0</div></div></div>
+      </div>
+
+      <div class="card mt-6">
+        <div class="card-header"><h3 class="card-title">Danh sách</h3></div>
+        <div class="card-body"><div id="mainTable"></div></div>
+      </div>
+    </main>
+
+    <footer class="app-footer">© Nhà máy Túi xách Trà Vinh – TBS Group</footer>
+  </div>
+</div>
+
+<?!= include('TXUI_Scripts'); ?>
+<script>
+  // Ví dụ khởi tạo bảng – thay 'demo_getEmployees' bằng hàm server của bạn
+  var table = new TXUI.DataTable('#mainTable', {
+    columns: [
+      { key: 'id', label: 'Mã' },
+      { key: 'name', label: 'Tên' },
+      { key: 'dept', label: 'Bộ phận' }
+    ],
+    exportable: true
+  });
+  table.setLoading(true);
+  TXUI.run('demo_getEmployees')
+    .then(function (rows) { table.setData(rows); })
+    .catch(function (err) { TXUI.toast.error(err.message); table.setData([]); });
+
+  document.getElementById('btnAdd').addEventListener('click', function () {
+    TXUI.toast.info('Gắn chức năng thêm mới tại đây');
+  });
+</script>
+</body>
+</html>

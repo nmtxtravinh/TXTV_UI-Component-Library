@@ -1,0 +1,1138 @@
+<!--
+  TXUI_Scripts.html – Thư viện JavaScript của TXUI (không phụ thuộc thư viện ngoài).
+  Đặt cuối <body>:  include('TXUI_Scripts')  (xem README)
+  Namespace toàn cục: window.TXUI  (alias: window.UI)
+-->
+<script>
+(function (global) {
+  'use strict';
+
+  var TXUI = { version: '1.0.0' };
+
+  /* =====================================================================
+   * TIỆN ÍCH CHUNG
+   * ===================================================================== */
+  var $  = function (sel, root) { return typeof sel === 'string' ? (root || document).querySelector(sel) : sel; };
+  var $$ = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
+  TXUI.$ = $; TXUI.$$ = $$;
+
+  /** Escape HTML để chống XSS khi render dữ liệu người dùng */
+  TXUI.escape = function (str) {
+    if (str === null || str === undefined) return '';
+    return String(str).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  };
+  var esc = TXUI.escape;
+
+  /** Tạo element từ chuỗi HTML */
+  TXUI.html = function (htmlString) {
+    var t = document.createElement('template');
+    t.innerHTML = htmlString.trim();
+    return t.content.firstElementChild;
+  };
+
+  TXUI.debounce = function (fn, wait) {
+    var t; return function () { var ctx = this, args = arguments; clearTimeout(t); t = setTimeout(function () { fn.apply(ctx, args); }, wait || 250); };
+  };
+  TXUI.throttle = function (fn, wait) {
+    var last = 0; return function () { var now = Date.now(); if (now - last >= (wait || 250)) { last = now; fn.apply(this, arguments); } };
+  };
+  TXUI.uid = function (prefix) { return (prefix || 'ui') + '-' + Math.random().toString(36).slice(2, 9); };
+
+  /** Bỏ dấu tiếng Việt (dùng cho tìm kiếm không dấu) */
+  TXUI.removeAccents = function (str) {
+    return String(str || '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D');
+  };
+  TXUI.matchText = function (haystack, needle) {
+    return TXUI.removeAccents(haystack).toLowerCase().indexOf(TXUI.removeAccents(needle).toLowerCase().trim()) !== -1;
+  };
+
+  TXUI.copy = function (text) {
+    var done = function () { TXUI.toast('Đã sao chép vào clipboard', { type: 'success', duration: 1800 }); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text).then(done).catch(function () { fallback(); });
+    }
+    fallback();
+    function fallback() {
+      var ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); done(); } catch (e) { TXUI.toast('Không thể sao chép', { type: 'error' }); }
+      ta.remove();
+    }
+  };
+
+  /* =====================================================================
+   * ĐỊNH DẠNG (chuẩn Việt Nam)
+   * ===================================================================== */
+  TXUI.format = {
+    number: function (n, decimals) {
+      if (n === '' || n === null || n === undefined || isNaN(n)) return '';
+      return Number(n).toLocaleString('vi-VN', { minimumFractionDigits: decimals || 0, maximumFractionDigits: decimals === undefined ? 2 : decimals });
+    },
+    currency: function (n, currency) {
+      if (n === '' || n === null || n === undefined || isNaN(n)) return '';
+      return Number(n).toLocaleString('vi-VN', { style: 'currency', currency: currency || 'VND', maximumFractionDigits: currency && currency !== 'VND' ? 2 : 0 });
+    },
+    percent: function (n, decimals) {
+      if (n === '' || n === null || isNaN(n)) return '';
+      return Number(n).toLocaleString('vi-VN', { style: 'percent', maximumFractionDigits: decimals === undefined ? 1 : decimals });
+    },
+    /** date(value, 'dd/MM/yyyy HH:mm:ss') */
+    date: function (value, pattern) {
+      if (!value) return '';
+      var d = value instanceof Date ? value : new Date(value);
+      if (isNaN(d)) return String(value);
+      var p = function (n) { return String(n).padStart(2, '0'); };
+      var map = { yyyy: d.getFullYear(), MM: p(d.getMonth() + 1), dd: p(d.getDate()), HH: p(d.getHours()), mm: p(d.getMinutes()), ss: p(d.getSeconds()) };
+      return (pattern || 'dd/MM/yyyy').replace(/yyyy|MM|dd|HH|mm|ss/g, function (k) { return map[k]; });
+    },
+    datetime: function (value) { return TXUI.format.date(value, 'dd/MM/yyyy HH:mm'); },
+    /** Chuyển chuỗi dd/MM/yyyy -> Date */
+    parseDate: function (str) {
+      var m = String(str || '').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2}))?/);
+      if (!m) return null;
+      return new Date(+m[3], +m[2] - 1, +m[1], +(m[4] || 0), +(m[5] || 0));
+    },
+    /** Giá trị cho input[type=date] (yyyy-MM-dd) */
+    isoDate: function (value) { return TXUI.format.date(value || new Date(), 'yyyy-MM-dd'); },
+    relative: function (value) {
+      var d = value instanceof Date ? value : new Date(value);
+      var s = Math.round((Date.now() - d.getTime()) / 1000);
+      if (s < 60) return 'vừa xong';
+      if (s < 3600) return Math.floor(s / 60) + ' phút trước';
+      if (s < 86400) return Math.floor(s / 3600) + ' giờ trước';
+      if (s < 2592000) return Math.floor(s / 86400) + ' ngày trước';
+      return TXUI.format.date(d);
+    },
+    fileSize: function (bytes) {
+      if (!bytes) return '0 B';
+      var u = ['B', 'KB', 'MB', 'GB'], i = Math.floor(Math.log(bytes) / Math.log(1024));
+      return (bytes / Math.pow(1024, i)).toFixed(i ? 1 : 0) + ' ' + u[i];
+    },
+    initials: function (name) {
+      var parts = String(name || '').trim().split(/\s+/);
+      if (!parts[0]) return '?';
+      return (parts.length > 1 ? parts[0][0] + parts[parts.length - 1][0] : parts[0].slice(0, 2)).toUpperCase();
+    }
+  };
+
+  /* =====================================================================
+   * GỌI SERVER: TXUI.run('tenHam', thamSo1, thamSo2...) -> Promise
+   *   - Tự dùng google.script.run khi chạy trong Apps Script
+   *   - Khi chạy ngoài Apps Script (xem trước), dùng TXUI.mocks[tenHam]
+   * ===================================================================== */
+  TXUI.mocks = {};
+  TXUI.isAppsScript = function () { return !!(global.google && google.script && google.script.run); };
+
+  TXUI.run = function (fnName) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    return new Promise(function (resolve, reject) {
+      if (TXUI.isAppsScript()) {
+        var runner = google.script.run.withSuccessHandler(resolve).withFailureHandler(function (err) {
+          reject(err instanceof Error ? err : new Error(err && err.message ? err.message : String(err)));
+        });
+        if (typeof runner[fnName] !== 'function') return reject(new Error('Không tìm thấy hàm server: ' + fnName));
+        runner[fnName].apply(runner, args);
+      } else if (typeof TXUI.mocks[fnName] === 'function') {
+        setTimeout(function () {
+          try { resolve(TXUI.mocks[fnName].apply(null, args)); } catch (e) { reject(e); }
+        }, 400 + Math.random() * 400);
+      } else {
+        reject(new Error('Không chạy trong Apps Script và không có mock cho: ' + fnName));
+      }
+    });
+  };
+
+  /**
+   * TXUI.call – gọi server kèm loading + toast lỗi tự động.
+   *   TXUI.call('saveData', [obj], { loading: 'Đang lưu...', success: 'Đã lưu!', button: btnEl })
+   */
+  TXUI.call = function (fnName, args, opts) {
+    opts = opts || {};
+    if (opts.button) TXUI.btnLoading(opts.button, true, opts.buttonText);
+    else if (opts.loading !== false) TXUI.loading.show(opts.loading || 'Đang xử lý...');
+    return TXUI.run.apply(null, [fnName].concat(args || []))
+      .then(function (res) {
+        if (opts.success) TXUI.toast(typeof opts.success === 'function' ? opts.success(res) : opts.success, { type: 'success' });
+        return res;
+      })
+      .catch(function (err) {
+        if (opts.error !== false) TXUI.toast(err.message || String(err), { type: 'error', title: 'Có lỗi xảy ra', duration: 6000 });
+        throw err;
+      })
+      .finally(function () {
+        if (opts.button) TXUI.btnLoading(opts.button, false);
+        else if (opts.loading !== false) TXUI.loading.hide();
+      });
+  };
+
+  /* =====================================================================
+   * TOAST
+   *   TXUI.toast('Nội dung', { type: 'success|error|warning|info', title, duration, position: 'top|bottom' })
+   * ===================================================================== */
+  var TOAST_ICON = { success: 'fa-circle-check', error: 'fa-circle-xmark', warning: 'fa-triangle-exclamation', info: 'fa-circle-info' };
+  TXUI.toast = function (message, opts) {
+    if (typeof opts === 'string') opts = { type: opts };
+    opts = opts || {};
+    var type = opts.type || 'info';
+    var pos = opts.position === 'bottom' ? 'bottom' : 'top';
+    var container = $('.toast-container.' + pos) || (function () {
+      var c = document.createElement('div'); c.className = 'toast-container ' + pos;
+      c.setAttribute('aria-live', 'polite'); document.body.appendChild(c); return c;
+    })();
+    var el = TXUI.html(
+      '<div class="toast toast-' + type + '" role="status">' +
+        '<i class="toast-icon fa-solid ' + (opts.icon || TOAST_ICON[type] || TOAST_ICON.info) + '"></i>' +
+        '<div class="min-w-0 flex-1">' +
+          (opts.title ? '<div class="toast-title">' + esc(opts.title) + '</div>' : '') +
+          '<div class="toast-text">' + (opts.html ? message : esc(message)) + '</div>' +
+        '</div>' +
+        '<button type="button" class="toast-close" aria-label="Đóng"><i class="fa-solid fa-xmark"></i></button>' +
+      '</div>');
+    var close = function () {
+      if (el._closing) return; el._closing = true;
+      el.classList.add('is-leaving'); setTimeout(function () { el.remove(); }, 300);
+    };
+    el.querySelector('.toast-close').addEventListener('click', close);
+    container.appendChild(el);
+    var duration = opts.duration === undefined ? 3500 : opts.duration;
+    if (duration > 0) {
+      var timer = setTimeout(close, duration);
+      el.addEventListener('mouseenter', function () { clearTimeout(timer); });
+      el.addEventListener('mouseleave', function () { timer = setTimeout(close, 1500); });
+    }
+    return { el: el, close: close };
+  };
+  ['success', 'error', 'warning', 'info'].forEach(function (t) {
+    TXUI.toast[t] = function (msg, title, opts) { return TXUI.toast(msg, Object.assign({ type: t, title: title }, opts || {})); };
+  });
+
+  /* =====================================================================
+   * KHÓA CUỘN BODY
+   * ===================================================================== */
+  var lockCount = 0;
+  function lockBody()   { lockCount++; document.body.classList.add('ui-lock'); }
+  function unlockBody() { lockCount = Math.max(0, lockCount - 1); if (!lockCount) document.body.classList.remove('ui-lock'); }
+
+  /* =====================================================================
+   * MODAL
+   *   HTML: <div class="modal" id="myModal"> <div class="modal-backdrop"></div> <div class="modal-dialog">...</div> </div>
+   *   Mở:   data-ui-toggle="modal" data-ui-target="#myModal"   hoặc TXUI.modal.open('#myModal')
+   *   Đóng: data-ui-dismiss="modal"                            hoặc TXUI.modal.close('#myModal')
+   *   Thuộc tính: data-static="true" (không đóng khi click nền / Esc)
+   *   Sự kiện: 'ui:open', 'ui:close' trên phần tử modal
+   * ===================================================================== */
+  var openStack = [];
+  function makeOverlay(kind) {
+    return {
+      open: function (target) {
+        var el = $(target); if (!el || el.classList.contains('open')) return el;
+        el.classList.add('open'); el.setAttribute('aria-hidden', 'false');
+        openStack.push(el); lockBody();
+        el._lastFocus = document.activeElement;
+        var focusEl = el.querySelector('[autofocus], input:not([type=hidden]):not([disabled]), select, textarea, .btn-primary');
+        setTimeout(function () { if (focusEl) focusEl.focus(); }, 60);
+        el.dispatchEvent(new CustomEvent('ui:open', { bubbles: true }));
+        return el;
+      },
+      close: function (target) {
+        var el = target ? $(target) : openStack[openStack.length - 1]; if (!el || !el.classList.contains('open')) return el;
+        el.classList.remove('open'); el.setAttribute('aria-hidden', 'true');
+        openStack = openStack.filter(function (x) { return x !== el; }); unlockBody();
+        if (el._lastFocus && el._lastFocus.focus) { try { el._lastFocus.focus(); } catch (e) {} }
+        el.dispatchEvent(new CustomEvent('ui:close', { bubbles: true }));
+        return el;
+      },
+      toggle: function (target) { var el = $(target); return el && el.classList.contains('open') ? this.close(el) : this.open(el); }
+    };
+  }
+  TXUI.modal = makeOverlay('modal');
+  TXUI.drawer = makeOverlay('drawer');
+
+  /** Tạo modal động: TXUI.modal.create({ title, body (HTML), size: 'sm|lg|xl|full', footer (HTML), static }) */
+  TXUI.modal.create = function (o) {
+    o = o || {};
+    var el = TXUI.html(
+      '<div class="modal ' + (o.size ? 'modal-' + o.size : '') + '" role="dialog" aria-modal="true"' + (o.static ? ' data-static="true"' : '') + '>' +
+        '<div class="modal-backdrop"></div>' +
+        '<div class="modal-dialog">' +
+          (o.title !== undefined ? '<div class="modal-header"><h3 class="modal-title">' + esc(o.title) + '</h3>' +
+            '<button type="button" class="modal-close" data-ui-dismiss="modal" aria-label="Đóng"><i class="fa-solid fa-xmark"></i></button></div>' : '') +
+          '<div class="modal-body">' + (o.body || '') + '</div>' +
+          (o.footer ? '<div class="modal-footer">' + o.footer + '</div>' : '') +
+        '</div>' +
+      '</div>');
+    document.body.appendChild(el);
+    if (o.destroyOnClose !== false) el.addEventListener('ui:close', function () { setTimeout(function () { el.remove(); }, 200); });
+    TXUI.modal.open(el);
+    return el;
+  };
+
+  /* =====================================================================
+   * DIALOG: alert / confirm / prompt (trả về Promise)
+   *   await TXUI.alert('Đã lưu', { type: 'success' })
+   *   if (await TXUI.confirm({ title: 'Xóa?', text: '...', type: 'danger', confirmText: 'Xóa' })) {...}
+   *   var v = await TXUI.prompt({ title: 'Nhập lý do', required: true })
+   * ===================================================================== */
+  var DIALOG_ICON = { info: 'fa-circle-info', success: 'fa-check', warning: 'fa-triangle-exclamation', danger: 'fa-trash-can', error: 'fa-xmark', question: 'fa-question' };
+  function dialog(o) {
+    return new Promise(function (resolve) {
+      var type = o.type === 'error' ? 'danger' : (o.type || 'question');
+      var btnClass = { danger: 'btn-danger', warning: 'btn-warning', success: 'btn-success', info: 'btn-info' }[type] || 'btn-primary';
+      var inputHtml = '';
+      if (o.mode === 'prompt') {
+        inputHtml = '<div class="mt-4 text-left">' +
+          (o.label ? '<label class="form-label mb-1.5' + (o.required ? ' required' : '') + '">' + esc(o.label) + '</label>' : '') +
+          (o.multiline
+            ? '<textarea class="form-control" data-dialog-input rows="3" placeholder="' + esc(o.placeholder || '') + '">' + esc(o.value || '') + '</textarea>'
+            : '<input class="form-control" data-dialog-input type="' + (o.inputType || 'text') + '" placeholder="' + esc(o.placeholder || '') + '" value="' + esc(o.value || '') + '">') +
+          '<p class="form-error mt-1.5 hidden" data-dialog-error><i class="fa-solid fa-circle-exclamation"></i> Vui lòng nhập thông tin</p></div>';
+      }
+      var el = TXUI.html(
+        '<div class="modal modal-sm" role="alertdialog" aria-modal="true"' + (o.static ? ' data-static="true"' : '') + '>' +
+          '<div class="modal-backdrop"></div>' +
+          '<div class="modal-dialog">' +
+            '<div class="modal-body pt-7 text-center">' +
+              (o.icon === false ? '' : '<div class="dialog-icon ' + type + '"><i class="fa-solid ' + (o.icon || DIALOG_ICON[o.type] || DIALOG_ICON[type]) + '"></i></div>') +
+              (o.title ? '<h3 class="text-lg font-semibold text-slate-900 dark:text-white">' + esc(o.title) + '</h3>' : '') +
+              (o.text ? '<div class="mt-2 text-sm text-slate-500 dark:text-slate-400">' + (o.html ? o.text : esc(o.text)) + '</div>' : '') +
+              inputHtml +
+            '</div>' +
+            '<div class="flex gap-2 px-6 pb-6">' +
+              (o.mode !== 'alert' ? '<button type="button" class="btn btn-secondary flex-1" data-dialog="cancel">' + esc(o.cancelText || 'Hủy') + '</button>' : '') +
+              '<button type="button" class="btn ' + btnClass + ' flex-1" data-dialog="ok">' + esc(o.confirmText || (o.mode === 'alert' ? 'Đóng' : 'Xác nhận')) + '</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>');
+      document.body.appendChild(el);
+      var input = el.querySelector('[data-dialog-input]');
+      var result;
+      var finish = function (val) { result = val; TXUI.modal.close(el); };
+      el.addEventListener('ui:close', function () {
+        setTimeout(function () { el.remove(); }, 200);
+        if (result === undefined) result = o.mode === 'prompt' ? null : (o.mode === 'alert' ? true : false);
+        resolve(result);
+      });
+      el.querySelector('[data-dialog="ok"]').addEventListener('click', function () {
+        if (o.mode === 'prompt') {
+          var v = input.value.trim();
+          if (o.required && !v) { input.classList.add('is-invalid'); el.querySelector('[data-dialog-error]').classList.remove('hidden'); input.focus(); return; }
+          return finish(v);
+        }
+        finish(true);
+      });
+      var cancel = el.querySelector('[data-dialog="cancel"]');
+      if (cancel) cancel.addEventListener('click', function () { finish(o.mode === 'prompt' ? null : false); });
+      if (input) input.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !o.multiline) el.querySelector('[data-dialog="ok"]').click(); });
+      TXUI.modal.open(el);
+      if (!input) setTimeout(function () { el.querySelector('[data-dialog="ok"]').focus(); }, 60);
+    });
+  }
+  function normalize(a, b) { return typeof a === 'string' ? Object.assign({ text: a }, b || {}) : (a || {}); }
+  TXUI.alert   = function (a, b) { var o = normalize(a, b); o.mode = 'alert'; o.type = o.type || 'info'; return dialog(o); };
+  TXUI.confirm = function (a, b) { var o = normalize(a, b); o.mode = 'confirm'; if (!o.title && !b) { o.title = o.text; o.text = ''; } return dialog(o); };
+  TXUI.prompt  = function (a, b) { var o = normalize(a, b); o.mode = 'prompt'; o.icon = o.icon || false; if (!o.title) { o.title = o.text; o.text = ''; } return dialog(o); };
+
+  /* =====================================================================
+   * LOADING
+   *   TXUI.loading.show('Đang tải...'); TXUI.loading.hide();
+   *   TXUI.loading.block(el, true/false)  – che 1 vùng
+   *   TXUI.btnLoading(btn, true/false, 'Đang lưu...')
+   * ===================================================================== */
+  var loadingCount = 0, loadingEl = null;
+  TXUI.loading = {
+    show: function (text) {
+      loadingCount++;
+      if (!loadingEl) {
+        loadingEl = TXUI.html('<div class="loading-overlay"><div class="loading-box"><span class="spinner spinner-xl"></span><div class="loading-text"></div></div></div>');
+        document.body.appendChild(loadingEl);
+      }
+      loadingEl.querySelector('.loading-text').textContent = text || 'Đang tải...';
+    },
+    hide: function (force) {
+      loadingCount = force ? 0 : Math.max(0, loadingCount - 1);
+      if (!loadingCount && loadingEl) { loadingEl.remove(); loadingEl = null; }
+    },
+    block: function (target, on) {
+      var el = $(target); if (!el) return;
+      el.classList.add('loading-block');
+      var mask = el.querySelector(':scope > .loading-mask');
+      if (on === false) { if (mask) mask.remove(); return; }
+      if (!mask) el.appendChild(TXUI.html('<div class="loading-mask"><span class="spinner spinner-lg text-brand-700"></span></div>'));
+    }
+  };
+  TXUI.btnLoading = function (btn, on, text) {
+    btn = $(btn); if (!btn) return;
+    if (on === false) {
+      if (btn._origHtml !== undefined) { btn.innerHTML = btn._origHtml; delete btn._origHtml; }
+      btn.disabled = false; btn.removeAttribute('aria-busy');
+      return;
+    }
+    if (btn._origHtml === undefined) btn._origHtml = btn.innerHTML;
+    btn.style.minWidth = btn.offsetWidth + 'px';
+    btn.innerHTML = '<span class="spinner spinner-sm"></span>' + (text !== undefined ? esc(text) : (btn.classList.contains('btn-icon') ? '' : esc(btn.textContent.trim())));
+    btn.disabled = true; btn.setAttribute('aria-busy', 'true');
+  };
+
+  /* =====================================================================
+   * DROPDOWN
+   *   <div class="dropdown"> <button data-ui-toggle="dropdown">...</button> <div class="dropdown-menu">...</div> </div>
+   * ===================================================================== */
+  /** Panel nổi (dropdown/combobox) nằm trong vùng overflow sẽ được định vị fixed để không bị cắt */
+  var CLIP_SEL = '.table-wrapper, .modal-body, .drawer-body, .overflow-hidden, .overflow-auto, .overflow-x-auto, .overflow-y-auto, [data-ui-float]';
+  function floatPanel(anchor, panel, alignLeft) {
+    resetPanel(panel);
+    if (!anchor.parentElement.closest(CLIP_SEL)) return;
+    var r = anchor.getBoundingClientRect();
+    panel.style.position = 'fixed'; panel.style.margin = '0'; panel.style.right = 'auto'; panel.style.bottom = 'auto';
+    var w = panel.offsetWidth, h = panel.offsetHeight;
+    var left = alignLeft ? r.left : r.right - w;
+    left = Math.max(8, Math.min(left, global.innerWidth - w - 8));
+    var top = r.bottom + 6;
+    if (top + h > global.innerHeight - 8 && r.top - h - 6 > 8) top = r.top - h - 6;
+    panel.style.left = left + 'px'; panel.style.top = top + 'px'; panel.style.zIndex = '150';
+    panel._floating = true;
+  }
+  function resetPanel(panel) {
+    if (!panel || !panel._floating) return;
+    ['position', 'margin', 'right', 'bottom', 'left', 'top', 'zIndex', 'width'].forEach(function (k) { panel.style[k] = ''; });
+    panel._floating = false;
+  }
+  TXUI.dropdown = {
+    closeAll: function (except) {
+      $$('.dropdown.open').forEach(function (d) {
+        if (d !== except && !d.contains(except)) { d.classList.remove('open'); resetPanel(d.querySelector(':scope > .dropdown-menu')); }
+      });
+    },
+    toggle: function (el) {
+      var dd = $(el).closest('.dropdown'); var willOpen = !dd.classList.contains('open');
+      TXUI.dropdown.closeAll(dd); dd.classList.toggle('open', willOpen);
+      var menu = dd.querySelector(':scope > .dropdown-menu');
+      if (willOpen && menu) floatPanel(dd, menu, menu.classList.contains('dropdown-left'));
+      else resetPanel(menu);
+    }
+  };
+  // Đóng panel nổi khi cuộn (tránh lệch vị trí) hoặc khi đổi kích thước cửa sổ
+  global.addEventListener('scroll', function (e) {
+    $$('.dropdown.open > .dropdown-menu').forEach(function (m) { if (m._floating && !m.contains(e.target)) TXUI.dropdown.closeAll(); });
+    $$('.combo.open > .combo-panel').forEach(function (p) { if (p._floating && !p.contains(e.target)) p.parentElement._close(); });
+  }, true);
+  global.addEventListener('resize', function () { TXUI.dropdown.closeAll(); });
+
+  /* =====================================================================
+   * TABS
+   *   <div data-ui-tabs> <div class="tabs"> <button class="tab active" data-tab="a">A</button> ... </div>
+   *      <div class="tab-panel active" data-tab-panel="a">...</div> ... </div>
+   * ===================================================================== */
+  TXUI.tabs = {
+    show: function (root, name) {
+      root = $(root);
+      $$('[data-tab]', root).forEach(function (t) { if (t.closest('[data-ui-tabs]') === root) { t.classList.toggle('active', t.getAttribute('data-tab') === name); t.setAttribute('aria-selected', t.getAttribute('data-tab') === name); } });
+      $$('[data-tab-panel]', root).forEach(function (p) { if (p.closest('[data-ui-tabs]') === root) p.classList.toggle('active', p.getAttribute('data-tab-panel') === name); });
+      root.dispatchEvent(new CustomEvent('ui:tab', { detail: { tab: name }, bubbles: true }));
+    }
+  };
+
+  /* =====================================================================
+   * ACCORDION:  <div class="accordion" data-ui-accordion="single|multi"> <div class="accordion-item"> <button class="accordion-trigger">..
+   * ===================================================================== */
+  function toggleAccordion(trigger) {
+    var item = trigger.closest('.accordion-item'), acc = trigger.closest('[data-ui-accordion], .accordion');
+    var single = acc && acc.getAttribute('data-ui-accordion') === 'single';
+    var willOpen = !item.classList.contains('open');
+    if (single) $$('.accordion-item.open', acc).forEach(function (i) { if (i !== item) i.classList.remove('open'); });
+    item.classList.toggle('open', willOpen);
+    trigger.setAttribute('aria-expanded', willOpen);
+  }
+
+  /* =====================================================================
+   * STEPS (wizard):  TXUI.steps.set('#steps', 2)   (0-based)
+   * ===================================================================== */
+  TXUI.steps = {
+    set: function (root, index) {
+      $$('.step', $(root)).forEach(function (s, i) {
+        s.classList.toggle('done', i < index); s.classList.toggle('active', i === index);
+        var idx = s.querySelector('.step-index');
+        if (idx) { if (!idx.dataset.num) idx.dataset.num = idx.textContent.trim() || String(i + 1); idx.innerHTML = i < index ? '<i class="fa-solid fa-check"></i>' : esc(idx.dataset.num); }
+      });
+    }
+  };
+
+  /* =====================================================================
+   * PROGRESS:  TXUI.progress('#bar', 65)   |  progress ring: TXUI.progressRing(el, 72)
+   * ===================================================================== */
+  TXUI.progress = function (el, value, showLabel) {
+    el = $(el); var bar = el.classList.contains('progress-bar') ? el : el.querySelector('.progress-bar');
+    var v = Math.max(0, Math.min(100, Number(value) || 0));
+    bar.style.width = v + '%'; bar.setAttribute('aria-valuenow', v);
+    if (showLabel) bar.textContent = Math.round(v) + '%';
+  };
+  TXUI.progressRing = function (el, value, opts) {
+    el = $(el); opts = opts || {};
+    var size = opts.size || +el.dataset.size || 96, stroke = opts.stroke || +el.dataset.stroke || 8;
+    var r = (size - stroke) / 2, c = 2 * Math.PI * r, v = Math.max(0, Math.min(100, Number(value) || 0));
+    var color = opts.color || el.dataset.color || '#0b5a41';
+    el.classList.add('progress-ring');
+    el.innerHTML =
+      '<svg width="' + size + '" height="' + size + '">' +
+        '<circle cx="' + size / 2 + '" cy="' + size / 2 + '" r="' + r + '" fill="none" stroke="currentColor" class="text-slate-200 dark:text-slate-800" stroke-width="' + stroke + '"></circle>' +
+        '<circle cx="' + size / 2 + '" cy="' + size / 2 + '" r="' + r + '" fill="none" stroke="' + color + '" stroke-width="' + stroke + '" stroke-linecap="round" ' +
+          'stroke-dasharray="' + c + '" stroke-dashoffset="' + (c * (1 - v / 100)) + '" style="transition:stroke-dashoffset .6s"></circle>' +
+      '</svg><span class="progress-ring-value">' + (opts.label !== undefined ? esc(opts.label) : Math.round(v) + '%') + '</span>';
+  };
+
+  /* =====================================================================
+   * THEME (Dark mode) – lưu theo trình duyệt
+   * ===================================================================== */
+  var THEME_KEY = 'txui-theme';
+  function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
+  TXUI.theme = {
+    get: function () { return document.documentElement.classList.contains('dark') ? 'dark' : 'light'; },
+    set: function (mode) {
+      document.documentElement.classList.toggle('dark', mode === 'dark'); store(THEME_KEY, mode);
+      $$('[data-ui-theme-icon]').forEach(function (i) { i.className = 'fa-solid ' + (mode === 'dark' ? 'fa-sun' : 'fa-moon'); });
+    },
+    toggle: function () { TXUI.theme.set(TXUI.theme.get() === 'dark' ? 'light' : 'dark'); },
+    init: function () {
+      var saved = store(THEME_KEY);
+      var prefersDark = global.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches;
+      TXUI.theme.set(saved || (TXUI.config.followSystemTheme && prefersDark ? 'dark' : 'light'));
+    }
+  };
+  TXUI.config = { followSystemTheme: false };
+
+  /* =====================================================================
+   * SIDEBAR (App shell)
+   * ===================================================================== */
+  TXUI.sidebar = {
+    toggle: function () {
+      var app = $('.app'); if (!app) return;
+      if (global.innerWidth >= 1024) { app.classList.toggle('sidebar-collapsed'); store('txui-sidebar', app.classList.contains('sidebar-collapsed') ? '1' : '0'); }
+      else app.classList.toggle('sidebar-open');
+    },
+    close: function () { var app = $('.app'); if (app) app.classList.remove('sidebar-open'); }
+  };
+
+  /* =====================================================================
+   * FORM: serialize / fill / validate / reset
+   *   var data = TXUI.form.serialize('#frm')   -> { field: value }
+   *     - checkbox cùng name -> mảng; checkbox đơn -> true/false
+   *     - data-type="number" -> Number; data-type="date" -> chuỗi yyyy-MM-dd
+   *   TXUI.form.fill('#frm', obj)
+   *   if (!TXUI.form.validate('#frm')) return;
+   * ===================================================================== */
+  TXUI.form = {
+    serialize: function (form) {
+      form = $(form); var data = {};
+      $$('input, select, textarea', form).forEach(function (el) {
+        var name = el.name; if (!name || el.disabled || el.type === 'file' || el.type === 'button' || el.type === 'submit') return;
+        var multiCheck = el.type === 'checkbox' && form.querySelectorAll('input[type=checkbox][name="' + name + '"]').length > 1;
+        var val;
+        if (el.type === 'checkbox') {
+          if (multiCheck) { data[name] = data[name] || []; if (el.checked) data[name].push(el.value); return; }
+          val = el.checked;
+        } else if (el.type === 'radio') {
+          if (!el.checked) { if (!(name in data)) data[name] = ''; return; } val = el.value;
+        } else if (el.tagName === 'SELECT' && el.multiple) {
+          val = $$('option', el).filter(function (o) { return o.selected; }).map(function (o) { return o.value; });
+        } else {
+          val = el.value;
+          if ((el.dataset.type === 'number' || el.type === 'number' || el.type === 'range') && val !== '') val = Number(String(val).replace(/,/g, '.'));
+          if (el.dataset.type === 'json' && val) { try { val = JSON.parse(val); } catch (e) {} }
+        }
+        data[name] = val;
+      });
+      return data;
+    },
+    fill: function (form, obj) {
+      form = $(form); obj = obj || {};
+      Object.keys(obj).forEach(function (name) {
+        var els = $$('[name="' + name + '"]', form), v = obj[name];
+        els.forEach(function (el) {
+          if (el.type === 'checkbox') el.checked = Array.isArray(v) ? v.indexOf(el.value) !== -1 : (v === true || v === 'true' || v === 1 || v === el.value);
+          else if (el.type === 'radio') el.checked = String(el.value) === String(v);
+          else if (el.tagName === 'SELECT' && el.multiple) $$('option', el).forEach(function (o) { o.selected = (v || []).indexOf(o.value) !== -1; });
+          else if (el.type === 'date' && v) el.value = TXUI.format.isoDate(v);
+          else if (el.type === 'file') return;
+          else el.value = v === null || v === undefined ? '' : v;
+          el.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+      });
+    },
+    reset: function (form) {
+      form = $(form); form.reset();
+      $$('.is-invalid, .is-valid', form).forEach(function (el) { el.classList.remove('is-invalid', 'is-valid'); });
+      $$('.form-error[data-auto]', form).forEach(function (el) { el.remove(); });
+      $$('[data-ui-tags]', form).forEach(function (el) { if (el._tags) el._tags.set([]); });
+      $$('select[data-ui-combo]', form).forEach(function (el) { if (el._combo) el._combo.refresh(); });
+    },
+    /** Kiểm tra hợp lệ dùng HTML5 (required, min, max, pattern, type=email...) + data-match="#idKhac" */
+    validate: function (form, opts) {
+      form = $(form); opts = opts || {};
+      var firstInvalid = null;
+      $$('.form-error[data-auto]', form).forEach(function (el) { el.remove(); });
+      $$('input, select, textarea', form).forEach(function (el) {
+        if (el.disabled || el.type === 'hidden' || !el.willValidate) return;
+        var msg = '';
+        el.setCustomValidity('');
+        if (el.dataset.match) { var other = $(el.dataset.match, form) || $(el.dataset.match); if (other && other.value !== el.value) el.setCustomValidity(el.dataset.matchMessage || 'Giá trị không khớp'); }
+        if (!el.checkValidity()) {
+          var v = el.validity;
+          if (el.dataset.error) msg = el.dataset.error;
+          else if (v.valueMissing) msg = 'Trường này là bắt buộc';
+          else if (v.typeMismatch) msg = el.type === 'email' ? 'Email không hợp lệ' : 'Giá trị không hợp lệ';
+          else if (v.patternMismatch) msg = el.title || 'Sai định dạng';
+          else if (v.rangeUnderflow) msg = 'Giá trị tối thiểu là ' + el.min;
+          else if (v.rangeOverflow) msg = 'Giá trị tối đa là ' + el.max;
+          else if (v.tooShort) msg = 'Tối thiểu ' + el.minLength + ' ký tự';
+          else if (v.tooLong) msg = 'Tối đa ' + el.maxLength + ' ký tự';
+          else msg = el.validationMessage;
+        }
+        var isCheck = el.type === 'checkbox' || el.type === 'radio';
+        var target = isCheck ? el : (el._comboToggle || el);
+        target.classList.toggle('is-invalid', !!msg);
+        if (opts.showValid) target.classList.toggle('is-valid', !msg);
+        if (msg) {
+          if (!firstInvalid) firstInvalid = el;
+          var group = el.closest('.form-group') || el.parentElement;
+          if (!group.querySelector('.form-error[data-auto]')) {
+            var err = TXUI.html('<p class="form-error" data-auto><i class="fa-solid fa-circle-exclamation"></i><span></span></p>');
+            err.querySelector('span').textContent = msg; group.appendChild(err);
+          }
+        }
+      });
+      if (firstInvalid) {
+        (firstInvalid._comboToggle || firstInvalid).focus();
+        if (opts.toast !== false) TXUI.toast('Vui lòng kiểm tra lại các trường được đánh dấu', { type: 'warning' });
+      }
+      return !firstInvalid;
+    }
+  };
+
+  /** Đọc file thành base64 để gửi lên server (Drive): { name, mimeType, size, data } */
+  TXUI.fileToBase64 = function (file) {
+    return new Promise(function (resolve, reject) {
+      var r = new FileReader();
+      r.onload = function () { resolve({ name: file.name, mimeType: file.type || 'application/octet-stream', size: file.size, data: String(r.result).split(',')[1] }); };
+      r.onerror = reject; r.readAsDataURL(file);
+    });
+  };
+
+  /* =====================================================================
+   * DROPZONE:  <div class="dropzone" data-ui-dropzone data-accept="image/*,.pdf" data-max-size="10" data-multiple>
+   *   el._files -> mảng File;  sự kiện 'ui:files' (detail.files)
+   * ===================================================================== */
+  function initDropzone(dz) {
+    if (dz._init) return; dz._init = true; dz._files = [];
+    var input = document.createElement('input'); input.type = 'file'; input.hidden = true;
+    if (dz.dataset.accept) input.accept = dz.dataset.accept;
+    if (dz.hasAttribute('data-multiple')) input.multiple = true;
+    dz.appendChild(input);
+    var list = dz.dataset.list ? $(dz.dataset.list) : null;
+    var maxMB = +dz.dataset.maxSize || 0;
+    var render = function () {
+      if (!list) return;
+      list.innerHTML = dz._files.map(function (f, i) {
+        return '<div class="file-item"><i class="fa-solid ' + fileIcon(f) + ' text-lg text-brand-600"></i>' +
+          '<div class="min-w-0 flex-1"><div class="truncate font-medium text-slate-800 dark:text-slate-200">' + esc(f.name) + '</div><div class="text-xs text-slate-400">' + TXUI.format.fileSize(f.size) + '</div></div>' +
+          '<button type="button" class="btn btn-ghost btn-icon btn-xs" data-remove="' + i + '"><i class="fa-solid fa-xmark"></i></button></div>';
+      }).join('');
+    };
+    var add = function (files) {
+      Array.prototype.forEach.call(files, function (f) {
+        if (maxMB && f.size > maxMB * 1048576) { TXUI.toast('"' + f.name + '" vượt quá ' + maxMB + ' MB', { type: 'warning' }); return; }
+        if (input.multiple) dz._files.push(f); else dz._files = [f];
+      });
+      render(); dz.dispatchEvent(new CustomEvent('ui:files', { detail: { files: dz._files }, bubbles: true }));
+    };
+    dz.addEventListener('click', function (e) { if (e.target !== input) input.click(); });
+    input.addEventListener('change', function () { add(input.files); input.value = ''; });
+    ['dragenter', 'dragover'].forEach(function (ev) { dz.addEventListener(ev, function (e) { e.preventDefault(); dz.classList.add('is-dragover'); }); });
+    ['dragleave', 'drop'].forEach(function (ev) { dz.addEventListener(ev, function (e) { e.preventDefault(); dz.classList.remove('is-dragover'); }); });
+    dz.addEventListener('drop', function (e) { add(e.dataTransfer.files); });
+    if (list) list.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-remove]'); if (!b) return;
+      dz._files.splice(+b.dataset.remove, 1); render(); dz.dispatchEvent(new CustomEvent('ui:files', { detail: { files: dz._files }, bubbles: true }));
+    });
+    dz.clear = function () { dz._files = []; render(); };
+  }
+  function fileIcon(f) {
+    var t = (f.type || '') + ' ' + f.name;
+    if (/image/.test(t)) return 'fa-file-image';
+    if (/pdf/.test(t)) return 'fa-file-pdf';
+    if (/sheet|excel|\.xlsx?|\.csv/.test(t)) return 'fa-file-excel';
+    if (/word|\.docx?/.test(t)) return 'fa-file-word';
+    if (/zip|rar|7z/.test(t)) return 'fa-file-zipper';
+    return 'fa-file-lines';
+  }
+
+  /* =====================================================================
+   * TAG INPUT:  <div class="tag-input" data-ui-tags data-name="tags"></div>
+   *   el._tags.get() / .set([...]) ;  input ẩn name=data-name chứa chuỗi "a,b,c"
+   * ===================================================================== */
+  function initTags(box) {
+    if (box._tags) return;
+    var tags = (box.dataset.value || '').split(',').map(function (s) { return s.trim(); }).filter(Boolean);
+    var hidden = document.createElement('input'); hidden.type = 'hidden'; hidden.name = box.dataset.name || '';
+    var input = document.createElement('input'); input.type = 'text'; input.placeholder = box.dataset.placeholder || 'Nhập rồi Enter...';
+    box.innerHTML = ''; box.appendChild(hidden); box.appendChild(input);
+    var render = function () {
+      $$('.chip', box).forEach(function (c) { c.remove(); });
+      tags.forEach(function (t, i) {
+        var chip = TXUI.html('<span class="chip chip-brand"><span></span><span class="chip-remove" data-i="' + i + '"><i class="fa-solid fa-xmark"></i></span></span>');
+        chip.firstChild.textContent = t; box.insertBefore(chip, input);
+      });
+      hidden.value = tags.join(',');
+      box.dispatchEvent(new CustomEvent('ui:change', { detail: { tags: tags.slice() }, bubbles: true }));
+    };
+    var addTag = function (v) { v = v.trim().replace(/,$/, ''); if (v && tags.indexOf(v) === -1) { tags.push(v); render(); } input.value = ''; };
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ',' || e.key === 'Tab') { if (input.value.trim()) { e.preventDefault(); addTag(input.value); } }
+      else if (e.key === 'Backspace' && !input.value && tags.length) { tags.pop(); render(); }
+    });
+    input.addEventListener('blur', function () { if (input.value.trim()) addTag(input.value); });
+    box.addEventListener('click', function (e) {
+      var r = e.target.closest('.chip-remove'); if (r) { tags.splice(+r.dataset.i, 1); render(); } else input.focus();
+    });
+    box._tags = { get: function () { return tags.slice(); }, set: function (arr) { tags = (arr || []).slice(); render(); } };
+    render();
+  }
+
+  /* =====================================================================
+   * NUMBER STEPPER:  <div class="number-input" data-ui-number><button data-step="-1">-</button><input type="number" min max step><button data-step="1">+</button></div>
+   * ===================================================================== */
+  function stepNumber(btn) {
+    var input = btn.parentElement.querySelector('input'); var step = +input.step || 1;
+    var v = (Number(input.value) || 0) + step * (+btn.dataset.step);
+    if (input.min !== '' && v < +input.min) v = +input.min;
+    if (input.max !== '' && v > +input.max) v = +input.max;
+    input.value = +v.toFixed(6); input.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  /* =====================================================================
+   * COMBOBOX – nâng cấp <select data-ui-combo> thành select có ô tìm kiếm (tìm không dấu)
+   *   select._combo.refresh()  khi thay đổi option bằng JS
+   *   TXUI.combo.setOptions(select, [{value,label}], selectedValue)
+   * ===================================================================== */
+  function initCombo(select) {
+    if (select._combo) return select._combo;
+    var wrap = TXUI.html('<div class="combo"><button type="button" class="combo-toggle"><span class="combo-text truncate"></span><i class="fa-solid fa-chevron-down text-[10px] text-slate-400"></i></button>' +
+      '<div class="combo-panel"><input class="combo-search" type="text" placeholder="Tìm kiếm..."><div class="combo-list" role="listbox"></div></div></div>');
+    select.parentNode.insertBefore(wrap, select); wrap.appendChild(select); select.hidden = true;
+    var toggle = wrap.querySelector('.combo-toggle'), search = wrap.querySelector('.combo-search'), list = wrap.querySelector('.combo-list');
+    select._comboToggle = toggle;
+    if (select.disabled) toggle.disabled = true;
+    var hi = -1;
+    var opts = function () { return $$('option', select).filter(function (o) { return o.value !== '' || !select.hasAttribute('required'); }); };
+    var placeholder = select.dataset.placeholder || (select.querySelector('option[value=""]') || {}).textContent || 'Chọn...';
+    var renderToggle = function () {
+      var o = select.options[select.selectedIndex];
+      var t = wrap.querySelector('.combo-text');
+      if (o && o.value !== '') { t.textContent = o.textContent; t.classList.remove('placeholder'); }
+      else { t.textContent = placeholder; t.classList.add('placeholder'); }
+    };
+    var renderList = function () {
+      var q = search.value;
+      var items = opts().filter(function (o) { return o.value !== '' && (!q || TXUI.matchText(o.textContent, q)); });
+      hi = items.length ? 0 : -1;
+      list.innerHTML = items.length ? items.map(function (o, i) {
+        return '<div class="combo-option' + (o.selected ? ' selected' : '') + (i === hi ? ' highlight' : '') + '" data-value="' + esc(o.value) + '" role="option">' +
+          '<span class="truncate">' + esc(o.textContent) + '</span>' + (o.selected ? '<i class="fa-solid fa-check text-xs"></i>' : '') + '</div>';
+      }).join('') : '<div class="combo-empty">Không tìm thấy kết quả</div>';
+    };
+    var panel = wrap.querySelector('.combo-panel');
+    var open = function () {
+      $$('.combo.open').forEach(function (c) { if (c !== wrap && c._close) c._close(); });
+      wrap.classList.add('open'); search.value = ''; renderList();
+      floatPanel(toggle, panel, true); if (panel._floating) panel.style.width = toggle.offsetWidth + 'px';
+      setTimeout(function () { search.focus(); }, 10);
+    };
+    var close = function () { wrap.classList.remove('open'); resetPanel(panel); };
+    wrap._close = close;
+    var choose = function (value) {
+      select.value = value; renderToggle(); close(); toggle.focus();
+      toggle.classList.remove('is-invalid');
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+    toggle.addEventListener('click', function () { wrap.classList.contains('open') ? close() : open(); });
+    search.addEventListener('input', renderList);
+    search.addEventListener('keydown', function (e) {
+      var items = $$('.combo-option', list);
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault(); hi = Math.max(0, Math.min(items.length - 1, hi + (e.key === 'ArrowDown' ? 1 : -1)));
+        items.forEach(function (it, i) { it.classList.toggle('highlight', i === hi); }); if (items[hi]) items[hi].scrollIntoView({ block: 'nearest' });
+      } else if (e.key === 'Enter') { e.preventDefault(); if (items[hi]) choose(items[hi].dataset.value); }
+      else if (e.key === 'Escape') { close(); toggle.focus(); }
+    });
+    list.addEventListener('click', function (e) { var o = e.target.closest('.combo-option'); if (o) choose(o.dataset.value); });
+    document.addEventListener('click', function (e) { if (!wrap.contains(e.target)) close(); });
+    select.addEventListener('change', renderToggle);
+    renderToggle();
+    select._combo = { refresh: function () { renderToggle(); toggle.disabled = select.disabled; }, open: open, close: close };
+    return select._combo;
+  }
+  TXUI.combo = {
+    init: initCombo,
+    setOptions: function (select, items, selected) {
+      select = $(select);
+      var keepEmpty = select.querySelector('option[value=""]');
+      select.innerHTML = (keepEmpty ? keepEmpty.outerHTML : '') + (items || []).map(function (it) {
+        var v = typeof it === 'object' ? it.value : it, l = typeof it === 'object' ? (it.label || it.text || it.value) : it;
+        return '<option value="' + esc(v) + '">' + esc(l) + '</option>';
+      }).join('');
+      if (selected !== undefined) select.value = selected;
+      if (select._combo) select._combo.refresh();
+    }
+  };
+  /** Đổ option cho <select> thường */
+  TXUI.setOptions = TXUI.combo.setOptions;
+
+  /* =====================================================================
+   * PAGINATION – render HTML phân trang
+   *   TXUI.pagination(el, { page, totalPages, onChange(page) })
+   * ===================================================================== */
+  TXUI.pagination = function (el, o) {
+    el = $(el); var page = o.page, total = Math.max(1, o.totalPages);
+    var pages = [], add = function (p) { pages.push(p); };
+    if (total <= 7) { for (var i = 1; i <= total; i++) add(i); }
+    else {
+      add(1); if (page > 4) add('…');
+      for (var j = Math.max(2, page - 1); j <= Math.min(total - 1, page + 1); j++) add(j);
+      if (page < total - 3) add('…'); add(total);
+    }
+    el.classList.add('pagination');
+    el.innerHTML =
+      '<a class="page-link' + (page <= 1 ? ' disabled' : '') + '" data-page="' + (page - 1) + '" aria-label="Trang trước"><i class="fa-solid fa-chevron-left text-xs"></i></a>' +
+      pages.map(function (p) { return p === '…' ? '<span class="page-ellipsis">…</span>' : '<a class="page-link' + (p === page ? ' active' : '') + '" data-page="' + p + '">' + p + '</a>'; }).join('') +
+      '<a class="page-link' + (page >= total ? ' disabled' : '') + '" data-page="' + (page + 1) + '" aria-label="Trang sau"><i class="fa-solid fa-chevron-right text-xs"></i></a>';
+    el.onclick = function (e) { var a = e.target.closest('[data-page]'); if (a && !a.classList.contains('disabled') && !a.classList.contains('active')) o.onChange(+a.dataset.page); };
+  };
+
+  /* =====================================================================
+   * DATATABLE
+   *   var dt = new TXUI.DataTable('#el', {
+   *     columns: [ { key: 'code', label: 'Mã', sortable: true, width: '120px', align: 'left|center|right',
+   *                  render: function (value, row, index) { return '...html...'; }, format: 'number|currency|date|datetime',
+   *                  exportValue: function(row){...}, className: '' } ],
+   *     data: [], pageSize: 10, pageSizes: [10,25,50,100], search: true, searchKeys: ['code','name'],
+   *     selectable: false, rowKey: 'id', striped: false, hover: true, compact: false, stickyHeader: false, maxHeight: '480px',
+   *     emptyText: 'Không có dữ liệu', toolbar: '<button ...>' (HTML thêm bên phải), exportable: true, exportName: 'du-lieu',
+   *     onRowClick: function (row, index, event) {}, onSelect: function (rows) {}
+   *   });
+   *   dt.setData(rows); dt.getData(); dt.getFiltered(); dt.getSelected(); dt.setLoading(true); dt.search('abc'); dt.exportCSV();
+   * ===================================================================== */
+  function DataTable(el, options) {
+    if (!(this instanceof DataTable)) return new DataTable(el, options);
+    this.el = $(el);
+    this.o = Object.assign({
+      columns: [], data: [], pageSize: 10, pageSizes: [10, 25, 50, 100], search: true, searchKeys: null,
+      selectable: false, rowKey: 'id', striped: false, hover: true, compact: false, stickyHeader: false, maxHeight: null,
+      emptyText: 'Không có dữ liệu', emptyIcon: 'fa-inbox', toolbar: '', exportable: false, exportName: 'du-lieu',
+      searchPlaceholder: 'Tìm kiếm...', pagination: true, onRowClick: null, onSelect: null, rowClass: null, filter: null
+    }, options || {});
+    this.data = (this.o.data || []).slice();
+    this.page = 1; this.pageSize = this.o.pageSize; this.query = ''; this.sortKey = null; this.sortDir = 1;
+    this.selected = new Set(); this.loading = false;
+    this._build();
+    this.render();
+  }
+  DataTable.prototype._build = function () {
+    var o = this.o, self = this;
+    var tblCls = ['table', o.hover ? 'table-hover' : '', o.striped ? 'table-striped' : '', o.compact ? 'table-compact' : '', o.stickyHeader || o.maxHeight ? 'table-sticky' : ''].join(' ');
+    this.el.classList.add('dt');
+    this.el.innerHTML =
+      ((o.search || o.toolbar || o.exportable) ?
+        '<div class="dt-toolbar">' +
+          '<div class="flex items-center gap-2">' +
+            (o.search ? '<div class="input-icon w-full sm:w-72"><i class="fa-solid fa-magnifying-glass text-xs"></i><input type="search" class="form-control" data-dt-search placeholder="' + esc(o.searchPlaceholder) + '"></div>' : '') +
+          '</div>' +
+          '<div class="flex flex-wrap items-center gap-2">' + (o.toolbar || '') +
+            (o.exportable ? '<button type="button" class="btn btn-secondary btn-sm" data-dt-export><i class="fa-solid fa-file-csv"></i> Xuất CSV</button>' : '') +
+          '</div>' +
+        '</div>' : '') +
+      '<div class="table-wrapper loading-block"' + (o.maxHeight ? ' style="max-height:' + o.maxHeight + ';overflow-y:auto"' : '') + '>' +
+        '<table class="' + tblCls + '"><thead></thead><tbody></tbody></table>' +
+      '</div>' +
+      (o.pagination ? '<div class="dt-footer"><div class="flex items-center gap-2"><span data-dt-info></span>' +
+        '<select class="form-control form-control-sm w-auto" data-dt-size>' + o.pageSizes.map(function (s) { return '<option value="' + s + '"' + (s === o.pageSize ? ' selected' : '') + '>' + s + ' / trang</option>'; }).join('') + '</select></div>' +
+        '<nav data-dt-pages></nav></div>' : '');
+    this.thead = this.el.querySelector('thead'); this.tbody = this.el.querySelector('tbody');
+    var s = this.el.querySelector('[data-dt-search]');
+    if (s) s.addEventListener('input', TXUI.debounce(function () { self.query = s.value; self.page = 1; self.render(); }, 200));
+    var size = this.el.querySelector('[data-dt-size]');
+    if (size) size.addEventListener('change', function () { self.pageSize = +size.value; self.page = 1; self.render(); });
+    var ex = this.el.querySelector('[data-dt-export]'); if (ex) ex.addEventListener('click', function () { self.exportCSV(); });
+    this.thead.addEventListener('click', function (e) {
+      var all = e.target.closest('[data-dt-checkall]');
+      if (all) { var rows = self._pageRows(); rows.forEach(function (r) { var k = self._key(r); all.checked ? self.selected.add(k) : self.selected.delete(k); }); self.render(); self._emitSelect(); return; }
+      var th = e.target.closest('th[data-key]'); if (!th) return;
+      var key = th.dataset.key; if (self.sortKey === key) self.sortDir = -self.sortDir; else { self.sortKey = key; self.sortDir = 1; }
+      self.render();
+    });
+    this.tbody.addEventListener('click', function (e) {
+      var cb = e.target.closest('[data-dt-check]');
+      if (cb) { var k = cb.dataset.dtCheck; cb.checked ? self.selected.add(k) : self.selected.delete(k); self.render(); self._emitSelect(); return; }
+      var tr = e.target.closest('tr[data-index]');
+      if (tr && self.o.onRowClick && !e.target.closest('button, a, input, select, .dropdown')) {
+        var idx = +tr.dataset.index; self.o.onRowClick(self._view[idx], idx, e);
+      }
+    });
+  };
+  DataTable.prototype._key = function (row) { return String(row[this.o.rowKey] !== undefined ? row[this.o.rowKey] : this.data.indexOf(row)); };
+  DataTable.prototype._emitSelect = function () { if (this.o.onSelect) this.o.onSelect(this.getSelected()); };
+  DataTable.prototype._cell = function (col, row, i) {
+    var v = row[col.key];
+    if (col.render) return col.render(v, row, i);
+    if (col.format && TXUI.format[col.format]) return esc(TXUI.format[col.format](v));
+    return esc(v);
+  };
+  DataTable.prototype.getFiltered = function () {
+    var o = this.o, q = this.query, self = this;
+    var keys = o.searchKeys || o.columns.map(function (c) { return c.key; });
+    var rows = this.data.filter(function (r) {
+      if (o.filter && !o.filter(r)) return false;
+      if (!q) return true;
+      return keys.some(function (k) { var v = r[k]; return v !== null && v !== undefined && TXUI.matchText(String(v), q); });
+    });
+    if (this.sortKey) {
+      var k = this.sortKey, d = this.sortDir;
+      var col = o.columns.filter(function (c) { return c.key === k; })[0] || {};
+      rows.sort(function (a, b) {
+        var x = col.sortValue ? col.sortValue(a) : a[k], y = col.sortValue ? col.sortValue(b) : b[k];
+        if (x === y) return 0; if (x === null || x === undefined || x === '') return 1; if (y === null || y === undefined || y === '') return -1;
+        if (typeof x === 'number' && typeof y === 'number') return (x - y) * d;
+        if (x instanceof Date || y instanceof Date) return (new Date(x) - new Date(y)) * d;
+        return String(x).localeCompare(String(y), 'vi', { numeric: true }) * d;
+      });
+    }
+    void self;
+    return rows;
+  };
+  DataTable.prototype._pageRows = function () {
+    var rows = this.getFiltered();
+    if (!this.o.pagination) return rows;
+    var start = (this.page - 1) * this.pageSize; return rows.slice(start, start + this.pageSize);
+  };
+  DataTable.prototype.render = function () {
+    var o = this.o, self = this;
+    var all = this.getFiltered(), totalPages = Math.max(1, Math.ceil(all.length / this.pageSize));
+    if (this.page > totalPages) this.page = totalPages;
+    var rows = o.pagination ? all.slice((this.page - 1) * this.pageSize, this.page * this.pageSize) : all;
+    this._view = rows;
+    var allChecked = rows.length && rows.every(function (r) { return self.selected.has(self._key(r)); });
+    this.thead.innerHTML = '<tr>' +
+      (o.selectable ? '<th class="w-10"><input type="checkbox" class="form-check-input" data-dt-checkall' + (allChecked ? ' checked' : '') + '></th>' : '') +
+      o.columns.map(function (c) {
+        var sortable = c.sortable !== false && c.key && !c.noSort;
+        var sorted = self.sortKey === c.key;
+        return '<th' + (sortable ? ' data-key="' + esc(c.key) + '"' : '') + ' class="' + (sortable ? 'sortable ' : '') + (sorted ? 'sorted ' : '') + (c.align ? 'text-' + c.align + ' ' : '') + (c.headerClass || '') + '"' + (c.width ? ' style="width:' + c.width + '"' : '') + '>' +
+          esc(c.label || '') + (sortable ? '<i class="sort-icon fa-solid ' + (sorted ? (self.sortDir === 1 ? 'fa-arrow-up' : 'fa-arrow-down') : 'fa-sort') + '"></i>' : '') + '</th>';
+      }).join('') + '</tr>';
+    var colspan = o.columns.length + (o.selectable ? 1 : 0);
+    if (this.loading && !this.data.length) {
+      this.tbody.innerHTML = Array.apply(null, Array(5)).map(function () {
+        return '<tr>' + Array.apply(null, Array(colspan)).map(function () { return '<td><div class="skeleton h-4 w-full max-w-[160px]"></div></td>'; }).join('') + '</tr>';
+      }).join('');
+    } else if (!rows.length) {
+      this.tbody.innerHTML = '<tr><td colspan="' + colspan + '"><div class="empty-state py-10"><div class="empty-state-icon"><i class="fa-solid ' + o.emptyIcon + '"></i></div>' +
+        '<div class="empty-state-text">' + esc(this.query ? 'Không tìm thấy kết quả cho "' + this.query + '"' : o.emptyText) + '</div></div></td></tr>';
+    } else {
+      this.tbody.innerHTML = rows.map(function (r, i) {
+        var k = self._key(r), sel = self.selected.has(k);
+        var extra = o.rowClass ? o.rowClass(r) : '';
+        return '<tr data-index="' + i + '" class="' + (sel ? 'selected ' : '') + (o.onRowClick ? 'cursor-pointer ' : '') + (extra || '') + '">' +
+          (o.selectable ? '<td><input type="checkbox" class="form-check-input" data-dt-check="' + esc(k) + '"' + (sel ? ' checked' : '') + '></td>' : '') +
+          o.columns.map(function (c) {
+            return '<td class="' + (c.align ? 'text-' + c.align + ' ' : '') + (c.className || '') + '">' + self._cell(c, r, i) + '</td>';
+          }).join('') + '</tr>';
+      }).join('');
+    }
+    var info = this.el.querySelector('[data-dt-info]');
+    if (info) {
+      var from = all.length ? (this.page - 1) * this.pageSize + 1 : 0, to = Math.min(this.page * this.pageSize, all.length);
+      info.textContent = 'Hiển thị ' + from + '–' + to + ' / ' + all.length + ' dòng' + (this.selected.size ? ' · Đã chọn ' + this.selected.size : '');
+    }
+    var pager = this.el.querySelector('[data-dt-pages]');
+    if (pager) TXUI.pagination(pager, { page: this.page, totalPages: totalPages, onChange: function (p) { self.page = p; self.render(); } });
+    TXUI.loading.block(this.el.querySelector('.table-wrapper'), this.loading && this.data.length > 0);
+    return this;
+  };
+  DataTable.prototype.setData = function (rows) { this.data = (rows || []).slice(); this.selected.clear(); this.loading = false; return this.render(); };
+  DataTable.prototype.getData = function () { return this.data.slice(); };
+  DataTable.prototype.addRow = function (row, atTop) { atTop ? this.data.unshift(row) : this.data.push(row); return this.render(); };
+  DataTable.prototype.updateRow = function (key, patch) {
+    var self = this; this.data = this.data.map(function (r) { return self._key(r) === String(key) ? Object.assign({}, r, patch) : r; }); return this.render();
+  };
+  DataTable.prototype.removeRow = function (key) {
+    var self = this; this.data = this.data.filter(function (r) { return self._key(r) !== String(key); }); this.selected.delete(String(key)); return this.render();
+  };
+  DataTable.prototype.getSelected = function () { var self = this; return this.data.filter(function (r) { return self.selected.has(self._key(r)); }); };
+  DataTable.prototype.clearSelection = function () { this.selected.clear(); return this.render(); };
+  DataTable.prototype.setLoading = function (on) { this.loading = on !== false; return this.render(); };
+  DataTable.prototype.search = function (q) { this.query = q || ''; this.page = 1; var s = this.el.querySelector('[data-dt-search]'); if (s) s.value = this.query; return this.render(); };
+  DataTable.prototype.goTo = function (p) { this.page = p; return this.render(); };
+  DataTable.prototype.exportCSV = function (filename) {
+    var cols = this.o.columns.filter(function (c) { return c.key && c.export !== false; });
+    var rows = this.getFiltered();
+    var q = function (v) { v = v === null || v === undefined ? '' : String(v); return /[",\n;]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+    var csv = [cols.map(function (c) { return q(c.label || c.key); }).join(',')].concat(rows.map(function (r) {
+      return cols.map(function (c) {
+        var v = c.exportValue ? c.exportValue(r) : r[c.key];
+        if (c.format === 'date' || c.format === 'datetime') v = TXUI.format[c.format](v);
+        return q(v);
+      }).join(',');
+    })).join('\r\n');
+    TXUI.download('﻿' + csv, (filename || this.o.exportName) + '.csv', 'text/csv;charset=utf-8');
+  };
+  TXUI.DataTable = DataTable;
+
+  /** Tải file về máy từ chuỗi/Blob */
+  TXUI.download = function (content, filename, mime) {
+    var blob = content instanceof Blob ? content : new Blob([content], { type: mime || 'text/plain;charset=utf-8' });
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename;
+    document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  };
+  /** Tải file từ base64 (server trả về) */
+  TXUI.downloadBase64 = function (b64, filename, mime) {
+    var bin = atob(b64), arr = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+    TXUI.download(new Blob([arr], { type: mime || 'application/octet-stream' }), filename);
+  };
+
+  /* =====================================================================
+   * CHART – bọc Chart.js (tự tải khi cần) với bảng màu thương hiệu
+   *   TXUI.chart('#canvas', { type: 'bar', data: {...}, options: {...} }).then(chart => ...)
+   * ===================================================================== */
+  TXUI.palette = ['#0b5a41', '#a6ce39', '#278464', '#f59e0b', '#0ea5e9', '#ef4444', '#8b5cf6', '#64748b', '#7dc0a2', '#c6e16f'];
+  var chartLoader = null;
+  TXUI.loadScript = function (src) {
+    return new Promise(function (resolve, reject) {
+      var s = document.createElement('script'); s.src = src; s.onload = resolve; s.onerror = function () { reject(new Error('Không tải được ' + src)); };
+      document.head.appendChild(s);
+    });
+  };
+  TXUI.chart = function (canvas, config) {
+    chartLoader = chartLoader || (global.Chart ? Promise.resolve() : TXUI.loadScript('https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js'));
+    return chartLoader.then(function () {
+      var el = $(canvas);
+      if (el._chart) el._chart.destroy();
+      var dark = TXUI.theme.get() === 'dark';
+      Chart.defaults.font.family = 'Inter, system-ui, sans-serif';
+      Chart.defaults.color = dark ? '#94a3b8' : '#64748b';
+      Chart.defaults.borderColor = dark ? 'rgba(148,163,184,.15)' : 'rgba(148,163,184,.25)';
+      var multiColor = ['pie', 'doughnut', 'polarArea'].indexOf(config.type) !== -1;
+      (config.data.datasets || []).forEach(function (ds, i) {
+        var c = TXUI.palette[i % TXUI.palette.length];
+        if (multiColor) { ds.backgroundColor = ds.backgroundColor || TXUI.palette; ds.borderColor = ds.borderColor || (dark ? '#0f172a' : '#fff'); }
+        else {
+          ds.backgroundColor = ds.backgroundColor || (config.type === 'line' ? c + '22' : c);
+          ds.borderColor = ds.borderColor || c;
+          if (config.type === 'bar') { ds.borderRadius = ds.borderRadius === undefined ? 6 : ds.borderRadius; ds.maxBarThickness = ds.maxBarThickness || 40; }
+          if (config.type === 'line') { ds.tension = ds.tension === undefined ? 0.35 : ds.tension; ds.pointRadius = ds.pointRadius === undefined ? 3 : ds.pointRadius; }
+        }
+      });
+      config.options = Object.assign({ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8 } } } }, config.options || {});
+      el._chart = new Chart(el.getContext('2d'), config);
+      return el._chart;
+    });
+  };
+
+  /* =====================================================================
+   * HIỆN CODE MẪU (dùng trong trang tài liệu) – <div data-ui-demo> ... </div>
+   * ===================================================================== */
+  TXUI.dedent = function (s) {
+    var lines = s.replace(/^\n+|\s+$/g, '').split('\n');
+    var min = Math.min.apply(null, lines.filter(function (l) { return l.trim(); }).map(function (l) { return l.match(/^\s*/)[0].length; }));
+    return lines.map(function (l) { return l.slice(min); }).join('\n');
+  };
+
+  /* =====================================================================
+   * KHỞI TẠO – event delegation + init các thành phần cần JS
+   * ===================================================================== */
+  TXUI.init = function (root) {
+    root = root || document;
+    $$('[data-ui-dropzone]', root).forEach(initDropzone);
+    $$('[data-ui-tags]', root).forEach(initTags);
+    $$('select[data-ui-combo]', root).forEach(initCombo);
+    $$('[data-ui-progress-ring]', root).forEach(function (el) { TXUI.progressRing(el, el.dataset.value); });
+    $$('[data-ui-format]', root).forEach(function (el) {
+      var f = TXUI.format[el.dataset.uiFormat]; if (f) el.textContent = f(el.dataset.value !== undefined ? el.dataset.value : el.textContent.trim());
+    });
+    $$('[data-ui-tabs]', root).forEach(function (t) {
+      var active = t.querySelector('[data-tab].active') || t.querySelector('[data-tab]');
+      if (active) TXUI.tabs.show(t, active.getAttribute('data-tab'));
+    });
+  };
+
+  document.addEventListener('click', function (e) {
+    var t = e.target;
+    // Click ra ngoài (hoặc chọn 1 mục) -> đóng dropdown
+    if (!t.closest('[data-ui-toggle="dropdown"]') && (!t.closest('.dropdown-menu') || t.closest('.dropdown-item'))) TXUI.dropdown.closeAll();
+    var toggle = t.closest('[data-ui-toggle]');
+    if (toggle) {
+      var kind = toggle.getAttribute('data-ui-toggle'), target = toggle.getAttribute('data-ui-target') || toggle.getAttribute('href');
+      if (kind === 'modal')    { e.preventDefault(); TXUI.modal.open(target); return; }
+      if (kind === 'drawer')   { e.preventDefault(); TXUI.drawer.open(target); return; }
+      if (kind === 'dropdown') { e.preventDefault(); e.stopPropagation(); TXUI.dropdown.toggle(toggle); return; }
+      if (kind === 'sidebar')  { e.preventDefault(); TXUI.sidebar.toggle(); return; }
+      if (kind === 'theme')    { e.preventDefault(); TXUI.theme.toggle(); return; }
+      if (kind === 'password') {
+        var inp = $(target) || toggle.parentElement.querySelector('input');
+        inp.type = inp.type === 'password' ? 'text' : 'password';
+        var ic = toggle.querySelector('i'); if (ic) ic.className = 'fa-solid ' + (inp.type === 'password' ? 'fa-eye' : 'fa-eye-slash');
+        return;
+      }
+      if (kind === 'collapse') { var c = $(target); if (c) c.classList.toggle('hidden'); toggle.classList.toggle('open'); return; }
+    }
+    var dismiss = t.closest('[data-ui-dismiss]');
+    if (dismiss) {
+      var k = dismiss.getAttribute('data-ui-dismiss');
+      if (k === 'modal')  { TXUI.modal.close(dismiss.closest('.modal')); return; }
+      if (k === 'drawer') { TXUI.drawer.close(dismiss.closest('.drawer')); return; }
+      if (k === 'alert')  { var al = dismiss.closest('.alert'); al.style.transition = 'opacity .2s'; al.style.opacity = 0; setTimeout(function () { al.remove(); }, 200); return; }
+    }
+    // Click nền modal / drawer
+    if (t.classList.contains('modal-backdrop') || t.classList.contains('drawer-backdrop') || t.classList.contains('modal')) {
+      var ov = t.closest('.modal, .drawer');
+      if (ov && ov.getAttribute('data-static') !== 'true') (ov.classList.contains('drawer') ? TXUI.drawer : TXUI.modal).close(ov);
+      else if (ov) { var d = ov.querySelector('.modal-dialog'); if (d) { d.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.02)' }, { transform: 'scale(1)' }], { duration: 200 }); } }
+      return;
+    }
+    if (t.classList.contains('app-backdrop')) { TXUI.sidebar.close(); return; }
+    var tab = t.closest('[data-tab]');
+    if (tab && tab.closest('[data-ui-tabs]')) { e.preventDefault(); TXUI.tabs.show(tab.closest('[data-ui-tabs]'), tab.getAttribute('data-tab')); return; }
+    var acc = t.closest('.accordion-trigger'); if (acc) { toggleAccordion(acc); return; }
+    var step = t.closest('[data-ui-number] [data-step]'); if (step) { stepNumber(step); return; }
+    var copy = t.closest('[data-ui-copy]'); if (copy) { var src = $(copy.getAttribute('data-ui-copy')); TXUI.copy(src ? (src.value || src.textContent) : copy.getAttribute('data-ui-copy')); return; }
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      var top = openStack[openStack.length - 1];
+      if (top && top.getAttribute('data-static') !== 'true') (top.classList.contains('drawer') ? TXUI.drawer : TXUI.modal).close(top);
+      TXUI.dropdown.closeAll();
+    }
+  });
+
+  // Xóa trạng thái lỗi khi người dùng sửa
+  document.addEventListener('input', function (e) {
+    var el = e.target;
+    if (el.classList && el.classList.contains('is-invalid')) {
+      el.classList.remove('is-invalid');
+      var g = el.closest('.form-group') || el.parentElement; var err = g && g.querySelector('.form-error[data-auto]'); if (err) err.remove();
+    }
+  });
+
+  function ready(fn) { document.readyState !== 'loading' ? fn() : document.addEventListener('DOMContentLoaded', fn); }
+  ready(function () {
+    TXUI.theme.init();
+    var app = $('.app');
+    if (app && store('txui-sidebar') === '1' && global.innerWidth >= 1024) app.classList.add('sidebar-collapsed');
+    TXUI.init(document);
+  });
+
+  global.TXUI = TXUI;
+  if (!global.UI) global.UI = TXUI;
+})(window);
+</script>

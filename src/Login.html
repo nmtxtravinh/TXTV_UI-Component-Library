@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <?!= include('TXUI_Head'); ?>
+</head>
+<body>
+<!--
+  LOGIN – Mẫu trang đăng nhập (dùng khi Web App có tài khoản riêng, không dùng Google Account).
+  Gắn hàm server kiểm tra tài khoản tại TXUI.call('demo_login', ...).
+-->
+<div class="auth-wrap">
+  <div class="w-full max-w-md">
+    <div class="mb-6 flex items-center justify-center gap-3 text-white">
+      <div class="grid h-12 w-12 place-items-center rounded-xl bg-white text-base font-extrabold text-brand-900">TBS</div>
+      <div><div class="text-lg font-bold leading-tight">TBS Group</div><div class="text-xs text-white/60">Nhà máy Túi xách Trà Vinh</div></div>
+    </div>
+    <form class="auth-card space-y-5" id="loginForm" novalidate>
+      <div class="text-center">
+        <h1 class="text-xl font-bold">Đăng nhập hệ thống</h1>
+        <p class="mt-1 text-sm text-slate-500">Sử dụng mã nhân viên và mật khẩu được cấp</p>
+      </div>
+      <div class="form-group">
+        <label class="form-label required">Mã nhân viên</label>
+        <div class="input-icon"><i class="fa-regular fa-id-badge"></i><input name="username" class="form-control form-control-lg" placeholder="NV0001" required autofocus></div>
+      </div>
+      <div class="form-group">
+        <div class="flex items-center justify-between"><label class="form-label required">Mật khẩu</label><a class="link text-xs">Quên mật khẩu?</a></div>
+        <div class="input-icon"><i class="fa-solid fa-lock"></i><input name="password" type="password" class="form-control form-control-lg pr-10" placeholder="••••••••" required minlength="4"><button type="button" class="input-action" data-ui-toggle="password"><i class="fa-solid fa-eye"></i></button></div>
+      </div>
+      <label class="form-check"><input type="checkbox" name="remember" class="form-check-input"> Ghi nhớ đăng nhập</label>
+      <button type="submit" class="btn btn-primary btn-lg btn-block" id="btnLogin"><i class="fa-solid fa-right-to-bracket"></i> Đăng nhập</button>
+      <div class="divider my-0">hoặc</div>
+      <a class="btn btn-secondary btn-lg btn-block" href="<?= BASE_URL ?>" target="_top"><i class="fa-brands fa-google text-red-500"></i> Tiếp tục với Google</a>
+    </form>
+    <p class="mt-6 text-center text-xs text-white/50">© 2026 Chi nhánh 7 – Công ty CP Đầu tư Thái Bình</p>
+  </div>
+</div>
+
+<?!= include('TXUI_Scripts'); ?>
+<script>
+  TXUI.mocks.demo_login = function (d) { if (d.password !== '1234') throw new Error('Sai mã nhân viên hoặc mật khẩu (thử 1234)'); return { ok: true }; };
+  document.getElementById('loginForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!TXUI.form.validate(this, { toast: false })) return;
+    TXUI.call('demo_login', [TXUI.form.serialize(this)], { button: '#btnLogin', buttonText: 'Đang đăng nhập...' })
+      .then(function () { TXUI.toast.success('Đăng nhập thành công'); })
+      .catch(function () {});
+  });
+</script>
+</body>
+</html>
