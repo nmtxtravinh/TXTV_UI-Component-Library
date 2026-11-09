@@ -372,3 +372,128 @@ TXTV.settings = {
 TXTV.getOptions = function (sheetName, valueKey, labelKey) {
   return TVDB.getAll(sheetName).map(function (r) { return { value: r[valueKey], label: r[labelKey || valueKey] }; });
 };
+
+/**
+ * ============================================================================
+ * MỞ RỘNG v1.2 – Đánh số phiếu, Văn bản từ mẫu Google Docs, Google Chat, Drive
+ * ============================================================================
+ */
+
+/** Định dạng số kiểu Việt Nam phía server: 1234567.5 -> "1.234.567,5" */
+TXTV.formatNumber = function (n, decimals) {
+  if (n === '' || n === null || n === undefined || isNaN(n)) return '';
+  var parts = Number(n).toFixed(decimals === undefined ? (Number(n) % 1 ? 2 : 0) : decimals).split('.');
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return parts.join(',').replace(/,0+$/, '');
+};
+
+/**
+ * Sinh số phiếu tăng dần, an toàn khi nhiều người cùng lưu.
+ *   TVDB.nextNumber('PX')              -> 'PX2611-0001'  (đếm lại mỗi tháng)
+ *   TVDB.nextNumber('PN', 'yyyy', 5)   -> 'PN2026-00001' (đếm lại mỗi năm)
+ *   TVDB.nextNumber('YC', '', 6)       -> 'YC-000123'    (không đếm lại)
+ */
+TVDB.nextNumber = function (prefix, period, digits) {
+  period = period === undefined ? 'yyMM' : period;
+  digits = digits || 4;
+  return TVDB._withLock(function () {
+    var p = PropertiesService.getScriptProperties();
+    var tag = period ? Utilities.formatDate(new Date(), TXTV.config.timezone, period) : '';
+    var key = 'SEQ_' + prefix + '_' + tag;
+    var n = Number(p.getProperty(key) || 0) + 1;
+    p.setProperty(key, String(n));
+    return prefix + tag + '-' + ('000000000' + n).slice(-digits);
+  });
+};
+
+/**
+ * Tạo văn bản từ mẫu Google Docs (phiếu, biên bản, hợp đồng...) và xuất PDF.
+ *  - Trong mẫu viết {{tenTruong}} ; giá trị Date tự định dạng dd/MM/yyyy, số có dấu chấm hàng nghìn.
+ *  - Bảng chi tiết: tạo 1 dòng mẫu chứa {{items.tenCot}} (và {{items.#}} = số thứ tự),
+ *    truyền data.items = [{...}] -> dòng được nhân bản cho từng phần tử.
+ *
+ *   var r = TXTV.docFromTemplate('ID_MAU', { soPhieu: 'PX2611-0001', ngay: new Date(), items: [...] },
+ *                                { folderId: 'ID_THU_MUC', name: 'PX2611-0001', pdf: true, keepDoc: false, returnData: true });
+ *   -> { docId, docUrl, pdfId, pdfUrl, pdf: { name, mimeType, data } }   (pdf.data base64 nếu returnData)
+ */
+TXTV.docFromTemplate = function (templateId, data, opts) {
+  opts = opts || {};
+  var folder = opts.folderId ? DriveApp.getFolderById(opts.folderId) : DriveApp.getRootFolder();
+  var copy = DriveApp.getFileById(templateId).makeCopy(opts.name || ('Van ban ' + TXTV.formatDate(new Date(), 'yyyyMMdd-HHmmss')), folder);
+  var doc = DocumentApp.openById(copy.getId());
+  var reEsc = function (s) { return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); };
+  var fmt = function (v) {
+    if (v === null || v === undefined) return '';
+    if (v instanceof Date) return TXTV.formatDate(v, 'dd/MM/yyyy');
+    if (typeof v === 'number') return TXTV.formatNumber(v);
+    return String(v);
+  };
+  var sections = [doc.getBody(), doc.getHeader(), doc.getFooter()].filter(function (x) { return x; });
+
+  // 1) Bảng lặp dòng
+  Object.keys(data || {}).forEach(function (key) {
+    if (!Array.isArray(data[key])) return;
+    var body = doc.getBody(), found = body.findText('\\{\\{' + reEsc(key) + '\\.');
+    if (!found) return;
+    var el = found.getElement();
+    while (el && el.getType() !== DocumentApp.ElementType.TABLE_ROW) el = el.getParent();
+    if (!el) return;
+    var row = el.asTableRow(), table = row.getParentTable(), idx = table.getChildIndex(row);
+    data[key].forEach(function (item, i) {
+      var nr = table.insertTableRow(idx + 1 + i, row.copy());
+      nr.replaceText('\\{\\{' + reEsc(key) + '\\.#\\}\\}', String(i + 1));
+      Object.keys(item).forEach(function (f) { nr.replaceText('\\{\\{' + reEsc(key + '.' + f) + '\\}\\}', fmt(item[f])); });
+      nr.replaceText('\\{\\{' + reEsc(key) + '\\.[^}]*\\}\\}', '');
+    });
+    table.removeRow(idx);
+  });
+
+  // 2) Trường đơn
+  Object.keys(data || {}).forEach(function (key) {
+    if (Array.isArray(data[key])) return;
+    sections.forEach(function (sec) { sec.replaceText('\\{\\{' + reEsc(key) + '\\}\\}', fmt(data[key])); });
+  });
+  sections.forEach(function (sec) { sec.replaceText('\\{\\{[^}]*\\}\\}', ''); });   // xóa placeholder còn sót
+  doc.saveAndClose();
+
+  var res = { docId: copy.getId(), docUrl: copy.getUrl() };
+  if (opts.pdf !== false) {
+    var blob = copy.getAs('application/pdf').setName((opts.name || copy.getName()) + '.pdf');
+    var pdf = folder.createFile(blob);
+    res.pdfId = pdf.getId(); res.pdfUrl = pdf.getUrl();
+    if (opts.returnData) res.pdf = { name: blob.getName(), mimeType: 'application/pdf', data: Utilities.base64Encode(blob.getBytes()) };
+    if (!opts.keepDoc) { copy.setTrashed(true); delete res.docId; delete res.docUrl; }
+  }
+  return res;
+};
+
+/**
+ * Gửi thông báo vào Google Chat (Space -> Ứng dụng & tích hợp -> Webhook).
+ *   TXTV.chatNotify(URL, 'Phiếu PX-001 cần duyệt')
+ *   TXTV.chatNotify(URL, { title: 'Phiếu cần duyệt', subtitle: 'Kho vật tư', text: 'Người lập: <b>A</b>', buttonText: 'Mở', buttonUrl: '...' })
+ *   Nên lưu URL webhook bằng TXTV.settings.set('CHAT_WEBHOOK', url) thay vì ghi trong code.
+ */
+TXTV.chatNotify = function (webhookUrl, msg) {
+  webhookUrl = webhookUrl || TXTV.settings.get('CHAT_WEBHOOK');
+  if (!webhookUrl) throw new Error('Chưa cấu hình webhook Google Chat');
+  var payload = typeof msg === 'string' ? { text: msg } : {
+    cardsV2: [{ cardId: 'txtv', card: {
+      header: { title: msg.title || TXTV.config.appName, subtitle: msg.subtitle || TXTV.config.company },
+      sections: [{ widgets: [{ textParagraph: { text: msg.text || '' } }].concat(msg.buttonUrl ? [{ buttonList: { buttons: [{ text: msg.buttonText || 'Mở', onClick: { openLink: { url: msg.buttonUrl } } }] } }] : []) }]
+    } }]
+  };
+  var res = UrlFetchApp.fetch(webhookUrl, { method: 'post', contentType: 'application/json; charset=UTF-8', payload: JSON.stringify(payload), muteHttpExceptions: true });
+  if (res.getResponseCode() >= 300) throw new Error('Google Chat lỗi ' + res.getResponseCode() + ': ' + res.getContentText().slice(0, 200));
+  return true;
+};
+
+/** Danh sách file trong thư mục Drive (mới nhất trước) */
+TXTV.listFiles = function (folderId, opts) {
+  opts = opts || {};
+  var it = DriveApp.getFolderById(folderId).getFiles(), out = [];
+  while (it.hasNext() && out.length < (opts.limit || 200)) {
+    var f = it.next();
+    out.push({ id: f.getId(), name: f.getName(), mimeType: f.getMimeType(), size: f.getSize(), url: f.getUrl(), updated: TXTV.formatDate(f.getLastUpdated(), "yyyy-MM-dd'T'HH:mm:ss") });
+  }
+  return out.sort(function (a, b) { return a.updated < b.updated ? 1 : -1; });
+};

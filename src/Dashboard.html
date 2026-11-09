@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <?!= include('TXTV_Head'); ?>
+</head>
+<body>
+<!--
+  DASHBOARD – Mẫu báo cáo sản xuất: KPI + sparkline, Gauge OEE, biểu đồ, Pivot, Gantt kế hoạch.
+  Server: dash_getData({ from, to }) trong Code.gs -> { rows: [{date, line, plan, output, defect, downtime}], plan: [...] }
+-->
+<div class="app">
+  <aside class="app-sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-logo">TBS</div>
+      <div class="sidebar-brand-text"><div class="text-sm font-bold">Điều hành sản xuất</div><div class="text-[11px] text-white/50">Nhà máy Túi xách Trà Vinh</div></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">Báo cáo</div>
+      <a class="nav-link active"><i class="fa-solid fa-chart-line"></i><span class="nav-label">Tổng quan</span></a>
+      <a class="nav-link" href="<?= BASE_URL ?>?page=Mobile" target="_top"><i class="fa-solid fa-tablet-screen-button"></i><span class="nav-label">Nhập sản lượng</span></a>
+      <a class="nav-link" href="<?= BASE_URL ?>" target="_top"><i class="fa-solid fa-book"></i><span class="nav-label">Thư viện UI</span></a>
+    </nav>
+    <div class="sidebar-footer sidebar-hide-collapsed text-xs text-white/50"><i class="fa-regular fa-clock mr-1"></i> Cập nhật: <span id="lastUpdate">–</span></div>
+  </aside>
+  <div class="app-backdrop"></div>
+
+  <div class="app-main">
+    <header class="app-topbar">
+      <button class="btn btn-ghost btn-icon" data-tv-toggle="sidebar" aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
+      <h1 class="text-base font-semibold text-slate-900 dark:text-white">Báo cáo sản xuất</h1>
+      <div class="ml-auto flex items-center gap-2">
+        <div class="hidden w-64 sm:block"><input class="form-control" id="range" data-tv-datepicker data-mode="range"></div>
+        <button class="btn btn-secondary btn-icon" id="btnReload" data-tooltip="Tải lại" data-tooltip-pos="bottom"><i class="fa-solid fa-rotate"></i></button>
+        <button class="btn btn-ghost btn-icon" data-tv-toggle="theme" aria-label="Giao diện"><i data-tv-theme-icon class="fa-solid fa-moon"></i></button>
+        <button class="btn btn-ghost btn-icon" id="btnHelp" data-tooltip="Hướng dẫn" data-tooltip-pos="bottom"><i class="fa-regular fa-circle-question"></i></button>
+      </div>
+    </header>
+
+    <main class="app-content space-y-6" id="dash">
+      <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" id="kpis">
+        <div class="stat flex-col gap-1"><div class="flex w-full items-center justify-between"><span class="stat-label">Sản lượng</span><span id="kOutTrend"></span></div><div class="stat-value mt-0" id="kOut">–</div><div class="text-xs text-slate-500" id="kOutSub"></div><div class="w-full" id="spOut"></div></div>
+        <div class="stat flex-col gap-1"><div class="flex w-full items-center justify-between"><span class="stat-label">Đạt kế hoạch</span><span class="badge" id="kPlanBadge"></span></div><div class="stat-value mt-0" id="kPlan">–</div><div class="progress mt-2 w-full"><div class="progress-bar" id="kPlanBar" style="width:0"></div></div><div class="text-xs text-slate-500" id="kPlanSub"></div></div>
+        <div class="stat flex-col gap-1"><span class="stat-label">Tỷ lệ lỗi</span><div class="stat-value mt-0" id="kDef">–</div><div class="text-xs text-slate-500" id="kDefSub"></div><div class="w-full" id="spDef"></div></div>
+        <div class="stat flex-col gap-1"><span class="stat-label">Thời gian dừng máy</span><div class="stat-value mt-0" id="kDown">–</div><div class="text-xs text-slate-500">Tổng số phút trong kỳ</div><div class="w-full" id="spDown"></div></div>
+      </div>
+
+      <div class="grid gap-4 lg:grid-cols-3">
+        <div class="card" id="oeeCard">
+          <div class="card-header"><div><h3 class="card-title">Hiệu quả thiết bị (OEE)</h3><p class="card-subtitle">OEE = Khả dụng × Hiệu suất × Chất lượng</p></div></div>
+          <div class="card-body flex flex-col items-center gap-4">
+            <div id="gOee"></div>
+            <div class="grid w-full grid-cols-3 gap-2 text-center">
+              <div><div id="gA"></div></div><div><div id="gP"></div></div><div><div id="gQ"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="card lg:col-span-2">
+          <div class="card-header"><h3 class="card-title">Sản lượng theo ngày</h3>
+            <div class="segmented" id="chartMode"><label><input type="radio" name="cm" value="line" checked><span>Tổng</span></label><label><input type="radio" name="cm" value="stack"><span>Theo chuyền</span></label></div></div>
+          <div class="card-body"><div class="h-72"><canvas id="chartDaily"></canvas></div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><div><h3 class="card-title">Kế hoạch đơn hàng (Gantt)</h3><p class="card-subtitle">Viền đỏ = trễ hạn chưa hoàn thành · vạch xanh = hôm nay</p></div></div>
+        <div class="card-body"><div id="gantt"></div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><div><h3 class="card-title">Sản lượng chuyền × ngày (Pivot)</h3><p class="card-subtitle">Màu đậm = sản lượng cao</p></div>
+          <div class="flex gap-2">
+            <select class="form-control form-control-sm w-auto" id="pivotValue"><option value="output">Thực hiện</option><option value="defect">Số lỗi</option><option value="downtime">Phút dừng máy</option></select>
+            <button class="btn btn-success btn-sm" id="btnExport"><i class="fa-solid fa-file-excel"></i> Excel</button>
+            <button class="btn btn-secondary btn-sm" onclick="TXTV.print('#pivot', { title: 'Báo cáo sản lượng', page: 'A4 landscape' })"><i class="fa-solid fa-print"></i></button>
+          </div></div>
+        <div class="card-body"><div id="pivot"></div></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<?!= include('TXTV_Scripts'); ?>
+<script>
+  /* ---------- Mock xem trước (giống dash_getData trong Code.gs) ---------- */
+  TXTV.mocks.dash_getData = function (range) {
+    var to = TXTV.toDate(range && range.to) || TXTV.toDate(new Date()), from = TXTV.toDate(range && range.from) || new Date(to.getFullYear(), to.getMonth(), to.getDate() - 13);
+    var lines = ['May 1', 'May 2', 'May 3', 'May 4', 'May 5'], rows = [];
+    for (var d = new Date(from); d <= to; d.setDate(d.getDate() + 1)) {
+      if (d.getDay() === 0) continue;
+      lines.forEach(function (l, i) { var seed = d.getDate() * 7 + i * 13 + d.getMonth() * 3, plan = 1800 + i * 100, out = Math.round(plan * (0.82 + (seed % 23) / 100));
+        rows.push({ date: TXTV.format.isoDate(d), line: l, plan: plan, output: out, defect: Math.round(out * (0.01 + (seed % 5) / 200)), downtime: (seed * 11) % 45 }); });
+    }
+    var t = new Date(), iso = function (k) { return TXTV.format.isoDate(new Date(t.getFullYear(), t.getMonth(), t.getDate() + k)); };
+    return { rows: rows, plan: [
+      { id: 'PO-2598', label: 'PO-2598 · Ví da', sub: 'May 3', start: iso(-9), end: iso(-1), progress: 100 },
+      { id: 'PO-2605', label: 'PO-2605 · Balo PU', sub: 'May 2', start: iso(-6), end: iso(-1), progress: 85 },
+      { id: 'PO-2611', label: 'PO-2611 · Túi tote', sub: 'May 1, May 4', start: iso(-4), end: iso(6), progress: 55 },
+      { id: 'PO-2615', label: 'PO-2615 · Túi du lịch', sub: 'May 5', start: iso(1), end: iso(12), progress: 0 },
+      { id: 'PO-2620', label: 'PO-2620 · Ví cầm tay', sub: 'May 3', start: iso(3), end: iso(9), progress: 0 } ] };
+  };
+
+  var DATA = { rows: [], plan: [] };
+  var SHIFT_MIN = 480;   // phút làm việc / chuyền / ngày
+  var shortDate = function (iso) { return TXTV.format.date(iso, 'dd/MM'); };
+
+  function load() {
+    TXTV.loading.block('#dash', true);
+    var r = TXTV.datepicker('#range').get() || {};
+    return TXTV.run('dash_getData', r).then(function (d) { DATA = d; render(); TXTV.$('#lastUpdate').textContent = TXTV.format.date(new Date(), 'HH:mm:ss'); })
+      .catch(function (e) { TXTV.toast.error(e.message, 'Không tải được dữ liệu'); })
+      .finally(function () { TXTV.loading.block('#dash', false); });
+  }
+
+  function render() {
+    var rows = DATA.rows, byDate = TXTV.groupBy(rows, 'date'), dates = Object.keys(byDate).sort();
+    var out = TXTV.sumBy(rows, 'output'), plan = TXTV.sumBy(rows, 'plan'), def = TXTV.sumBy(rows, 'defect'), down = TXTV.sumBy(rows, 'downtime');
+    var series = function (k) { return dates.map(function (d) { return TXTV.sumBy(byDate[d], k); }); };
+    var sOut = series('output'), sDef = dates.map(function (d) { var o = TXTV.sumBy(byDate[d], 'output'); return o ? TXTV.sumBy(byDate[d], 'defect') / o * 100 : 0; });
+    // KPI
+    TXTV.$('#kOut').textContent = TXTV.format.number(out);
+    TXTV.$('#kOutSub').textContent = dates.length + ' ngày · ' + TXTV.unique(rows, 'line').length + ' chuyền';
+    var last = sOut[sOut.length - 1], prev = sOut[sOut.length - 2];
+    TXTV.$('#kOutTrend').innerHTML = prev ? (last >= prev ? '<span class="trend-up"><i class="fa-solid fa-arrow-up"></i> ' : '<span class="trend-down"><i class="fa-solid fa-arrow-down"></i> ') + TXTV.format.percent(Math.abs(last - prev) / prev) + '</span>' : '';
+    var pct = plan ? out / plan : 0;
+    TXTV.$('#kPlan').textContent = TXTV.format.percent(pct);
+    TXTV.$('#kPlanSub').textContent = 'Kế hoạch ' + TXTV.format.number(plan);
+    TXTV.$('#kPlanBadge').className = 'badge ' + (pct >= 1 ? 'badge-success' : pct >= 0.9 ? 'badge-warning' : 'badge-danger');
+    TXTV.$('#kPlanBadge').textContent = pct >= 1 ? 'Đạt' : pct >= 0.9 ? 'Gần đạt' : 'Chưa đạt';
+    TXTV.progress('#kPlanBar', pct * 100);
+    TXTV.$('#kDef').textContent = TXTV.format.percent(out ? def / out : 0, 2);
+    TXTV.$('#kDefSub').textContent = TXTV.format.number(def) + ' sản phẩm lỗi';
+    TXTV.$('#kDown').textContent = TXTV.format.number(down) + ' phút';
+    TXTV.sparkline('#spOut', sOut); TXTV.sparkline('#spDef', sDef, { color: '#ef4444' }); TXTV.sparkline('#spDown', series('downtime'), { color: '#f59e0b' });
+    // OEE
+    var totalMin = rows.length * SHIFT_MIN, A = totalMin ? (totalMin - down) / totalMin : 0, P = Math.min(1, pct), Q = out ? (out - def) / out : 0, oee = A * P * Q;
+    TXTV.gauge('#gOee', oee * 100, { label: 'OEE', size: 220, thresholds: [[60, '#ef4444'], [85, '#f59e0b'], [100, '#10b981']] });
+    TXTV.gauge('#gA', A * 100, { label: 'Khả dụng', size: 110, stroke: 10, color: '#0b5a41' });
+    TXTV.gauge('#gP', P * 100, { label: 'Hiệu suất', size: 110, stroke: 10, color: '#278464' });
+    TXTV.gauge('#gQ', Q * 100, { label: 'Chất lượng', size: 110, stroke: 10, color: '#6e921f' });
+    drawChart(dates, byDate);
+    TXTV.gantt('#gantt', DATA.plan, { title: 'Đơn hàng', onClick: function (t) { TXTV.toast(t.label + ' – ' + t.progress + '%', { title: TXTV.format.date(t.start) + ' → ' + TXTV.format.date(t.end) }); } });
+    drawPivot();
+  }
+
+  function drawChart(dates, byDate) {
+    var mode = (TXTV.$('#chartMode input:checked') || {}).value;
+    var labels = dates.map(shortDate), lines = TXTV.unique(DATA.rows, 'line').map(function (r) { return r.line; }).sort();
+    var cfg = mode === 'stack'
+      ? { type: 'bar', data: { labels: labels, datasets: lines.map(function (l) { return { label: l, data: dates.map(function (d) { return TXTV.sumBy(byDate[d].filter(function (r) { return r.line === l; }), 'output'); }) }; }) },
+          options: { scales: { x: { stacked: true }, y: { stacked: true } } } }
+      : { type: 'line', data: { labels: labels, datasets: [
+          { label: 'Thực hiện', data: dates.map(function (d) { return TXTV.sumBy(byDate[d], 'output'); }), fill: true },
+          { label: 'Kế hoạch', data: dates.map(function (d) { return TXTV.sumBy(byDate[d], 'plan'); }), borderDash: [6, 4], pointRadius: 0 } ] } };
+    TXTV.chart('#chartDaily', cfg).catch(function () { TXTV.$('#chartDaily').parentElement.innerHTML = '<div class="empty-state h-full"><div class="empty-state-text">Cần Internet để tải Chart.js</div></div>'; });
+  }
+
+  function drawPivot() {
+    var v = TXTV.$('#pivotValue').value;
+    TXTV.renderPivot('#pivot', DATA.rows, { rows: 'line', cols: 'date', value: v, rowLabel: 'Chuyền', colFormat: shortDate, heatmap: true });
+  }
+
+  TXTV.$('#chartMode').addEventListener('change', function () { drawChart(Object.keys(TXTV.groupBy(DATA.rows, 'date')).sort(), TXTV.groupBy(DATA.rows, 'date')); });
+  TXTV.$('#pivotValue').addEventListener('change', drawPivot);
+  TXTV.$('#range').addEventListener('change', load);
+  TXTV.$('#btnReload').addEventListener('click', load);
+  TXTV.$('#btnExport').addEventListener('click', function () {
+    TXTV.exportExcel(DATA.rows, [{ key: 'date', label: 'Ngày', format: 'date' }, { key: 'line', label: 'Chuyền' }, { key: 'plan', label: 'Kế hoạch' },
+      { key: 'output', label: 'Thực hiện' }, { key: 'defect', label: 'Lỗi' }, { key: 'downtime', label: 'Dừng máy (phút)' }], 'bao-cao-san-luong', 'SanLuong');
+  });
+
+  var HELP = [
+    { el: '#range', title: 'Chọn kỳ báo cáo', text: 'Chọn khoảng ngày hoặc dùng nút nhanh: 7 ngày, tháng này, tháng trước.' },
+    { el: '#kpis', title: 'Chỉ số chính', text: 'Sản lượng, % đạt kế hoạch, tỷ lệ lỗi và thời gian dừng máy trong kỳ. Đường nhỏ bên dưới là xu hướng theo ngày.' },
+    { el: '#oeeCard', title: 'OEE', text: 'Xanh ≥ 85% · Vàng 60–85% · Đỏ < 60%.' },
+    { el: '#gantt', title: 'Kế hoạch đơn hàng', text: 'Bấm vào thanh để xem chi tiết. Viền đỏ là đơn trễ hạn.' },
+    { el: '#btnExport', title: 'Xuất Excel', text: 'Tải toàn bộ dữ liệu chi tiết của kỳ đang xem.' }
+  ];
+  TXTV.$('#btnHelp').addEventListener('click', function () { TXTV.tour(HELP, { force: true }); });
+
+  // Mặc định 14 ngày gần nhất, tự làm mới mỗi 5 phút (tạm dừng khi ẩn tab)
+  (function () { var t = new Date(); TXTV.datepicker('#range').set({ from: new Date(t.getFullYear(), t.getMonth(), t.getDate() - 13), to: t }); })();
+  TXTV.poll(load, 5 * 60000);
+  TXTV.tour(HELP, { key: 'dashboard-v1' });
+  new MutationObserver(function () { if (window.Chart && DATA.rows.length) render(); }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+</script>
+</body>
+</html>

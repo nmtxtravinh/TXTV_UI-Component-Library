@@ -12,7 +12,7 @@ import os, re, sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, 'src')
 OUT = os.path.join(ROOT, 'preview')
-PAGES = ['Index', 'Starter', 'Login', 'Crud']
+PAGES = ['Index', 'Starter', 'Login', 'Crud', 'Dashboard', 'Mobile']
 
 SAMPLE = {
     'USER.initials': 'NV',

@@ -45,6 +45,10 @@
       <button class="nav-link" data-scroll="tree"><i class="fa-solid fa-sitemap"></i><span class="nav-label">Cây phân cấp</span><span class="nav-badge">Mới</span></button>
       <button class="nav-link" data-scroll="media"><i class="fa-solid fa-qrcode"></i><span class="nav-label">Chữ ký, QR, Ảnh</span><span class="nav-badge">Mới</span></button>
       <button class="nav-link" data-scroll="power"><i class="fa-solid fa-bolt"></i><span class="nav-label">Công cụ nâng cao</span><span class="nav-badge">Mới</span></button>
+      <div class="nav-section-title">Mới v1.2</div>
+      <button class="nav-link" data-scroll="v12-inputs"><i class="fa-solid fa-calendar-days"></i><span class="nav-label">Nhập liệu nâng cao</span><span class="nav-badge">1.2</span></button>
+      <button class="nav-link" data-scroll="v12-data"><i class="fa-solid fa-table-cells"></i><span class="nav-label">Bảng nhập, Gauge, Gantt</span><span class="nav-badge">1.2</span></button>
+      <button class="nav-link" data-scroll="v12-flow"><i class="fa-solid fa-route"></i><span class="nav-label">Wizard, Tour, Di động</span><span class="nav-badge">1.2</span></button>
       <div class="nav-section-title">Điều hướng</div>
       <button class="nav-link" data-scroll="navigation"><i class="fa-solid fa-compass"></i><span class="nav-label">Tabs, Breadcrumb...</span></button>
       <button class="nav-link" data-scroll="dropdowns"><i class="fa-solid fa-caret-down"></i><span class="nav-label">Dropdown</span></button>
@@ -56,6 +60,8 @@
       <button class="nav-link" data-scroll="utils"><i class="fa-solid fa-screwdriver-wrench"></i><span class="nav-label">Tiện ích JS</span></button>
       <a class="nav-link" href="<?= BASE_URL ?>?page=Starter" target="_top"><i class="fa-solid fa-file"></i><span class="nav-label">Trang mẫu</span></a>
       <a class="nav-link" href="<?= BASE_URL ?>?page=Crud" target="_top" data-page-link="Crud"><i class="fa-solid fa-table-list"></i><span class="nav-label">Mẫu CRUD (Sheet)</span></a>
+      <a class="nav-link" href="<?= BASE_URL ?>?page=Dashboard" target="_top"><i class="fa-solid fa-chart-line"></i><span class="nav-label">Mẫu Dashboard</span></a>
+      <a class="nav-link" href="<?= BASE_URL ?>?page=Mobile" target="_top"><i class="fa-solid fa-tablet-screen-button"></i><span class="nav-label">Mẫu nhập sản lượng</span></a>
       <a class="nav-link" href="<?= BASE_URL ?>?page=Login" target="_top"><i class="fa-solid fa-right-to-bracket"></i><span class="nav-label">Trang đăng nhập</span></a>
     </nav>
     <div class="sidebar-footer">
@@ -81,7 +87,7 @@
       </ol>
       <div class="ml-auto flex items-center gap-1">
         <button class="btn btn-secondary btn-sm hidden text-slate-400 md:inline-flex" onclick="TXTV.commandPalette.open()"><i class="fa-solid fa-magnifying-glass"></i> Tìm... <span class="kbd">Ctrl K</span></button>
-        <span class="badge badge-accent badge-pill hidden sm:inline-flex">v1.1</span>
+        <span class="badge badge-accent badge-pill hidden sm:inline-flex">v1.2</span>
         <button class="btn btn-ghost btn-icon" data-tv-toggle="theme" data-tooltip="Sáng / Tối" data-tooltip-pos="bottom"><i data-tv-theme-icon class="fa-solid fa-moon"></i></button>
         <div class="dropdown">
           <button class="btn btn-ghost btn-icon relative" data-tv-toggle="dropdown" aria-label="Thông báo">
@@ -128,7 +134,7 @@
         </div>
 
         <div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <div class="stat"><div class="stat-icon"><i class="fa-solid fa-cubes"></i></div><div><div class="stat-label">Component</div><div class="stat-value">90+</div><div class="stat-meta">CSS class sẵn dùng</div></div></div>
+          <div class="stat"><div class="stat-icon"><i class="fa-solid fa-cubes"></i></div><div><div class="stat-label">Component</div><div class="stat-value">120+</div><div class="stat-meta">CSS class sẵn dùng</div></div></div>
           <div class="stat"><div class="stat-icon bg-accent-100 text-accent-700"><i class="fa-solid fa-code"></i></div><div><div class="stat-label">JS API</div><div class="stat-value">TXTV.*</div><div class="stat-meta">Không cần thư viện ngoài</div></div></div>
           <div class="stat"><div class="stat-icon bg-sky-50 text-sky-600"><i class="fa-solid fa-moon"></i></div><div><div class="stat-label">Dark mode</div><div class="stat-value">Có</div><div class="stat-meta">Tự lưu theo trình duyệt</div></div></div>
           <div class="stat"><div class="stat-icon bg-amber-50 text-amber-600"><i class="fa-solid fa-mobile-screen"></i></div><div><div class="stat-label">Responsive</div><div class="stat-value">100%</div><div class="stat-meta">Điện thoại → màn hình lớn</div></div></div>
@@ -771,6 +777,119 @@ TXTV.run('demo_getEmployees').then(rows => dt.setData(rows));</code></pre>
         </div>
       </section>
 
+      <!-- ===================== v1.2: NHẬP LIỆU NÂNG CAO ===================== -->
+      <section id="v12-inputs" class="space-y-4">
+        <div class="page-header mb-0"><div><h2 class="page-title">Nhập liệu nâng cao <span class="badge badge-info badge-pill align-middle">v1.2</span></h2><p class="page-subtitle">Datepicker dd/MM/yyyy, chọn nhiều, gợi ý khi gõ, bàn phím số cảm ứng, soạn thảo văn bản, transfer list</p></div></div>
+        <div data-demo="Datepicker · Combobox chọn nhiều · Autocomplete · Bàn phím số">
+          <form class="grid gap-4 md:grid-cols-2" id="v12Form">
+            <div class="form-group"><label class="form-label required">Ngày giao hàng</label><input class="form-control" name="ngayGiao" data-tv-datepicker required></div>
+            <div class="form-group"><label class="form-label">Kỳ báo cáo (khoảng ngày)</label><input class="form-control" name="kyBaoCao" data-tv-datepicker data-mode="range"></div>
+            <div class="form-group"><label class="form-label">Chuyền áp dụng (chọn nhiều)</label>
+              <select name="chuyen" multiple data-tv-combo data-placeholder="Chọn chuyền...">
+                <option value="M1" selected>Chuyền May 1</option><option value="M2" selected>Chuyền May 2</option><option value="M3">Chuyền May 3</option>
+                <option value="M4">Chuyền May 4</option><option value="M5">Chuyền May 5</option><option value="CAT">Tổ Cắt</option><option value="HT">Tổ Hoàn thiện</option>
+              </select></div>
+            <div class="form-group"><label class="form-label">Nhân viên (gợi ý khi gõ – dữ liệu server)</label>
+              <div class="input-icon"><i class="fa-solid fa-user"></i><input class="form-control" id="acEmp" name="nhanVien" placeholder="Gõ tên hoặc mã, vd: thach"></div></div>
+            <div class="form-group"><label class="form-label">Số lượng (chạm để mở bàn phím số)</label>
+              <input class="form-control text-right text-lg font-semibold" name="soLuong" data-tv-mask="number" data-tv-numpad inputmode="none" placeholder="0"></div>
+            <div class="form-group flex items-end gap-2"><button type="button" class="btn btn-primary" onclick="demoV12Serialize()"><i class="fa-solid fa-code"></i> Xem dữ liệu form</button><button type="button" class="btn btn-ghost" onclick="TXTV.form.reset('#v12Form')">Làm lại</button></div>
+          </form>
+        </div>
+        <div class="grid gap-4 lg:grid-cols-2">
+          <div data-demo="Soạn thảo văn bản (data-tv-editor)">
+            <div class="editor" data-tv-editor data-name="noiDung" data-placeholder="Nhập nội dung thông báo..."><p><b>Thông báo:</b> Lịch nghỉ Tết Nguyên đán 2027 của nhà máy.</p><ul><li>Nghỉ từ 03/02 đến 13/02/2027</li><li>Đi làm lại 14/02/2027</li></ul></div>
+          </div>
+          <div data-demo="Transfer list – phân công công nhân">
+            <div id="demoTransfer"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== v1.2: DỮ LIỆU ===================== -->
+      <section id="v12-data" class="space-y-4">
+        <div class="page-header mb-0"><div><h2 class="page-title">Bảng nhập liệu, Gauge, Pivot, Gantt <span class="badge badge-info badge-pill align-middle">v1.2</span></h2><p class="page-subtitle">Nhập nhiều dòng như Excel (dán được từ Excel), đồng hồ OEE, bảng tổng hợp, kế hoạch sản xuất</p></div></div>
+        <div class="card">
+          <div class="card-header"><div><h3 class="card-title">Bảng nhập liệu kiểu Excel (TXTV.EditableGrid)</h3><p class="card-subtitle">Enter / ↑ ↓ di chuyển · copy vùng ô trong Excel rồi Ctrl+V · cột "Thành tiền" tự tính · có dòng tổng</p></div>
+            <div class="flex gap-2"><button class="btn btn-secondary btn-sm" onclick="demoGridChanges()"><i class="fa-solid fa-list-check"></i> Xem thay đổi</button><button class="btn btn-primary btn-sm" onclick="demoGridSave()"><i class="fa-solid fa-floppy-disk"></i> Lưu</button></div></div>
+          <div class="card-body"><div id="demoGrid"></div></div>
+        </div>
+        <div data-demo="Gauge (data-tv-gauge)">
+          <div class="flex flex-wrap items-end justify-around gap-6">
+            <div data-tv-gauge data-value="78.4" data-label="OEE"></div>
+            <div data-tv-gauge data-value="96" data-label="Chất lượng" data-size="140"></div>
+            <div data-tv-gauge data-value="52" data-label="Hiệu suất" data-size="140"></div>
+            <div data-tv-gauge data-value="1350" data-max="1800" data-unit=" sp" data-label="Sản lượng / KH" data-size="140"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div><h3 class="card-title">Pivot – sản lượng chuyền × ngày</h3><p class="card-subtitle">TXTV.renderPivot(el, rows, { rows: 'line', cols: 'date', value: 'output', heatmap: true })</p></div></div>
+          <div class="card-body"><div id="demoPivot"></div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div><h3 class="card-title">Gantt – kế hoạch đơn hàng</h3><p class="card-subtitle">TXTV.gantt(el, tasks, { onClick })</p></div></div>
+          <div class="card-body"><div id="demoGantt"></div></div>
+        </div>
+      </section>
+
+      <!-- ===================== v1.2: LUỒNG & TIỆN ÍCH ===================== -->
+      <section id="v12-flow" class="space-y-4">
+        <div class="page-header mb-0"><div><h2 class="page-title">Wizard, Hướng dẫn, Hoàn tác, Ảnh, Di động <span class="badge badge-info badge-pill align-middle">v1.2</span></h2><p class="page-subtitle">Biểu mẫu nhiều bước, tour đào tạo người dùng, toast có nút Hoàn tác, nén ảnh, bottom nav, bình luận</p></div></div>
+        <div data-demo="Wizard nhiều bước (data-tv-wizard)">
+          <form data-tv-wizard id="demoWizard" novalidate class="space-y-5">
+            <div class="steps"><div class="step"><span class="step-index">1</span><span class="step-label">Thông tin</span></div><div class="step"><span class="step-index">2</span><span class="step-label">Chi tiết</span></div><div class="step"><span class="step-index">3</span><span class="step-label">Xác nhận</span></div></div>
+            <div class="wizard-step grid gap-4 sm:grid-cols-2">
+              <div class="form-group"><label class="form-label required">Họ tên</label><input class="form-control" name="hoTen" required></div>
+              <div class="form-group"><label class="form-label required">Bộ phận</label><select class="form-control" name="boPhan" required><option value="">-- Chọn --</option><option>May</option><option>Cắt</option><option>QC</option></select></div>
+            </div>
+            <div class="wizard-step grid gap-4 sm:grid-cols-2">
+              <div class="form-group"><label class="form-label required">Loại nghỉ</label><select class="form-control" name="loai" required><option value="">-- Chọn --</option><option>Phép năm</option><option>Ốm</option><option>Việc riêng</option></select></div>
+              <div class="form-group"><label class="form-label required">Thời gian</label><input class="form-control" name="thoiGian" data-tv-datepicker data-mode="range" required></div>
+              <div class="form-group sm:col-span-2"><label class="form-label">Lý do</label><textarea class="form-control" name="lyDo" rows="2"></textarea></div>
+            </div>
+            <div class="wizard-step"><div class="callout">Kiểm tra lại thông tin rồi bấm <b>Gửi đơn</b>. Đơn sẽ chuyển tới tổ trưởng duyệt.</div><label class="form-check mt-3"><input type="checkbox" class="form-check-input" name="camKet" required> Tôi cam kết thông tin chính xác</label></div>
+            <div class="flex justify-between border-t border-slate-200 pt-4 dark:border-slate-800">
+              <button type="button" class="btn btn-secondary" data-wizard="prev"><i class="fa-solid fa-arrow-left"></i> Quay lại</button>
+              <div><button type="button" class="btn btn-primary" data-wizard="next">Tiếp tục <i class="fa-solid fa-arrow-right"></i></button><button type="submit" class="btn btn-success" data-wizard="finish"><i class="fa-solid fa-paper-plane"></i> Gửi đơn</button></div>
+            </div>
+          </form>
+        </div>
+        <div data-demo="Tour hướng dẫn · Toast Hoàn tác · Nén ảnh">
+          <div class="flex flex-wrap items-center gap-2">
+            <button class="btn btn-primary" onclick="demoTour()"><i class="fa-solid fa-person-chalkboard"></i> Chạy hướng dẫn</button>
+            <button class="btn btn-soft-danger" onclick="demoUndo()"><i class="fa-solid fa-trash"></i> Xóa (có Hoàn tác)</button>
+            <label class="btn btn-secondary"><i class="fa-solid fa-camera"></i> Chụp / chọn ảnh để nén<input type="file" accept="image/*" capture="environment" hidden onchange="demoCompress(this)"></label>
+            <span class="text-sm text-slate-500" id="compressInfo"></span>
+          </div>
+        </div>
+        <div class="grid gap-4 lg:grid-cols-2">
+          <div data-demo="Bottom navigation (điện thoại)">
+            <div class="relative h-40 overflow-hidden rounded-xl border border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-900">
+              <div class="p-4 text-sm text-slate-500">Nội dung trang…</div>
+              <nav class="bottom-nav absolute">
+                <a class="bottom-nav-item active"><i class="fa-solid fa-house"></i>Trang chủ</a>
+                <a class="bottom-nav-item"><i class="fa-solid fa-pen-to-square"></i>Nhập liệu</a>
+                <a class="bottom-nav-item"><i class="fa-solid fa-bell"></i>Thông báo<span class="badge-count">3</span></a>
+                <a class="bottom-nav-item"><i class="fa-solid fa-user"></i>Tôi</a>
+              </nav>
+            </div>
+          </div>
+          <div data-demo="Bình luận / trao đổi">
+            <div class="comment-list">
+              <div class="comment"><span class="avatar avatar-sm bg-sky-100 text-sky-700">QC</span><div class="comment-body"><div class="comment-meta"><span class="comment-author">Tổ QC</span><span class="text-slate-400">08:45</span></div>Lô PO-2611 có 6 sp lỗi đường may quai.</div></div>
+              <div class="comment mine"><span class="avatar avatar-sm">TT</span><div class="comment-body"><div class="comment-meta"><span class="comment-author">Tổ trưởng</span><span>08:52</span></div>Đã chỉnh máy số 12.</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3 class="card-title">Trang mẫu mới</h3></div>
+          <div class="card-body grid gap-3 sm:grid-cols-2">
+            <a class="list-item list-item-action rounded-xl border border-slate-200 dark:border-slate-800" href="<?= BASE_URL ?>?page=Dashboard" target="_top"><span class="stat-icon"><i class="fa-solid fa-chart-line"></i></span><div><div class="font-semibold text-slate-900 dark:text-white">Dashboard sản xuất</div><div class="text-xs text-slate-500">KPI, OEE, biểu đồ, Gantt, Pivot, xuất Excel, tour hướng dẫn</div></div></a>
+            <a class="list-item list-item-action rounded-xl border border-slate-200 dark:border-slate-800" href="<?= BASE_URL ?>?page=Mobile" target="_top"><span class="stat-icon bg-accent-100 text-accent-700"><i class="fa-solid fa-tablet-screen-button"></i></span><div><div class="font-semibold text-slate-900 dark:text-white">Nhập sản lượng (tablet)</div><div class="text-xs text-slate-500">Bàn phím số lớn, bảng nhập theo giờ, lưu nháp, bottom nav</div></div></a>
+          </div>
+        </div>
+      </section>
+
       <!-- ===================== NAVIGATION ===================== -->
       <section id="navigation" class="space-y-4">
         <div class="page-header mb-0"><div><h2 class="page-title">Điều hướng</h2><p class="page-subtitle">Breadcrumb, Tabs, Pills, Pagination, Steps, Navbar</p></div></div>
@@ -1002,13 +1121,22 @@ TXTV.qrcode(el, text) · TXTV.barcode(svg, text) · await TXTV.scan()
 TXTV.signature(canvas).toBase64() · TXTV.lightbox(items) · TXTV.print(elOrHtml)
 TXTV.commandPalette.register([...]) · TXTV.hotkey('ctrl+s', fn) · TXTV.contextMenu(el, items)
 TXTV.mask.parse('1.250.000') · TXTV.sparkline(el, data) · TXTV.url.params() / .set()
-TXTV.form.autosave(form, key) · TXTV.form.guard(form)</code></pre>
+TXTV.form.autosave(form, key) · TXTV.form.guard(form)
+
+// Mở rộng v1.2
+TXTV.datepicker(input) · &lt;input data-tv-datepicker data-mode="range"&gt;  · &lt;select multiple data-tv-combo&gt;
+TXTV.autocomplete(input, { source, getLabel, render, onSelect }) · await TXTV.numpad({ title, value })
+new TXTV.EditableGrid(el, { columns, data }) .getChanges() .validate() .markSaved()
+TXTV.gauge(el, 87) · TXTV.renderPivot(el, rows, { rows, cols, value }) · TXTV.gantt(el, tasks)
+TXTV.transfer(el, { items, selected }) · data-tv-editor · TXTV.wizard(form) · TXTV.tour(steps, { key })
+TXTV.toast(msg, { actions: [{ label: 'Hoàn tác', onClick }] }) · await TXTV.compressImage(file)
+TXTV.toDate(v) · TXTV.sanitize(html)</code></pre>
           </div>
         </div>
       </section>
     </main>
 
-    <footer class="app-footer">© 2026 Nhà máy Túi xách Trà Vinh – Chi nhánh 7, Công ty Cổ phần Đầu tư Thái Bình (TBS Group) · TXTV v1.1</footer>
+    <footer class="app-footer">© 2026 Nhà máy Túi xách Trà Vinh – Chi nhánh 7, Công ty Cổ phần Đầu tư Thái Bình (TBS Group) · TXTV v1.2</footer>
     <button class="no-print" data-tv-backtop aria-label="Lên đầu trang"><i class="fa-solid fa-arrow-up"></i></button>
   </div>
 </div>
@@ -1334,6 +1462,112 @@ TXTV.form.autosave(form, key) · TXTV.form.guard(form)</code></pre>
       '<h1 class="my-5 text-center text-xl font-bold">PHIẾU XUẤT KHO</h1><table class="table table-bordered table-compact"><thead><tr><th>STT</th><th>Mã VT</th><th>Tên vật tư</th><th class="text-right">SL</th></tr></thead><tbody>' +
       '<tr><td>1</td><td>PU-102</td><td>Da PU đen 1.2mm</td><td class="text-right">250</td></tr><tr><td>2</td><td>KH-05</td><td>Khóa kéo YKK #5</td><td class="text-right">1.000</td></tr></tbody></table>' +
       '<div class="mt-10 grid grid-cols-3 text-center text-sm font-semibold"><div>Người lập</div><div>Thủ kho</div><div>Giám đốc</div></div></div>', { title: 'Phiếu xuất kho PX-001' });
+  }
+
+
+  /* =====================  DEMO v1.2  ===================== */
+  // Autocomplete: dữ liệu lấy từ "server" (mock demo_getEmployees)
+  var EMP_CACHE = null;
+  TXTV.autocomplete('#acEmp', {
+    source: function (q) {
+      return (EMP_CACHE ? Promise.resolve(EMP_CACHE) : TXTV.run('demo_getEmployees').then(function (r) { return (EMP_CACHE = r); }))
+        .then(function (rows) { return rows.filter(function (r) { return TXTV.matchText(r.id + ' ' + r.name, q); }); });
+    },
+    getLabel: function (r) { return r.id + ' – ' + r.name; },
+    render: function (r) { return '<span class="avatar avatar-xs">' + TXTV.format.initials(r.name) + '</span><span class="flex-1 truncate">' + TXTV.escape(r.name) + '</span><span class="text-xs text-slate-400">' + TXTV.escape(r.id + ' · ' + r.dept) + '</span>'; },
+    onSelect: function (r) { TXTV.toast('Đã chọn ' + r.name, { duration: 1500 }); }
+  });
+  function demoV12Serialize() {
+    if (!TXTV.form.validate('#v12Form')) return;
+    var d = TXTV.form.serialize('#v12Form');
+    d.noiDung = TXTV.$('[data-tv-editor]')._editor.getHTML();
+    d.phanCong = demoTransfer.get();
+    TXTV.alert({ title: 'TXTV.form.serialize()', html: true, type: 'info', text: '<pre class="mt-2 max-h-64 overflow-auto rounded-lg bg-slate-100 p-3 text-left text-[11px] dark:bg-slate-800">' + TXTV.escape(JSON.stringify(d, null, 2)) + '</pre>' });
+  }
+
+  // Transfer list
+  var demoTransfer = TXTV.transfer('#demoTransfer', {
+    titles: ['Chưa phân công', 'Chuyền May 1'],
+    items: TXTV.mocks.demo_getEmployees().slice(0, 14).map(function (r) { return { value: r.id, label: r.name, meta: r.id }; }),
+    selected: ['NV0001', 'NV0002']
+  });
+
+  // Editable grid
+  var demoGrid = new TXTV.EditableGrid('#demoGrid', {
+    rowKey: 'id', emptyRows: 1,
+    columns: [
+      { key: 'maVT', label: 'Mã VT', required: true, width: '120px' },
+      { key: 'tenVT', label: 'Tên vật tư', required: true },
+      { key: 'dvt', label: 'ĐVT', type: 'select', options: ['m', 'yard', 'cái', 'cuộn', 'kg'], width: '90px' },
+      { key: 'sl', label: 'Số lượng', type: 'number', decimals: 2, min: 0, required: true, total: true, width: '120px' },
+      { key: 'donGia', label: 'Đơn giá', type: 'number', min: 0, width: '120px' },
+      { key: 'thanhTien', label: 'Thành tiền', compute: function (r) { return (Number(r.sl) || 0) * (Number(r.donGia) || 0) || ''; }, format: 'currency', total: function (rows) { return TXTV.format.currency(TXTV.sumBy(rows, function (r) { return (Number(r.sl) || 0) * (Number(r.donGia) || 0); })); }, width: '140px' },
+      { key: 'ngayNhan', label: 'Ngày nhận', type: 'date', width: '150px' }
+    ],
+    data: [
+      { id: 1, maVT: 'PU-102', tenVT: 'Da PU đen 1.2mm', dvt: 'yard', sl: 250.5, donGia: 85000, ngayNhan: TXTV.format.isoDate(new Date()) },
+      { id: 2, maVT: 'KH-05', tenVT: 'Khóa kéo YKK #5', dvt: 'cái', sl: 1000, donGia: 3500 }
+    ]
+  });
+  function demoGridChanges() {
+    var c = demoGrid.getChanges();
+    TXTV.alert({ title: 'grid.getChanges()', html: true, type: 'info', text: '<pre class="mt-2 max-h-64 overflow-auto rounded-lg bg-slate-100 p-3 text-left text-[11px] dark:bg-slate-800">' + TXTV.escape(JSON.stringify(c, null, 2)) + '</pre>' });
+  }
+  function demoGridSave() {
+    if (!demoGrid.validate()) return;
+    if (!demoGrid.isDirty()) return TXTV.toast('Không có thay đổi');
+    TXTV.loading.show('Đang lưu...');
+    setTimeout(function () { TXTV.loading.hide(); demoGrid.markSaved(); TXTV.toast.success('Đã lưu (demo) – thực tế: TXTV.run("luuPhieu", grid.getChanges())'); }, 700);
+  }
+
+  // Pivot + Gantt dùng dữ liệu giả lập sản xuất
+  (function () {
+    var t = new Date(), rows = [], lines = ['May 1', 'May 2', 'May 3', 'May 4'];
+    for (var k = 6; k >= 0; k--) {
+      var d = new Date(t.getFullYear(), t.getMonth(), t.getDate() - k); if (d.getDay() === 0) continue;
+      lines.forEach(function (l, i) { var seed = d.getDate() * 7 + i * 13; rows.push({ line: l, date: TXTV.format.isoDate(d), output: Math.round((1800 + i * 100) * (0.82 + (seed % 23) / 100)) }); });
+    }
+    TXTV.renderPivot('#demoPivot', rows, { rows: 'line', cols: 'date', value: 'output', rowLabel: 'Chuyền', colFormat: function (x) { return TXTV.format.date(x, 'dd/MM'); }, heatmap: true });
+    var iso = function (n) { return TXTV.format.isoDate(new Date(t.getFullYear(), t.getMonth(), t.getDate() + n)); };
+    TXTV.gantt('#demoGantt', [
+      { label: 'PO-2598 · Ví da', sub: 'May 3', start: iso(-8), end: iso(-2), progress: 100 },
+      { label: 'PO-2605 · Balo PU', sub: 'May 2', start: iso(-5), end: iso(-1), progress: 80 },
+      { label: 'PO-2611 · Túi tote', sub: 'May 1, May 4', start: iso(-3), end: iso(7), progress: 45 },
+      { label: 'PO-2615 · Túi du lịch', sub: 'May 5', start: iso(2), end: iso(12), progress: 0 }
+    ], { title: 'Đơn hàng', onClick: function (task) { TXTV.toast(task.label + ': ' + task.progress + '%'); } });
+  })();
+
+  // Wizard
+  TXTV.wizard('#demoWizard');
+  TXTV.$('#demoWizard').addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!this._wizard.validateAll()) return;
+    var d = TXTV.form.serialize(this);
+    TXTV.alert({ title: 'Đã gửi đơn', type: 'success', text: d.hoTen + ' – ' + d.loai + ' (' + TXTV.format.date(d.thoiGian.from) + ' → ' + TXTV.format.date(d.thoiGian.to) + ')' });
+    TXTV.form.reset(this); this._wizard.go(0);
+  });
+
+  // Tour, Undo, Compress
+  function demoTour() {
+    TXTV.tour([
+      { title: 'Chào mừng đến TXTV', text: 'Hướng dẫn nhanh các khu vực chính của trang tài liệu.' },
+      { el: '#docNav', title: 'Menu thành phần', text: 'Chọn nhóm component để cuộn tới phần demo tương ứng.' },
+      { el: '[data-tv-toggle="theme"]', title: 'Giao diện Sáng / Tối', text: 'Lựa chọn được lưu cho lần sau.' },
+      { el: '#v12-inputs', title: 'Nhập liệu nâng cao', text: 'Datepicker, chọn nhiều, gợi ý khi gõ, bàn phím số...' },
+      { el: '#demoGrid', title: 'Bảng nhập liệu', text: 'Nhập nhiều dòng như Excel, có thể dán trực tiếp từ Excel.' }
+    ], { force: true });
+  }
+  function demoUndo() {
+    var el = TXTV.$('#demoGrid'); el.style.opacity = '.3';
+    var undone = false;
+    TXTV.toast('Đã xóa bảng vật tư', { type: 'warning', duration: 5000, actions: [{ label: 'Hoàn tác', onClick: function () { undone = true; el.style.opacity = ''; TXTV.toast.success('Đã khôi phục'); } }] });
+    setTimeout(function () { if (!undone) el.style.opacity = ''; }, 5200);
+  }
+  function demoCompress(input) {
+    var f = input.files[0]; input.value = ''; if (!f) return;
+    TXTV.compressImage(f, { maxWidth: 1280, quality: 0.75 }).then(function (r) {
+      TXTV.$('#compressInfo').innerHTML = '<img src="' + r.dataUrl + '" class="mr-2 inline h-10 w-10 rounded object-cover" alt="">' + TXTV.format.fileSize(f.size) + ' → <b>' + TXTV.format.fileSize(r.size) + '</b> (' + r.width + '×' + r.height + ')';
+    }).catch(function (e) { TXTV.toast.error(e.message); });
   }
 
   /* ---------- Biểu đồ ---------- */

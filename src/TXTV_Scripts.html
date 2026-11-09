@@ -7,7 +7,7 @@
 (function (global) {
   'use strict';
 
-  var TXTV = { version: '1.1.0' };
+  var TXTV = { version: '1.2.0' };
 
   /* =====================================================================
    * TIỆN ÍCH CHUNG
@@ -189,6 +189,7 @@
         '<div class="min-w-0 flex-1">' +
           (opts.title ? '<div class="toast-title">' + esc(opts.title) + '</div>' : '') +
           '<div class="toast-text">' + (opts.html ? message : esc(message)) + '</div>' +
+          (opts.actions ? '<div class="toast-actions"></div>' : '') +
         '</div>' +
         '<button type="button" class="toast-close" aria-label="Đóng"><i class="fa-solid fa-xmark"></i></button>' +
       '</div>');
@@ -197,6 +198,12 @@
       el.classList.add('is-leaving'); setTimeout(function () { el.remove(); }, 300);
     };
     el.querySelector('.toast-close').addEventListener('click', close);
+    (opts.actions || []).forEach(function (a, i) {
+      var b = document.createElement('button'); b.type = 'button';
+      b.className = 'btn btn-xs ' + (a.primary || i === 0 ? 'btn-primary' : 'btn-secondary'); b.textContent = a.label;
+      b.addEventListener('click', function () { close(); if (a.onClick) a.onClick(); });
+      el.querySelector('.toast-actions').appendChild(b);
+    });
     container.appendChild(el);
     var duration = opts.duration === undefined ? 3500 : opts.duration;
     if (duration > 0) {
@@ -529,6 +536,7 @@
       form = $(form); var data = {};
       $$('input, select, textarea', form).forEach(function (el) {
         var name = el.name; if (!name || el.disabled || el.type === 'file' || el.type === 'button' || el.type === 'submit') return;
+        if (el._serialize) { data[name] = el._serialize(); return; }   // component tùy biến (datepicker, transfer...)
         var multiCheck = el.type === 'checkbox' && form.querySelectorAll('input[type=checkbox][name="' + name + '"]').length > 1;
         var val;
         if (el.type === 'checkbox') {
@@ -553,6 +561,7 @@
       Object.keys(obj).forEach(function (name) {
         var els = $$('[name="' + name + '"]', form), v = obj[name];
         els.forEach(function (el) {
+          if (el._onFill) { el._onFill(v); el.dispatchEvent(new Event('change', { bubbles: true })); return; }
           if (el.type === 'checkbox') el.checked = Array.isArray(v) ? v.indexOf(el.value) !== -1 : (v === true || v === 'true' || v === 1 || v === el.value);
           else if (el.type === 'radio') el.checked = String(el.value) === String(v);
           else if (el.tagName === 'SELECT' && el.multiple) $$('option', el).forEach(function (o) { o.selected = (v || []).indexOf(o.value) !== -1; });
@@ -570,6 +579,7 @@
       $$('input[type=hidden]', form).forEach(function (h) { if (!h.hasAttribute('data-keep') && !h.closest('[data-tv-tags]')) h.value = ''; });
       $$('[data-tv-rating]', form).forEach(function (r) { if (r.setValue) r.setValue(0); });
       $$('[data-tv-otp] input', form).forEach(function (i) { i.value = ''; });
+      $$('input, select, textarea', form).forEach(function (el) { if (el._onReset) el._onReset(); });
       $$('.is-invalid, .is-valid', form).forEach(function (el) { el.classList.remove('is-invalid', 'is-valid'); });
       $$('.form-error[data-auto]', form).forEach(function (el) { el.remove(); });
       $$('[data-tv-tags]', form).forEach(function (el) { if (el._tags) el._tags.set([]); });
@@ -705,6 +715,8 @@
       var r = e.target.closest('.chip-remove'); if (r) { tags.splice(+r.dataset.i, 1); render(); } else input.focus();
     });
     box._tags = { get: function () { return tags.slice(); }, set: function (arr) { tags = (arr || []).slice(); render(); } };
+    hidden._onFill = function (v) { box._tags.set(Array.isArray(v) ? v : String(v || '').split(',').map(function (x) { return x.trim(); }).filter(Boolean)); };
+    hidden._onReset = function () { box._tags.set([]); };
     render();
   }
 
@@ -782,7 +794,7 @@
     return select._combo;
   }
   TXTV.combo = {
-    init: initCombo,
+    init: function (sel) { sel = $(sel); return sel.multiple ? initComboMulti(sel) : initCombo(sel); },
     setOptions: function (select, items, selected) {
       select = $(select);
       var keepEmpty = select.querySelector('option[value=""]');
@@ -1207,6 +1219,7 @@
     box.addEventListener('mouseleave', function () { paint(val); });
     box.addEventListener('click', function (e) { var s = e.target.closest('[data-v]'); if (s) set(+s.dataset.v === val ? 0 : +s.dataset.v); });
     hidden.value = val || ''; paint(val);
+    hidden._onFill = function (v) { set(+v || 0); }; hidden._serialize = function () { return val || ''; };
     box.setValue = set;
   }
 
@@ -1703,6 +1716,774 @@
     TXTV.lightbox(all.map(function (x) { return { src: x.dataset.full || x.getAttribute('href') || x.src, caption: x.dataset.caption || x.alt || '' }; }), all.indexOf(img));
   });
 
+  /* #####################################################################
+   *                     MỞ RỘNG v1.2
+   * ##################################################################### */
+
+  /** Chuyển nhiều kiểu giá trị thành Date (giờ địa phương): Date | 'yyyy-MM-dd' | 'dd/MM/yyyy' | timestamp */
+  TXTV.toDate = function (v) {
+    if (!v && v !== 0) return null;
+    if (v instanceof Date) return isNaN(v) ? null : new Date(v.getFullYear(), v.getMonth(), v.getDate());
+    var s = String(v), m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (m) return new Date(+m[1], +m[2] - 1, +m[3]);
+    if (/^\d{1,2}\/\d{1,2}\/\d{4}/.test(s)) return TXTV.format.parseDate(s);
+    var d = new Date(v); return isNaN(d) ? null : new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  };
+  var sameDay = function (a, b) { return a && b && a.getTime() === b.getTime(); };
+  var DOW = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+
+  /** Lọc HTML do người dùng nhập (từ editor) – bỏ script, sự kiện on*, link javascript: */
+  TXTV.sanitize = function (html) {
+    var t = document.createElement('template'); t.innerHTML = String(html || '');
+    $$('script, style, iframe, object, embed, link, meta', t.content).forEach(function (n) { n.remove(); });
+    $$('*', t.content).forEach(function (n) {
+      Array.prototype.slice.call(n.attributes).forEach(function (a) {
+        var name = a.name.toLowerCase(), val = a.value.trim().toLowerCase();
+        if (name.indexOf('on') === 0 || ((name === 'href' || name === 'src') && /^(javascript|data):/.test(val) && !/^data:image\//.test(val))) n.removeAttribute(a.name);
+      });
+    });
+    return t.innerHTML;
+  };
+
+  /* =====================================================================
+   * DATEPICKER – hiển thị dd/MM/yyyy, chọn 1 ngày hoặc khoảng ngày
+   *   <input class="form-control" name="ngay" data-tv-datepicker>
+   *   <input class="form-control" name="kyBaoCao" data-tv-datepicker data-mode="range" data-min="2026-01-01">
+   *   serialize(): 'yyyy-MM-dd'  |  range: { from: 'yyyy-MM-dd', to: 'yyyy-MM-dd' }
+   *   el._dp.get() / el._dp.set(value | {from,to}) / el._dp.open()
+   * ===================================================================== */
+  function initDatepicker(input) {
+    if (input._dp) return input._dp;
+    var range = input.dataset.mode === 'range';
+    var min = TXTV.toDate(input.dataset.min), max = TXTV.toDate(input.dataset.max);
+    var start = null, end = null, view = new Date();
+    input.setAttribute('autocomplete', 'off');
+    if (!input.placeholder) input.placeholder = range ? 'dd/mm/yyyy – dd/mm/yyyy' : 'dd/mm/yyyy';
+    var wrap = document.createElement('div'); wrap.className = 'input-icon input-icon-right relative';
+    input.parentNode.insertBefore(wrap, input); wrap.appendChild(input);
+    wrap.insertAdjacentHTML('beforeend', '<i class="fa-regular fa-calendar"></i>');
+    var panel = document.createElement('div'); panel.className = 'datepicker hidden'; wrap.appendChild(panel);
+    var fmt = function (d) { return d ? TXTV.format.date(d) : ''; };
+    var show = function () { input.value = range ? (start ? fmt(start) + ' – ' + fmt(end || start) : '') : fmt(start); };
+    var commit = function () { show(); input.classList.remove('is-invalid'); input.dispatchEvent(new Event('change', { bubbles: true })); };
+    var parseText = function () {
+      var parts = input.value.split(/\s*[–-]\s*(?=\d{1,2}\/)/);
+      start = TXTV.toDate(parts[0]); end = range ? (TXTV.toDate(parts[1]) || start) : null;
+      if (range && start && end && end < start) { var t = start; start = end; end = t; }
+    };
+    var render = function () {
+      var y = view.getFullYear(), m = view.getMonth(), first = new Date(y, m, 1), off = (first.getDay() + 6) % 7, today = TXTV.toDate(new Date());
+      var html = '<div class="datepicker-head"><button type="button" class="btn btn-ghost btn-icon btn-xs" data-dp="-12" aria-label="Năm trước"><i class="fa-solid fa-angles-left"></i></button>' +
+        '<button type="button" class="btn btn-ghost btn-icon btn-xs" data-dp="-1" aria-label="Tháng trước"><i class="fa-solid fa-chevron-left"></i></button>' +
+        '<div class="datepicker-title">' + esc(first.toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' })) + '</div>' +
+        '<button type="button" class="btn btn-ghost btn-icon btn-xs" data-dp="1" aria-label="Tháng sau"><i class="fa-solid fa-chevron-right"></i></button>' +
+        '<button type="button" class="btn btn-ghost btn-icon btn-xs" data-dp="12" aria-label="Năm sau"><i class="fa-solid fa-angles-right"></i></button></div>' +
+        '<div class="datepicker-grid">' + DOW.map(function (d) { return '<div class="datepicker-dow">' + d + '</div>'; }).join('');
+      for (var i = 0; i < 42; i++) {
+        var d = new Date(y, m, 1 - off + i), cls = 'datepicker-day';
+        if (d.getMonth() !== m) cls += ' other';
+        if (sameDay(d, today)) cls += ' today';
+        if ((min && d < min) || (max && d > max)) cls += ' disabled';
+        if (sameDay(d, start) || sameDay(d, end)) cls += ' selected';
+        else if (range && start && end && d > start && d < end) cls += ' in-range';
+        html += '<div class="' + cls + '" data-day="' + TXTV.format.isoDate(d) + '">' + d.getDate() + '</div>';
+      }
+      html += '</div><div class="datepicker-presets">' +
+        (range ? '<button type="button" class="btn btn-soft btn-xs" data-preset="7">7 ngày</button><button type="button" class="btn btn-soft btn-xs" data-preset="30">30 ngày</button>' +
+          '<button type="button" class="btn btn-soft btn-xs" data-preset="month">Tháng này</button><button type="button" class="btn btn-soft btn-xs" data-preset="lastmonth">Tháng trước</button>'
+          : '<button type="button" class="btn btn-soft btn-xs" data-preset="today">Hôm nay</button>') +
+        '<button type="button" class="btn btn-ghost btn-xs ml-auto" data-preset="clear">Xóa</button></div>';
+      panel.innerHTML = html;
+    };
+    var open = function () {
+      if (input.disabled || input.readOnly) return;
+      parseText(); view = start ? new Date(start) : new Date();
+      panel.classList.remove('hidden'); render(); floatPanel(input, panel, true);
+    };
+    var close = function () { panel.classList.add('hidden'); resetPanel(panel); };
+    panel.addEventListener('mousedown', function (e) { e.preventDefault(); });
+    panel.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var nav = e.target.closest('[data-dp]');
+      if (nav) { view = new Date(view.getFullYear(), view.getMonth() + (+nav.dataset.dp), 1); render(); return; }
+      var p = e.target.closest('[data-preset]');
+      if (p) {
+        var t = TXTV.toDate(new Date()), k = p.dataset.preset;
+        if (k === 'clear') { start = end = null; }
+        else if (k === 'today') { start = t; }
+        else if (k === 'month') { start = new Date(t.getFullYear(), t.getMonth(), 1); end = new Date(t.getFullYear(), t.getMonth() + 1, 0); }
+        else if (k === 'lastmonth') { start = new Date(t.getFullYear(), t.getMonth() - 1, 1); end = new Date(t.getFullYear(), t.getMonth(), 0); }
+        else { end = t; start = new Date(t); start.setDate(t.getDate() - (+k - 1)); }
+        commit(); close(); return;
+      }
+      var day = e.target.closest('[data-day]'); if (!day) return;
+      var d = TXTV.toDate(day.dataset.day);
+      if (!range) { start = d; commit(); close(); return; }
+      if (!start || end) { start = d; end = null; render(); return; }
+      if (d < start) { end = start; start = d; } else end = d;
+      commit(); close();
+    });
+    input.addEventListener('click', open);
+    input.addEventListener('focus', open);
+    input.addEventListener('keydown', function (e) { if (e.key === 'Escape' || e.key === 'Tab') close(); if (e.key === 'Enter') { e.preventDefault(); parseText(); commit(); close(); } });
+    input.addEventListener('blur', function () { setTimeout(function () { if (document.activeElement !== input) { parseText(); show(); close(); } }, 150); });
+    document.addEventListener('click', function (e) { if (!wrap.contains(e.target)) close(); });
+    var api = {
+      get: function () { return range ? (start ? { from: TXTV.format.isoDate(start), to: TXTV.format.isoDate(end || start) } : '') : (start ? TXTV.format.isoDate(start) : ''); },
+      set: function (v) {
+        if (range && v && typeof v === 'object' && !(v instanceof Date)) { start = TXTV.toDate(v.from); end = TXTV.toDate(v.to) || start; }
+        else { start = TXTV.toDate(v); end = range ? start : null; }
+        show();
+      },
+      getDates: function () { return range ? { from: start, to: end || start } : start; },
+      open: open, close: close
+    };
+    input._dp = api;
+    input._serialize = api.get; input._onFill = api.set; input._onReset = function () { start = end = null; show(); };
+    if (input.value) { parseText(); show(); } else if (input.dataset.value) api.set(input.dataset.value);
+    return api;
+  }
+  TXTV.datepicker = function (el) { return initDatepicker($(el)); };
+
+  /* =====================================================================
+   * COMBOBOX CHỌN NHIỀU:  <select multiple data-tv-combo data-placeholder="Chọn chuyền...">...</select>
+   * ===================================================================== */
+  function initComboMulti(select) {
+    if (select._combo) return select._combo;
+    var wrap = TXTV.html('<div class="combo combo-multi"><div class="combo-toggle" tabindex="0" role="combobox"><div class="combo-chips flex min-w-0 flex-1 flex-wrap gap-1"></div><i class="fa-solid fa-chevron-down mr-1 text-[10px] text-slate-400"></i></div>' +
+      '<div class="combo-panel"><input class="combo-search" type="text" placeholder="Tìm kiếm...">' +
+      '<div class="flex justify-between px-1 pb-1"><button type="button" class="btn btn-link btn-xs" data-all>Chọn tất cả</button><button type="button" class="btn btn-link btn-xs text-slate-500" data-none>Bỏ chọn</button></div>' +
+      '<div class="combo-list" role="listbox" aria-multiselectable="true"></div></div></div>');
+    select.parentNode.insertBefore(wrap, select); wrap.appendChild(select); select.hidden = true;
+    var toggle = wrap.querySelector('.combo-toggle'), chips = wrap.querySelector('.combo-chips'), search = wrap.querySelector('.combo-search'), list = wrap.querySelector('.combo-list'), panel = wrap.querySelector('.combo-panel');
+    select._comboToggle = toggle;
+    var placeholder = select.dataset.placeholder || 'Chọn...', maxChips = +select.dataset.maxChips || 4;
+    var opts = function () { return $$('option', select).filter(function (o) { return o.value !== ''; }); };
+    var renderToggle = function () {
+      var sel = opts().filter(function (o) { return o.selected; });
+      chips.innerHTML = sel.length ? sel.slice(0, maxChips).map(function (o) {
+        return '<span class="chip chip-brand">' + esc(o.textContent) + '<span class="chip-remove" data-v="' + esc(o.value) + '"><i class="fa-solid fa-xmark"></i></span></span>';
+      }).join('') + (sel.length > maxChips ? '<span class="chip">+' + (sel.length - maxChips) + '</span>' : '') : '<span class="px-1.5 text-slate-400">' + esc(placeholder) + '</span>';
+    };
+    var renderList = function () {
+      var q = search.value, items = opts().filter(function (o) { return !q || TXTV.matchText(o.textContent, q); });
+      list.innerHTML = items.length ? items.map(function (o) {
+        return '<div class="combo-option justify-start' + (o.selected ? ' selected' : '') + '" data-value="' + esc(o.value) + '" role="option" aria-selected="' + o.selected + '"><span class="combo-check">' + (o.selected ? '<i class="fa-solid fa-check"></i>' : '') + '</span><span class="truncate">' + esc(o.textContent) + '</span></div>';
+      }).join('') : '<div class="combo-empty">Không tìm thấy kết quả</div>';
+    };
+    var changed = function () { renderToggle(); renderList(); toggle.classList.remove('is-invalid'); select.dispatchEvent(new Event('change', { bubbles: true })); };
+    var open = function () { $$('.combo.open').forEach(function (c) { if (c !== wrap && c._close) c._close(); }); wrap.classList.add('open'); search.value = ''; renderList(); floatPanel(toggle, panel, true); if (panel._floating) panel.style.width = toggle.offsetWidth + 'px'; setTimeout(function () { search.focus(); }, 10); };
+    var close = function () { wrap.classList.remove('open'); resetPanel(panel); };
+    wrap._close = close;
+    toggle.addEventListener('click', function (e) {
+      var rm = e.target.closest('.chip-remove');
+      if (rm) { e.stopPropagation(); var o = opts().filter(function (x) { return x.value === rm.dataset.v; })[0]; if (o) { o.selected = false; changed(); } return; }
+      wrap.classList.contains('open') ? close() : open();
+    });
+    toggle.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') { e.preventDefault(); open(); } });
+    panel.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (e.target.closest('[data-all]')) { opts().forEach(function (o) { if (!search.value || TXTV.matchText(o.textContent, search.value)) o.selected = true; }); changed(); return; }
+      if (e.target.closest('[data-none]')) { opts().forEach(function (o) { o.selected = false; }); changed(); return; }
+      var it = e.target.closest('.combo-option'); if (!it) return;
+      var o = opts().filter(function (x) { return x.value === it.dataset.value; })[0]; o.selected = !o.selected; changed();
+    });
+    search.addEventListener('input', renderList);
+    search.addEventListener('keydown', function (e) { if (e.key === 'Escape') { close(); toggle.focus(); } });
+    document.addEventListener('click', function (e) { if (!wrap.contains(e.target)) close(); });
+    select.addEventListener('change', renderToggle);
+    renderToggle();
+    select._combo = { refresh: renderToggle, open: open, close: close };
+    return select._combo;
+  }
+
+  /* =====================================================================
+   * AUTOCOMPLETE – gợi ý khi gõ, dữ liệu từ server hoặc mảng
+   *   TXTV.autocomplete('#maNV', {
+   *     source: q => TXTV.run('timNhanVien', q),        // hoặc mảng [{...}]
+   *     getLabel: it => it.ten, render: it => '<b>' + TXTV.escape(it.ma) + '</b> ' + TXTV.escape(it.ten),
+   *     onSelect: it => {...}, minLength: 1, delay: 250, limit: 20
+   *   });
+   * ===================================================================== */
+  TXTV.autocomplete = function (input, o) {
+    input = $(input); o = Object.assign({ minLength: 1, delay: 250, limit: 20, getLabel: function (it) { return typeof it === 'object' ? (it.label || it.name || it.value) : it; } }, o || {});
+    input.setAttribute('autocomplete', 'off');
+    var wrap = input.parentElement; if (getComputedStyle(wrap).position === 'static') wrap.style.position = 'relative';
+    var panel = document.createElement('div'); panel.className = 'autocomplete-panel hidden'; panel.setAttribute('role', 'listbox'); wrap.appendChild(panel);
+    var items = [], hi = -1, seq = 0;
+    var close = function () { panel.classList.add('hidden'); resetPanel(panel); hi = -1; };
+    var highlight = function (text, q) {
+      var plain = TXTV.removeAccents(text).toLowerCase(), i = plain.indexOf(TXTV.removeAccents(q).toLowerCase().trim());
+      return i === -1 || !q.trim() ? esc(text) : esc(text.slice(0, i)) + '<mark class="rounded bg-accent-200 px-0.5 text-inherit">' + esc(text.slice(i, i + q.trim().length)) + '</mark>' + esc(text.slice(i + q.trim().length));
+    };
+    var draw = function (q, loading) {
+      panel.classList.remove('hidden');
+      panel.innerHTML = loading ? '<div class="combo-empty"><span class="spinner spinner-sm mr-2 text-brand-700"></span>Đang tìm...</div>'
+        : items.length ? items.map(function (it, i) { return '<div class="combo-option' + (i === hi ? ' highlight' : '') + '" data-i="' + i + '" role="option">' + (o.render ? o.render(it, q) : '<span class="truncate">' + highlight(String(o.getLabel(it)), q) + '</span>') + '</div>'; }).join('')
+        : '<div class="combo-empty">Không tìm thấy kết quả</div>';
+      floatPanel(input, panel, true); if (panel._floating) panel.style.width = input.offsetWidth + 'px';
+    };
+    var choose = function (i) {
+      var it = items[i]; if (!it) return;
+      input.value = o.getLabel(it); close();
+      if (o.onSelect) o.onSelect(it);
+      input.dispatchEvent(new CustomEvent('tv:select', { detail: { item: it }, bubbles: true }));
+    };
+    var search = TXTV.debounce(function () {
+      var q = input.value, my = ++seq;
+      if (q.trim().length < o.minLength) { close(); return; }
+      if (Array.isArray(o.source)) { items = o.source.filter(function (it) { return TXTV.matchText(o.getLabel(it) + ' ' + (o.searchText ? o.searchText(it) : ''), q); }).slice(0, o.limit); hi = items.length ? 0 : -1; draw(q); return; }
+      draw(q, true);
+      Promise.resolve(o.source(q)).then(function (res) { if (my !== seq) return; items = (res || []).slice(0, o.limit); hi = items.length ? 0 : -1; draw(q); })
+        .catch(function (e) { if (my === seq) { panel.innerHTML = '<div class="combo-empty text-red-500">' + esc(e.message || e) + '</div>'; } });
+    }, o.delay);
+    input.addEventListener('input', search);
+    input.addEventListener('keydown', function (e) {
+      if (panel.classList.contains('hidden')) return;
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); hi = Math.max(0, Math.min(items.length - 1, hi + (e.key === 'ArrowDown' ? 1 : -1))); $$('.combo-option', panel).forEach(function (x, i) { x.classList.toggle('highlight', i === hi); if (i === hi) x.scrollIntoView({ block: 'nearest' }); }); }
+      else if (e.key === 'Enter') { if (hi >= 0) { e.preventDefault(); choose(hi); } }
+      else if (e.key === 'Escape') close();
+    });
+    panel.addEventListener('mousedown', function (e) { e.preventDefault(); var it = e.target.closest('[data-i]'); if (it) choose(+it.dataset.i); });
+    input.addEventListener('blur', function () { setTimeout(close, 120); });
+    return { close: close, search: function () { search(); } };
+  };
+
+  /* =====================================================================
+   * BÀN PHÍM SỐ (tablet / màn hình cảm ứng tại chuyền)
+   *   var n = await TXTV.numpad({ title: 'Sản lượng giờ 9', value: 120, decimals: 0, min: 0, max: 999 });  // null nếu hủy
+   *   <input data-tv-numpad data-title="Nhập số lượng"> : chạm vào ô sẽ hiện bàn phím
+   * ===================================================================== */
+  TXTV.numpad = function (o) {
+    o = o || {};
+    return new Promise(function (resolve) {
+      var val = o.value !== undefined && o.value !== null && o.value !== '' ? String(o.value).replace('.', ',') : '', result = null, fresh = true;
+      var keys = ['7', '8', '9', '4', '5', '6', '1', '2', '3', o.decimals ? ',' : 'C', '0', '⌫'];
+      var el = TXTV.modal.create({
+        size: 'sm', title: o.title || 'Nhập số',
+        body: '<div class="numpad-display" data-np-display></div>' + (o.hint ? '<p class="mb-3 text-center text-xs text-slate-500">' + esc(o.hint) + '</p>' : '') +
+          '<div class="numpad">' + keys.map(function (k) { return '<button type="button" class="' + (k === 'C' || k === '⌫' ? 'numpad-fn' : '') + '" data-k="' + k + '">' + (k === '⌫' ? '<i class="fa-solid fa-delete-left"></i>' : k) + '</button>'; }).join('') +
+          (o.decimals ? '<button type="button" class="numpad-fn" data-k="C">C</button>' : '') +
+          '<button type="button" class="numpad-ok' + (o.decimals ? ' col-span-2' : ' col-span-3') + '" data-k="ok"><i class="fa-solid fa-check"></i> Xong</button></div>'
+      });
+      var disp = el.querySelector('[data-np-display]');
+      var show = function () { disp.textContent = val === '' ? '0' : TXTV.mask.format(val, o.decimals || 0); };
+      var press = function (k) {
+        if (k === 'ok') {
+          var n = val === '' ? null : TXTV.mask.parse(TXTV.mask.format(val, o.decimals || 0));
+          if (n !== null && ((o.min !== undefined && n < o.min) || (o.max !== undefined && n > o.max))) { disp.animate([{ transform: 'translateX(-6px)' }, { transform: 'translateX(6px)' }, { transform: 'none' }], { duration: 200 }); TXTV.toast('Giá trị phải từ ' + (o.min !== undefined ? o.min : '…') + ' đến ' + (o.max !== undefined ? o.max : '…'), { type: 'warning', duration: 2000 }); return; }
+          result = n; TXTV.modal.close(el); return;
+        }
+        if (fresh && /[\d,]/.test(k)) { val = ''; }
+        fresh = false;
+        if (k === 'C') val = ''; else if (k === '⌫') val = val.slice(0, -1);
+        else if (k === ',') { if (val.indexOf(',') === -1) val = (val || '0') + ','; }
+        else if (val.replace(/\D/g, '').length < 12) val = (val === '0' ? '' : val) + k;
+        show();
+      };
+      el.querySelector('.numpad').addEventListener('click', function (e) { var b = e.target.closest('[data-k]'); if (b) press(b.dataset.k); });
+      var onKey = function (e) {
+        if (/^\d$/.test(e.key)) press(e.key); else if (e.key === 'Backspace') press('⌫'); else if ((e.key === ',' || e.key === '.') && o.decimals) press(',');
+        else if (e.key === 'Enter') { e.preventDefault(); press('ok'); } else if (e.key === 'Delete') press('C');
+      };
+      document.addEventListener('keydown', onKey);
+      el.addEventListener('tv:close', function () { document.removeEventListener('keydown', onKey); resolve(result); });
+      show();
+    });
+  };
+  document.addEventListener('click', function (e) {
+    var inp = e.target.closest('input[data-tv-numpad]'); if (!inp || inp.disabled || inp._npOpen) return;
+    inp._npOpen = true; inp.blur();
+    var masked = inp.hasAttribute('data-tv-mask');
+    TXTV.numpad({ title: inp.dataset.title || (inp.closest('.form-group') && inp.closest('.form-group').querySelector('.form-label') ? inp.closest('.form-group').querySelector('.form-label').textContent : 'Nhập số'),
+      value: masked ? TXTV.mask.parse(inp.value) : inp.value, decimals: +inp.dataset.decimals || 0,
+      min: inp.min !== '' ? +inp.min : undefined, max: inp.max !== '' ? +inp.max : undefined }).then(function (n) {
+      inp._npOpen = false;
+      if (n === null) return;
+      if (masked) TXTV.mask.set(inp, n); else inp.value = n;
+      inp.classList.remove('is-invalid');
+      inp.dispatchEvent(new Event('input', { bubbles: true })); inp.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+  });
+
+  /* =====================================================================
+   * SOẠN THẢO VĂN BẢN:  <div class="editor" data-tv-editor data-name="noiDung" data-placeholder="Nhập nội dung..."></div>
+   *   el._editor.getHTML() (đã lọc an toàn) / .setHTML(html) / .getText()
+   * ===================================================================== */
+  var EDITOR_TOOLS = [['bold', 'fa-bold', 'Đậm (Ctrl+B)'], ['italic', 'fa-italic', 'Nghiêng (Ctrl+I)'], ['underline', 'fa-underline', 'Gạch chân (Ctrl+U)'], ['strikeThrough', 'fa-strikethrough', 'Gạch ngang'], '|',
+    ['insertUnorderedList', 'fa-list-ul', 'Danh sách'], ['insertOrderedList', 'fa-list-ol', 'Danh sách số'], ['justifyLeft', 'fa-align-left', 'Căn trái'], ['justifyCenter', 'fa-align-center', 'Căn giữa'], '|',
+    ['createLink', 'fa-link', 'Chèn liên kết'], ['removeFormat', 'fa-eraser', 'Xóa định dạng'], '|', ['undo', 'fa-rotate-left', 'Hoàn tác'], ['redo', 'fa-rotate-right', 'Làm lại']];
+  function initEditor(box) {
+    if (box._editor) return box._editor;
+    var initial = box.innerHTML.trim();
+    box.innerHTML = '<div class="editor-toolbar">' + EDITOR_TOOLS.map(function (t) { return t === '|' ? '<span class="sep"></span>' : '<button type="button" data-cmd="' + t[0] + '" data-tooltip="' + t[2] + '" data-tooltip-pos="bottom"><i class="fa-solid ' + t[1] + '"></i></button>'; }).join('') + '</div>' +
+      '<div class="editor-content" contenteditable="true" data-placeholder="' + esc(box.dataset.placeholder || 'Nhập nội dung...') + '"></div>';
+    var content = box.querySelector('.editor-content'), hidden = document.createElement('input');
+    hidden.type = 'hidden'; hidden.name = box.dataset.name || ''; box.appendChild(hidden);
+    var sync = function () { if (!content.textContent.trim() && !content.querySelector('img')) content.innerHTML = ''; hidden.value = TXTV.sanitize(content.innerHTML); };
+    var states = function () { $$('[data-cmd]', box).forEach(function (b) { try { b.classList.toggle('active', document.queryCommandState(b.dataset.cmd)); } catch (e) {} }); };
+    box.querySelector('.editor-toolbar').addEventListener('mousedown', function (e) { e.preventDefault(); });
+    box.querySelector('.editor-toolbar').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-cmd]'); if (!b) return;
+      content.focus();
+      if (b.dataset.cmd === 'createLink') {
+        var sel = global.getSelection(), range = sel.rangeCount ? sel.getRangeAt(0) : null;
+        TXTV.prompt({ title: 'Chèn liên kết', label: 'Địa chỉ (https://...)', value: 'https://', required: true }).then(function (url) {
+          if (!url || !/^https?:\/\//i.test(url)) return;
+          content.focus(); if (range) { sel.removeAllRanges(); sel.addRange(range); }
+          document.execCommand('createLink', false, url); sync();
+        });
+        return;
+      }
+      document.execCommand(b.dataset.cmd, false, null); sync(); states();
+    });
+    content.addEventListener('input', sync);
+    content.addEventListener('keyup', states); content.addEventListener('mouseup', states);
+    content.addEventListener('paste', function (e) {
+      // Dán dạng văn bản thuần để tránh rác định dạng từ Word / Excel
+      e.preventDefault(); var t = (e.clipboardData || global.clipboardData).getData('text/plain');
+      document.execCommand('insertText', false, t);
+    });
+    var api = {
+      getHTML: function () { sync(); return hidden.value; },
+      setHTML: function (h) { content.innerHTML = TXTV.sanitize(h || ''); sync(); },
+      getText: function () { return content.innerText.trim(); },
+      focus: function () { content.focus(); }
+    };
+    hidden._onFill = api.setHTML; hidden._onReset = function () { api.setHTML(''); };
+    box._editor = api;
+    if (initial) api.setHTML(initial); else sync();
+    return api;
+  }
+
+  /* =====================================================================
+   * TRANSFER LIST (chuyển qua lại 2 danh sách – vd: phân công công nhân vào chuyền)
+   *   var tr = TXTV.transfer('#el', { items: [{ value, label }], selected: ['v1'], titles: ['Chưa phân', 'Đã phân'], name: 'congNhan' });
+   *   tr.get() -> ['v1', ...]
+   * ===================================================================== */
+  TXTV.transfer = function (el, o) {
+    el = $(el); o = Object.assign({ items: [], selected: [], titles: ['Danh sách', 'Đã chọn'] }, o || {});
+    var chosen = o.selected.map(String), q = ['', ''];
+    el.classList.add('transfer');
+    var box = function (side) {
+      return '<div class="transfer-box" data-side="' + side + '"><div class="transfer-head"><label class="form-check text-xs"><input type="checkbox" class="form-check-input" data-tr-all> ' + esc(o.titles[side]) + '</label><span data-tr-count></span></div>' +
+        '<div class="border-b border-slate-100 p-1.5 dark:border-slate-800"><input class="form-control form-control-sm" data-tr-search placeholder="Tìm..."></div><div class="transfer-list"></div></div>';
+    };
+    el.innerHTML = box(0) + '<div class="transfer-actions"><button type="button" class="btn btn-secondary btn-icon btn-sm" data-tr-move="1" aria-label="Chuyển sang"><i class="fa-solid fa-chevron-right md:rotate-0"></i></button>' +
+      '<button type="button" class="btn btn-secondary btn-icon btn-sm" data-tr-move="0" aria-label="Chuyển về"><i class="fa-solid fa-chevron-left"></i></button></div>' + box(1) +
+      (o.name ? '<input type="hidden" name="' + esc(o.name) + '" data-type="json">' : '');
+    var hidden = el.querySelector('input[type=hidden]');
+    var render = function () {
+      [0, 1].forEach(function (side) {
+        var b = el.querySelector('[data-side="' + side + '"]');
+        var list = o.items.filter(function (it) { return (chosen.indexOf(String(it.value)) !== -1) === (side === 1) && (!q[side] || TXTV.matchText(it.label, q[side])); });
+        b.querySelector('.transfer-list').innerHTML = list.length ? list.map(function (it) {
+          return '<label class="transfer-item"><input type="checkbox" class="form-check-input" value="' + esc(it.value) + '"><span class="flex-1 truncate">' + esc(it.label) + '</span>' + (it.meta ? '<span class="text-xs text-slate-400">' + esc(it.meta) + '</span>' : '') + '</label>';
+        }).join('') : '<div class="py-8 text-center text-xs text-slate-400">Trống</div>';
+        b.querySelector('[data-tr-count]').textContent = list.length;
+        b.querySelector('[data-tr-all]').checked = false;
+      });
+      if (hidden) hidden.value = JSON.stringify(chosen);
+    };
+    el.addEventListener('click', function (e) {
+      var mv = e.target.closest('[data-tr-move]'); if (!mv) return;
+      var to = +mv.dataset.trMove, from = 1 - to;
+      var vals = $$('[data-side="' + from + '"] .transfer-list input:checked', el).map(function (c) { return c.value; });
+      if (!vals.length) return;
+      chosen = to === 1 ? chosen.concat(vals) : chosen.filter(function (v) { return vals.indexOf(v) === -1; });
+      render(); el.dispatchEvent(new CustomEvent('tv:change', { detail: { selected: chosen.slice() }, bubbles: true }));
+    });
+    el.addEventListener('change', function (e) {
+      if (e.target.matches('[data-tr-all]')) $$('.transfer-list input', e.target.closest('.transfer-box')).forEach(function (c) { c.checked = e.target.checked; });
+    });
+    el.addEventListener('input', function (e) { if (e.target.matches('[data-tr-search]')) { q[+e.target.closest('[data-side]').dataset.side] = e.target.value; render(); } });
+    el.addEventListener('dblclick', function (e) {
+      var it = e.target.closest('.transfer-item'); if (!it) return;
+      var v = it.querySelector('input').value, side = +it.closest('[data-side]').dataset.side;
+      chosen = side === 0 ? chosen.concat([v]) : chosen.filter(function (x) { return x !== v; }); render();
+    });
+    if (hidden) { hidden._onFill = function (v) { chosen = (typeof v === 'string' ? JSON.parse(v || '[]') : v || []).map(String); render(); }; hidden._onReset = function () { chosen = []; render(); }; hidden._serialize = function () { return chosen.slice(); }; }
+    render();
+    return { get: function () { return chosen.slice(); }, set: function (v) { chosen = (v || []).map(String); render(); }, setItems: function (items) { o.items = items; render(); } };
+  };
+
+  /* =====================================================================
+   * BẢNG NHẬP LIỆU KIỂU EXCEL (Editable grid)
+   *   var g = new TXTV.EditableGrid('#el', {
+   *     columns: [
+   *       { key: 'gio', label: 'Giờ', type: 'readonly' },
+   *       { key: 'chuyen', label: 'Chuyền', type: 'select', options: ['May 1', 'May 2'], required: true },
+   *       { key: 'sl', label: 'Sản lượng', type: 'number', min: 0, required: true, total: true },
+   *       { key: 'loi', label: 'Lỗi', type: 'number', decimals: 0, total: true },
+   *       { key: 'tyLe', label: '% lỗi', type: 'readonly', compute: r => r.sl ? r.loi / r.sl : '', format: 'percent' },
+   *       { key: 'ngay', label: 'Ngày', type: 'date' }, { key: 'ghiChu', label: 'Ghi chú' }
+   *     ],
+   *     data: [], rowKey: 'id', allowAdd: true, allowRemove: true, newRow: () => ({}), onChange(row, key, value) {}
+   *   });
+   *   g.getData(); g.getChanges() -> { added, updated, removed }; g.validate(); g.addRow({}); g.setData(rows); g.markSaved();
+   *   Phím: Enter / ↓ xuống dòng, ↑ lên dòng; dán vùng ô từ Excel (Ctrl+V) sẽ điền nhiều dòng/cột.
+   * ===================================================================== */
+  function EditableGrid(el, o) {
+    if (!(this instanceof EditableGrid)) return new EditableGrid(el, o);
+    this.el = $(el);
+    this.o = Object.assign({ columns: [], data: [], rowKey: 'id', allowAdd: true, allowRemove: true, newRow: function () { return {}; }, emptyRows: 0, maxHeight: null }, o || {});
+    this.removed = [];
+    this.setData(this.o.data);
+    var self = this;
+    this.el.addEventListener('change', function (e) { var c = e.target.closest('.cell'); if (c) self._onCell(c, true); });
+    this.el.addEventListener('input', function (e) { var c = e.target.closest('.cell'); if (c && c.tagName === 'INPUT') self._onCell(c, false); });
+    this.el.addEventListener('focusout', function (e) { var dc = e.target.closest('.cell[data-date]'); if (dc && TXTV.toDate(dc.value)) dc.value = TXTV.format.date(TXTV.toDate(dc.value)); });
+    this.el.addEventListener('focusout', function (e) { var c = e.target.closest('.cell[data-num]'); if (c) { var v = TXTV.mask.parse(c.value); c.value = v === '' ? '' : TXTV.mask.format(String(v).replace('.', ','), +c.dataset.dec || 0); } });
+    this.el.addEventListener('keydown', function (e) {
+      var c = e.target.closest('.cell'); if (!c) return;
+      var r = +c.dataset.r, k = c.dataset.k;
+      var move = function (dr) { var n = self.el.querySelector('.cell[data-r="' + (r + dr) + '"][data-k="' + k + '"]'); if (n) { n.focus(); if (n.select) n.select(); return true; } return false; };
+      if (e.key === 'ArrowDown' || (e.key === 'Enter' && c.tagName !== 'SELECT')) {
+        e.preventDefault();
+        if (!move(1) && self.o.allowAdd && e.key === 'Enter') { self.addRow(); move(1); }
+      } else if (e.key === 'ArrowUp') { e.preventDefault(); move(-1); }
+    });
+    this.el.addEventListener('paste', function (e) {
+      var c = e.target.closest('.cell'); if (!c) return;
+      var text = (e.clipboardData || global.clipboardData).getData('text/plain');
+      if (!/[\t\n]/.test(text.replace(/\r?\n$/, ''))) return;
+      e.preventDefault();
+      var lines = text.replace(/\r/g, '').replace(/\n$/, '').split('\n').map(function (l) { return l.split('\t'); });
+      var cols = self.o.columns.filter(function (cc) { return cc.type !== 'readonly'; }).map(function (cc) { return cc.key; });
+      var r0 = +c.dataset.r, c0 = cols.indexOf(c.dataset.k);
+      lines.forEach(function (vals, i) {
+        while (r0 + i >= self.rows.length) { if (!self.o.allowAdd) return; self.rows.push(Object.assign({ _state: 'new' }, self.o.newRow())); }
+        vals.forEach(function (v, j) {
+          var key = cols[c0 + j]; if (!key) return;
+          var col = self._col(key); self.rows[r0 + i][key] = col.type === 'number' ? TXTV.mask.parse(v) : (col.type === 'date' ? (TXTV.toDate(v) ? TXTV.format.isoDate(TXTV.toDate(v)) : v) : v.trim());
+          self._touch(self.rows[r0 + i]);
+        });
+      });
+      self.render(); TXTV.toast('Đã dán ' + lines.length + ' dòng', { type: 'success', duration: 1500 });
+    });
+    this.el.addEventListener('click', function (e) {
+      var rm = e.target.closest('[data-grid-remove]'); if (rm) { self.removeRow(+rm.dataset.gridRemove); return; }
+      if (e.target.closest('[data-grid-add]')) { self.addRow(); var last = self.el.querySelector('.cell[data-r="' + (self.rows.length - 1) + '"]'); if (last) last.focus(); }
+    });
+  }
+  EditableGrid.prototype._col = function (k) { return this.o.columns.filter(function (c) { return c.key === k; })[0] || {}; };
+  EditableGrid.prototype._touch = function (row) { if (row._state !== 'new') row._state = 'dirty'; };
+  EditableGrid.prototype._onCell = function (c, full) {
+    var row = this.rows[+c.dataset.r], col = this._col(c.dataset.k), v = c.value;
+    if (col.type === 'number') v = TXTV.mask.parse(v);
+    if (col.type === 'date') v = TXTV.toDate(v) ? TXTV.format.isoDate(TXTV.toDate(v)) : v.trim();
+    row[col.key] = v; this._touch(row);
+    c.classList.remove('is-invalid');
+    c.closest('tr').classList.add('is-dirty');
+    this._refreshComputed(+c.dataset.r);
+    if (this.o.onChange) this.o.onChange(row, col.key, v);
+    void full;
+  };
+  EditableGrid.prototype._fmt = function (col, v) {
+    if (v === '' || v === null || v === undefined) return '';
+    if (col.format && TXTV.format[col.format]) return TXTV.format[col.format](v);
+    if (col.type === 'number') return TXTV.mask.format(String(v).replace('.', ','), col.decimals || 0);
+    return v;
+  };
+  EditableGrid.prototype._refreshComputed = function (r) {
+    var self = this, row = this.rows[r], tr = this.el.querySelector('tr[data-r="' + r + '"]');
+    this.o.columns.forEach(function (col) {
+      if (col.compute) { row[col.key] = col.compute(row); var td = tr && tr.querySelector('td[data-ck="' + col.key + '"]'); if (td) td.textContent = self._fmt(col, row[col.key]); }
+    });
+    this._renderTotals();
+  };
+  EditableGrid.prototype._renderTotals = function () {
+    var self = this, tf = this.el.querySelector('tfoot'); if (!tf) return;
+    this.o.columns.forEach(function (col) {
+      var td = tf.querySelector('[data-tk="' + col.key + '"]'); if (!td) return;
+      var sum = TXTV.sumBy(self.rows, col.key);
+      td.textContent = typeof col.total === 'function' ? col.total(self.rows) : self._fmt(col, sum);
+    });
+  };
+  EditableGrid.prototype.render = function () {
+    var self = this, o = this.o;
+    var cell = function (col, row, r) {
+      var v = row[col.key];
+      if (col.type === 'readonly' || col.compute) return '<td class="readonly' + (col.align === 'right' || col.type === 'number' || col.format ? ' text-right' : '') + '" data-ck="' + col.key + '">' + esc(self._fmt(col, col.compute ? col.compute(row) : v)) + '</td>';
+      var attr = ' class="cell' + (col.type === 'number' || col.align === 'right' ? ' text-right' : '') + '" data-r="' + r + '" data-k="' + col.key + '"' + (col.required ? ' data-req' : '');
+      if (col.type === 'select') {
+        var opts = typeof col.options === 'function' ? col.options(row) : col.options || [];
+        return '<td><select' + attr + '><option value=""></option>' + opts.map(function (op) { var ov = typeof op === 'object' ? op.value : op, ol = typeof op === 'object' ? op.label : op; return '<option value="' + esc(ov) + '"' + (String(ov) === String(v) ? ' selected' : '') + '>' + esc(ol) + '</option>'; }).join('') + '</select></td>';
+      }
+      if (col.type === 'date') return '<td><input type="text" inputmode="numeric" placeholder="dd/mm/yyyy" data-date' + attr + ' value="' + esc(TXTV.toDate(v) ? TXTV.format.date(TXTV.toDate(v)) : (v || '')) + '"></td>';
+      if (col.type === 'number') return '<td><input type="text" inputmode="decimal" data-num data-dec="' + (col.decimals || 0) + '"' + attr + ' value="' + esc(self._fmt({ type: 'number', decimals: col.decimals }, v)) + '"></td>';
+      return '<td><input type="text"' + attr + ' value="' + esc(v === undefined || v === null ? '' : v) + '"' + (col.maxLength ? ' maxlength="' + col.maxLength + '"' : '') + '></td>';
+    };
+    var hasTotal = o.columns.some(function (c) { return c.total; });
+    this.el.innerHTML = '<div class="table-wrapper"' + (o.maxHeight ? ' style="max-height:' + o.maxHeight + ';overflow-y:auto"' : '') + '><table class="table table-bordered grid-edit' + (o.maxHeight ? ' table-sticky' : '') + '"><thead><tr><th class="w-10 text-center">#</th>' +
+      o.columns.map(function (c) { return '<th' + (c.width ? ' style="width:' + c.width + '"' : '') + ' class="' + (c.type === 'number' || c.align === 'right' ? 'text-right' : '') + '">' + esc(c.label) + (c.required ? ' <span class="text-red-500">*</span>' : '') + '</th>'; }).join('') +
+      (o.allowRemove ? '<th class="w-10"></th>' : '') + '</tr></thead><tbody>' +
+      this.rows.map(function (row, r) {
+        return '<tr data-r="' + r + '" class="' + (row._state === 'new' ? 'is-new ' : '') + (row._state === 'dirty' ? 'is-dirty' : '') + '"><td class="readonly text-center text-xs">' + (r + 1) + '</td>' +
+          o.columns.map(function (c) { return cell(c, row, r); }).join('') +
+          (o.allowRemove ? '<td class="text-center"><button type="button" class="btn btn-ghost btn-icon btn-xs text-slate-400 hover:text-red-600" data-grid-remove="' + r + '" aria-label="Xóa dòng"><i class="fa-solid fa-xmark"></i></button></td>' : '') + '</tr>';
+      }).join('') + '</tbody>' +
+      (hasTotal ? '<tfoot><tr><td></td>' + o.columns.map(function (c, i) { return c.total ? '<td class="text-right" data-tk="' + c.key + '"></td>' : '<td>' + (i === 0 ? 'Tổng' : '') + '</td>'; }).join('') + (o.allowRemove ? '<td></td>' : '') + '</tr></tfoot>' : '') +
+      '</table></div>' + (o.allowAdd ? '<button type="button" class="btn btn-soft btn-sm mt-2" data-grid-add><i class="fa-solid fa-plus"></i> Thêm dòng</button>' : '');
+    this._renderTotals();
+    return this;
+  };
+  EditableGrid.prototype.setData = function (rows) {
+    this.rows = (rows || []).map(function (r) { return Object.assign({}, r); });
+    for (var i = 0; i < this.o.emptyRows; i++) this.rows.push(Object.assign({ _state: 'new' }, this.o.newRow()));
+    this.removed = []; return this.render();
+  };
+  EditableGrid.prototype.addRow = function (row) { this.rows.push(Object.assign({ _state: 'new' }, this.o.newRow(), row || {})); return this.render(); };
+  EditableGrid.prototype.removeRow = function (i) {
+    var r = this.rows[i]; if (!r) return this;
+    if (r._state !== 'new' && r[this.o.rowKey] !== undefined) this.removed.push(r[this.o.rowKey]);
+    this.rows.splice(i, 1); return this.render();
+  };
+  var cleanRow = function (r) { var o = Object.assign({}, r); delete o._state; return o; };
+  var isBlank = function (r, cols) { return cols.every(function (c) { return c.compute || c.type === 'readonly' || r[c.key] === '' || r[c.key] === undefined || r[c.key] === null; }); };
+  EditableGrid.prototype.getData = function () { var cols = this.o.columns; return this.rows.filter(function (r) { return !isBlank(r, cols); }).map(cleanRow); };
+  EditableGrid.prototype.getChanges = function () {
+    var cols = this.o.columns;
+    return {
+      added: this.rows.filter(function (r) { return r._state === 'new' && !isBlank(r, cols); }).map(cleanRow),
+      updated: this.rows.filter(function (r) { return r._state === 'dirty'; }).map(cleanRow),
+      removed: this.removed.slice()
+    };
+  };
+  EditableGrid.prototype.isDirty = function () { var c = this.getChanges(); return !!(c.added.length || c.updated.length || c.removed.length); };
+  EditableGrid.prototype.markSaved = function () { this.rows.forEach(function (r) { delete r._state; }); this.removed = []; return this.render(); };
+  EditableGrid.prototype.validate = function () {
+    var self = this, first = null, cols = this.o.columns;
+    this.rows.forEach(function (row, r) {
+      if (isBlank(row, cols)) return;
+      cols.forEach(function (col) {
+        var v = row[col.key], bad = (col.required && (v === '' || v === undefined || v === null)) ||
+          (col.type === 'number' && v !== '' && v !== undefined && ((col.min !== undefined && v < col.min) || (col.max !== undefined && v > col.max))) ||
+          (col.type === 'date' && v && !TXTV.toDate(v)) ||
+          (col.validate && v !== '' && col.validate(v, row) === false);
+        var c = self.el.querySelector('.cell[data-r="' + r + '"][data-k="' + col.key + '"]');
+        if (c) c.classList.toggle('is-invalid', !!bad);
+        if (bad && !first) first = c;
+      });
+    });
+    if (first) { first.focus(); TXTV.toast('Có ô dữ liệu chưa hợp lệ (tô đỏ)', { type: 'warning' }); }
+    return !first;
+  };
+  TXTV.EditableGrid = EditableGrid;
+
+  /* =====================================================================
+   * GANTT – kế hoạch sản xuất / tiến độ đơn hàng
+   *   TXTV.gantt('#el', [{ id, label, sub, start: '2026-11-10', end: '2026-11-18', progress: 40, color: '#0b5a41' }],
+   *              { from, to, dayWidth: 36, onClick(task) })
+   * ===================================================================== */
+  TXTV.gantt = function (el, tasks, o) {
+    el = $(el); o = o || {}; tasks = tasks || [];
+    var dw = o.dayWidth || 36, DAY = 86400000;
+    var starts = tasks.map(function (t) { return TXTV.toDate(t.start); }), ends = tasks.map(function (t) { return TXTV.toDate(t.end || t.start); });
+    var from = TXTV.toDate(o.from) || new Date(Math.min.apply(null, starts.concat([TXTV.toDate(new Date())])));
+    var to = TXTV.toDate(o.to) || new Date(Math.max.apply(null, ends.concat([TXTV.toDate(new Date())])));
+    from = new Date(from.getTime() - (o.from ? 0 : DAY)); to = new Date(to.getTime() + (o.to ? 0 : DAY));
+    var days = Math.round((to - from) / DAY) + 1, today = TXTV.toDate(new Date());
+    var head = '', i;
+    for (i = 0; i < days; i++) {
+      var d = new Date(from.getFullYear(), from.getMonth(), from.getDate() + i), wd = d.getDay();
+      head += '<div class="gantt-day' + (wd === 0 ? ' weekend' : '') + (sameDay(d, today) ? ' today' : '') + '" style="width:' + dw + 'px">' + (d.getDate() === 1 || i === 0 ? '<b>' + (d.getMonth() + 1) + '/</b>' : '') + d.getDate() + '<br>' + DOW[(wd + 6) % 7] + '</div>';
+    }
+    var bg = 'background-image:repeating-linear-gradient(90deg,transparent 0,transparent ' + (dw - 1) + 'px,rgba(148,163,184,.15) ' + (dw - 1) + 'px,rgba(148,163,184,.15) ' + dw + 'px)';
+    var todayLeft = (today - from) / DAY * dw;
+    el.classList.add('gantt');
+    el.innerHTML = '<div style="min-width:' + (192 + days * dw) + 'px"><div class="gantt-row sticky top-0 z-20 bg-white dark:bg-slate-900"><div class="gantt-label text-xs uppercase text-slate-500">' + esc(o.title || 'Công việc') + '</div><div class="gantt-days">' + head + '</div></div>' +
+      tasks.map(function (t, k) {
+        var s = starts[k], e = ends[k], left = (s - from) / DAY * dw, width = ((e - s) / DAY + 1) * dw - 4;
+        var color = t.color || TXTV.palette[k % TXTV.palette.length];
+        var late = t.progress < 100 && e < today;
+        return '<div class="gantt-row"><div class="gantt-label"><span class="dot" style="background:' + color + '"></span><div class="min-w-0"><div class="truncate">' + esc(t.label) + '</div>' + (t.sub ? '<div class="truncate text-xs font-normal text-slate-400">' + esc(t.sub) + '</div>' : '') + '</div></div>' +
+          '<div class="gantt-track" style="height:44px;' + bg + '">' + (todayLeft >= 0 && todayLeft <= days * dw ? '<div class="absolute inset-y-0 w-0.5 bg-accent-500/60" style="left:' + (todayLeft + dw / 2) + 'px"></div>' : '') +
+          '<div class="gantt-bar' + (late ? ' ring-2 ring-red-500 ring-offset-1' : '') + '" data-gantt="' + k + '" style="left:' + (left + 2) + 'px;width:' + Math.max(dw - 4, width) + 'px;background:' + color + '" title="' + esc(t.label + ': ' + TXTV.format.date(s) + ' → ' + TXTV.format.date(e) + (t.progress !== undefined ? ' (' + t.progress + '%)' : '')) + '">' +
+          (t.progress !== undefined ? '<div class="gantt-progress" style="width:' + Math.min(100, t.progress) + '%"></div>' : '') + '<span>' + esc(t.barLabel !== undefined ? t.barLabel : (t.progress !== undefined ? t.progress + '%' : '')) + '</span></div></div></div>';
+      }).join('') + '</div>';
+    el.onclick = function (e) { var b = e.target.closest('[data-gantt]'); if (b && o.onClick) o.onClick(tasks[+b.dataset.gantt]); };
+    // Cuộn tới hôm nay
+    if (todayLeft > el.clientWidth / 2) el.scrollLeft = todayLeft - el.clientWidth / 3;
+  };
+
+  /* =====================================================================
+   * GAUGE (đồng hồ đo – OEE, hiệu suất, tỷ lệ đạt)
+   *   TXTV.gauge('#el', 87.5, { label: 'OEE', unit: '%', max: 100, size: 180, thresholds: [[65, '#ef4444'], [85, '#f59e0b'], [100, '#10b981']] })
+   *   <div data-tv-gauge data-value="87" data-label="OEE"></div>
+   * ===================================================================== */
+  TXTV.gauge = function (el, value, o) {
+    el = $(el); o = o || {};
+    var min = o.min || 0, max = o.max === undefined ? 100 : o.max, size = o.size || 180, stroke = o.stroke || 14;
+    var v = Math.max(min, Math.min(max, Number(value) || 0)), pct = (v - min) / (max - min || 1);
+    var th = o.thresholds || [[max * 0.65, '#ef4444'], [max * 0.85, '#f59e0b'], [max, '#10b981']];
+    var color = o.color || (th.filter(function (t) { return v <= t[0]; })[0] || th[th.length - 1])[1];
+    var r = (size - stroke) / 2, cx = size / 2, cy = size / 2, len = Math.PI * r;
+    var arc = 'M ' + (cx - r) + ' ' + cy + ' A ' + r + ' ' + r + ' 0 0 1 ' + (cx + r) + ' ' + cy;
+    el.classList.add('gauge');
+    el.innerHTML = '<div class="relative"><svg class="block" width="' + size + '" height="' + (size / 2 + stroke / 2 + 4) + '" viewBox="0 0 ' + size + ' ' + (size / 2 + stroke / 2 + 4) + '">' +
+      '<path d="' + arc + '" fill="none" stroke="currentColor" class="text-slate-200 dark:text-slate-800" stroke-width="' + stroke + '" stroke-linecap="round"/>' +
+      '<path d="' + arc + '" fill="none" stroke="' + color + '" stroke-width="' + stroke + '" stroke-linecap="round" stroke-dasharray="' + len + '" stroke-dashoffset="' + (len * (1 - pct)) + '" style="transition:stroke-dashoffset .8s ease"/></svg>' +
+      '<div class="gauge-value" style="font-size:' + Math.max(12, Math.round(size / 7.5)) + 'px">' + esc(o.text !== undefined ? o.text : TXTV.format.number(v, o.decimals === undefined ? (v % 1 ? 1 : 0) : o.decimals) + (o.unit === undefined ? '%' : o.unit)) + '</div></div>' +
+      (o.label ? '<div class="gauge-label">' + esc(o.label) + '</div>' : '');
+  };
+
+  /* =====================================================================
+   * PIVOT – tổng hợp dữ liệu theo dòng × cột
+   *   var p = TXTV.pivot(rows, { rows: 'chuyen', cols: 'ngay', value: 'sl', agg: 'sum|count|avg|min|max' });
+   *   TXTV.renderPivot('#el', rows, { rows: 'chuyen', cols: 'ngay', value: 'sl', format: 'number', rowLabel: 'Chuyền', colFormat: v => ... })
+   * ===================================================================== */
+  TXTV.pivot = function (data, c) {
+    var rk = pick(c.rows), ck = c.cols ? pick(c.cols) : function () { return 'Tổng'; }, vk = c.value ? pick(c.value) : function () { return 1; }, agg = c.agg || 'sum';
+    var cells = {}, rowKeys = [], colKeys = [];
+    (data || []).forEach(function (d) {
+      var r = rk(d), k = ck(d), v = Number(vk(d)) || 0;
+      if (rowKeys.indexOf(r) === -1) rowKeys.push(r); if (colKeys.indexOf(k) === -1) colKeys.push(k);
+      var key = r + '\u0001' + k; (cells[key] = cells[key] || []).push(v);
+    });
+    var reduce = function (arr) {
+      if (!arr || !arr.length) return null;
+      if (agg === 'count') return arr.length;
+      if (agg === 'avg') return arr.reduce(function (a, b) { return a + b; }, 0) / arr.length;
+      if (agg === 'min') return Math.min.apply(null, arr); if (agg === 'max') return Math.max.apply(null, arr);
+      return arr.reduce(function (a, b) { return a + b; }, 0);
+    };
+    var sortFn = c.sort === false ? null : function (a, b) { return String(a).localeCompare(String(b), 'vi', { numeric: true }); };
+    if (sortFn) { rowKeys.sort(sortFn); colKeys.sort(sortFn); }
+    var collect = function (f) { var arr = []; Object.keys(cells).forEach(function (key) { if (f(key.split('\u0001'))) arr = arr.concat(cells[key]); }); return arr; };
+    return {
+      rowKeys: rowKeys, colKeys: colKeys,
+      get: function (r, k) { return reduce(cells[r + '\u0001' + k]); },
+      rowTotal: function (r) { return reduce(collect(function (p) { return String(p[0]) === String(r); })); },
+      colTotal: function (k) { return reduce(collect(function (p) { return String(p[1]) === String(k); })); },
+      grandTotal: function () { return reduce(collect(function () { return true; })); }
+    };
+  };
+  TXTV.renderPivot = function (el, data, c) {
+    el = $(el); var p = TXTV.pivot(data, c), f = c.format && TXTV.format[c.format] ? TXTV.format[c.format] : TXTV.format.number;
+    var cf = c.colFormat || function (x) { return x; }, rf = c.rowFormat || function (x) { return x; };
+    var max = 0; p.rowKeys.forEach(function (r) { p.colKeys.forEach(function (k) { max = Math.max(max, p.get(r, k) || 0); }); });
+    var heat = function (v) { return c.heatmap && v ? ' style="background:rgba(11,90,65,' + (0.08 + 0.5 * v / (max || 1)).toFixed(2) + ')"' : ''; };
+    el.innerHTML = '<div class="table-wrapper"><table class="table table-compact table-bordered pivot"><thead><tr><th>' + esc(c.rowLabel || '') + '</th>' +
+      p.colKeys.map(function (k) { return '<th class="num">' + esc(cf(k)) + '</th>'; }).join('') + '<th class="num">Tổng</th></tr></thead><tbody>' +
+      p.rowKeys.map(function (r) {
+        return '<tr><td class="font-medium">' + esc(rf(r)) + '</td>' + p.colKeys.map(function (k) { var v = p.get(r, k); return '<td class="num"' + heat(v) + '>' + (v === null ? '<span class="text-slate-300">–</span>' : esc(f(v))) + '</td>'; }).join('') +
+          '<td class="num total">' + esc(f(p.rowTotal(r))) + '</td></tr>';
+      }).join('') + '<tr class="total"><td>Tổng</td>' + p.colKeys.map(function (k) { return '<td class="num">' + esc(f(p.colTotal(k))) + '</td>'; }).join('') + '<td class="num">' + esc(f(p.grandTotal())) + '</td></tr></tbody></table></div>';
+    return p;
+  };
+
+  /* =====================================================================
+   * WIZARD – biểu mẫu nhiều bước, kiểm tra từng bước
+   *   <form data-tv-wizard> <div class="steps">...</div>
+   *     <div class="wizard-step">...</div> <div class="wizard-step">...</div>
+   *     <button type="button" data-wizard="prev">  <button type="button" data-wizard="next">  <button type="submit" data-wizard="finish">
+   *   </form>
+   *   Sự kiện 'tv:step' (detail.index). el._wizard.go(i) / .next() / .prev()
+   * ===================================================================== */
+  TXTV.wizard = function (el) {
+    el = $(el); if (el._wizard) return el._wizard;
+    var steps = $$('.wizard-step', el), ind = el.querySelector('.steps'), cur = 0;
+    var show = function (i) {
+      cur = Math.max(0, Math.min(steps.length - 1, i));
+      steps.forEach(function (s, k) { s.classList.toggle('active', k === cur); });
+      if (ind) TXTV.steps.set(ind, cur);
+      $$('[data-wizard="prev"]', el).forEach(function (b) { b.classList.toggle('invisible', cur === 0); });
+      $$('[data-wizard="next"]', el).forEach(function (b) { b.classList.toggle('hidden', cur === steps.length - 1); });
+      $$('[data-wizard="finish"]', el).forEach(function (b) { b.classList.toggle('hidden', cur !== steps.length - 1); });
+      el.dispatchEvent(new CustomEvent('tv:step', { detail: { index: cur }, bubbles: true }));
+    };
+    var api = {
+      next: function () { if (el.hasAttribute('data-no-validate') || TXTV.form.validate(steps[cur], { toast: false })) show(cur + 1); },
+      prev: function () { show(cur - 1); }, go: show, current: function () { return cur; },
+      validateAll: function () { for (var i = 0; i < steps.length; i++) { if (!TXTV.form.validate(steps[i], { toast: false })) { show(i); TXTV.form.validate(steps[i]); return false; } } return true; }
+    };
+    el.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-wizard]'); if (!b || b.closest('[data-tv-wizard]') !== el) return;
+      if (b.dataset.wizard === 'next') { e.preventDefault(); api.next(); }
+      if (b.dataset.wizard === 'prev') { e.preventDefault(); api.prev(); }
+    });
+    el._wizard = api; show(0);
+    return api;
+  };
+
+  /* =====================================================================
+   * TOUR – hướng dẫn sử dụng từng bước (đào tạo người dùng mới)
+   *   TXTV.tour([{ el: '#btnThem', title: 'Thêm mới', text: 'Bấm để tạo phiếu' }, ...], { key: 'tour-kho-v1' })
+   *   key: chỉ chạy 1 lần / trình duyệt (bỏ key hoặc force: true để luôn chạy)
+   * ===================================================================== */
+  TXTV.tour = function (steps, o) {
+    o = o || {};
+    if (o.key && !o.force && TXTV.storage.get('txtv-tour:' + o.key)) return Promise.resolve(false);
+    return new Promise(function (resolve) {
+      var i = 0, spot = TXTV.html('<div class="tour-spot"></div>'), pop = TXTV.html('<div class="tour-pop" role="dialog"></div>');
+      document.body.appendChild(spot); document.body.appendChild(pop);
+      var end = function (done) {
+        spot.remove(); pop.remove(); global.removeEventListener('resize', place); document.removeEventListener('keydown', onKey);
+        if (o.key) TXTV.storage.set('txtv-tour:' + o.key, 1);
+        resolve(done);
+      };
+      var place = function () {
+        var s = steps[i], target = s.el ? $(s.el) : null, pad = 6;
+        if (target) {
+          var r = target.getBoundingClientRect();
+          spot.style.cssText = 'left:' + (r.left - pad) + 'px;top:' + (r.top - pad) + 'px;width:' + (r.width + pad * 2) + 'px;height:' + (r.height + pad * 2) + 'px';
+          var pw = pop.offsetWidth, ph = pop.offsetHeight, top = r.bottom + 14;
+          if (top + ph > global.innerHeight - 8) top = Math.max(8, r.top - ph - 14);
+          pop.style.left = Math.max(8, Math.min(r.left, global.innerWidth - pw - 8)) + 'px'; pop.style.top = top + 'px';
+        } else {
+          spot.style.cssText = 'left:50%;top:50%;width:0;height:0';
+          pop.style.left = (global.innerWidth - pop.offsetWidth) / 2 + 'px'; pop.style.top = (global.innerHeight - pop.offsetHeight) / 2 + 'px';
+        }
+      };
+      var draw = function () {
+        var s = steps[i], target = s.el ? $(s.el) : null;
+        pop.innerHTML = '<div class="mb-2 flex items-center justify-between"><span class="badge badge-brand badge-pill">' + (i + 1) + ' / ' + steps.length + '</span><button type="button" class="btn btn-ghost btn-icon btn-xs" data-tour="end" aria-label="Đóng"><i class="fa-solid fa-xmark"></i></button></div>' +
+          '<div class="tour-title">' + esc(s.title || '') + '</div><div class="tour-text">' + (s.html ? s.text : esc(s.text || '')) + '</div>' +
+          '<div class="mt-4 flex items-center gap-2"><button type="button" class="btn btn-ghost btn-sm" data-tour="end">Bỏ qua</button><div class="ml-auto flex gap-2">' +
+          (i > 0 ? '<button type="button" class="btn btn-secondary btn-sm" data-tour="prev">Trước</button>' : '') +
+          '<button type="button" class="btn btn-primary btn-sm" data-tour="next">' + (i === steps.length - 1 ? 'Hoàn tất' : 'Tiếp') + '</button></div></div>';
+        if (target) { target.scrollIntoView({ block: 'center', behavior: 'smooth' }); setTimeout(place, 350); }
+        place();
+      };
+      var onKey = function (e) { if (e.key === 'Escape') end(false); if (e.key === 'ArrowRight') go(1); if (e.key === 'ArrowLeft') go(-1); };
+      var go = function (d) { if (i + d >= steps.length) return end(true); i = Math.max(0, i + d); draw(); };
+      pop.addEventListener('click', function (e) { var b = e.target.closest('[data-tour]'); if (!b) return; if (b.dataset.tour === 'end') end(false); else go(b.dataset.tour === 'next' ? 1 : -1); });
+      global.addEventListener('resize', place); document.addEventListener('keydown', onKey);
+      draw();
+    });
+  };
+
+  /* =====================================================================
+   * NÉN ẢNH trước khi gửi lên server (giảm dung lượng, tránh giới hạn của Apps Script)
+   *   var img = await TXTV.compressImage(file, { maxWidth: 1600, quality: 0.8 });  // { name, mimeType, size, data, dataUrl }
+   *   Chụp ảnh từ điện thoại: <input type="file" accept="image/*" capture="environment">
+   * ===================================================================== */
+  TXTV.compressImage = function (file, o) {
+    o = Object.assign({ maxWidth: 1600, maxHeight: 1600, quality: 0.8, type: 'image/jpeg' }, o || {});
+    return new Promise(function (resolve, reject) {
+      var url = URL.createObjectURL(file), img = new Image();
+      img.onload = function () {
+        var s = Math.min(1, o.maxWidth / img.width, o.maxHeight / img.height), w = Math.round(img.width * s), h = Math.round(img.height * s);
+        var cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+        var ctx = cv.getContext('2d'); if (o.type === 'image/jpeg') { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h); }
+        ctx.drawImage(img, 0, 0, w, h); URL.revokeObjectURL(url);
+        var dataUrl = cv.toDataURL(o.type, o.quality), data = dataUrl.split(',')[1];
+        resolve({ name: file.name.replace(/\.\w+$/, '') + (o.type === 'image/png' ? '.png' : '.jpg'), mimeType: o.type, size: Math.round(data.length * 3 / 4), width: w, height: h, data: data, dataUrl: dataUrl });
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); reject(new Error('File không phải ảnh hợp lệ')); };
+      img.src = url;
+    });
+  };
+
+  /** Khởi tạo thành phần v1.2 (gọi trong TXTV.init) */
+  function initV12(root) {
+    $$('input[data-tv-datepicker]', root).forEach(initDatepicker);
+    $$('[data-tv-editor]', root).forEach(initEditor);
+    $$('[data-tv-wizard]', root).forEach(function (w) { TXTV.wizard(w); });
+    $$('[data-tv-gauge]', root).forEach(function (g) { TXTV.gauge(g, g.dataset.value, { label: g.dataset.label, max: g.dataset.max ? +g.dataset.max : undefined, size: g.dataset.size ? +g.dataset.size : undefined, unit: g.dataset.unit }); });
+  }
+
   /* =====================================================================
    * HIỆN CODE MẪU (dùng trong trang tài liệu) – <div data-tv-demo> ... </div>
    * ===================================================================== */
@@ -1719,7 +2500,7 @@
     root = root || document;
     $$('[data-tv-dropzone]', root).forEach(initDropzone);
     $$('[data-tv-tags]', root).forEach(initTags);
-    $$('select[data-tv-combo]', root).forEach(initCombo);
+    $$('select[data-tv-combo]', root).forEach(function (sel) { sel.multiple ? initComboMulti(sel) : initCombo(sel); });
     $$('[data-tv-progress-ring]', root).forEach(function (el) { TXTV.progressRing(el, el.dataset.value); });
     $$('[data-tv-format]', root).forEach(function (el) {
       var f = TXTV.format[el.dataset.tvFormat]; if (f) el.textContent = f(el.dataset.value !== undefined ? el.dataset.value : el.textContent.trim());
@@ -1729,6 +2510,7 @@
       if (active) TXTV.tabs.show(t, active.getAttribute('data-tab'));
     });
     initExtras(root);
+    initV12(root);
   };
 
   document.addEventListener('click', function (e) {

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <?!= include('TXTV_Head'); ?>
+</head>
+<body class="has-bottom-nav">
+<!--
+  MOBILE – Mẫu nhập sản lượng theo giờ cho tablet / điện thoại tại chuyền.
+  Bàn phím số cỡ lớn, bảng nhập kiểu Excel, tự lưu nháp, bottom navigation.
+  Server: output_load(line, date) / output_save({ line, date, rows }) trong Code.gs
+-->
+<header class="sticky top-0 z-20 bg-brand-900 text-white shadow">
+  <div class="mx-auto flex max-w-3xl items-center gap-3 px-4 py-3">
+    <div class="grid h-9 w-9 place-items-center rounded-lg bg-accent-400 text-xs font-extrabold text-brand-950">TBS</div>
+    <div class="min-w-0 flex-1"><div class="truncate text-sm font-bold">Nhập sản lượng</div><div class="text-[11px] text-white/60"><span data-tv-clock data-format="HH:mm"></span> · <?= USER.name ?></div></div>
+    <button class="btn btn-icon text-white hover:bg-white/10" data-tv-toggle="theme" aria-label="Giao diện"><i data-tv-theme-icon class="fa-solid fa-moon"></i></button>
+  </div>
+</header>
+
+<main class="mx-auto max-w-3xl space-y-4 p-4 pb-40">
+  <div class="tab-panel active space-y-4" id="pageEntry">
+    <div class="card card-body space-y-3">
+      <div class="overflow-x-auto scrollbar-none"><div class="segmented" id="lineSel">
+        <label><input type="radio" name="line" value="May 1" checked><span>May 1</span></label>
+        <label><input type="radio" name="line" value="May 2"><span>May 2</span></label>
+        <label><input type="radio" name="line" value="May 3"><span>May 3</span></label>
+        <label><input type="radio" name="line" value="May 4"><span>May 4</span></label>
+        <label><input type="radio" name="line" value="May 5"><span>May 5</span></label>
+      </div></div>
+      <div class="grid grid-cols-2 gap-3">
+        <div class="form-group"><label class="form-label">Ngày</label><input class="form-control" id="day" data-tv-datepicker></div>
+        <div class="form-group"><label class="form-label">Kế hoạch / ngày</label><input class="form-control text-right" id="planDay" data-tv-mask="number" data-tv-numpad value="1800"></div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-3 gap-3 text-center">
+      <div class="card card-body p-3"><div class="text-[11px] font-medium uppercase text-slate-500">Thực hiện</div><div class="text-2xl font-bold text-slate-900 dark:text-white" id="sumOut">0</div></div>
+      <div class="card card-body p-3"><div class="text-[11px] font-medium uppercase text-slate-500">Lỗi</div><div class="text-2xl font-bold text-red-600" id="sumDef">0</div></div>
+      <div class="card flex items-center justify-center p-2"><div id="gPct"></div></div>
+    </div>
+
+    <button class="btn btn-accent btn-xl btn-block" id="btnQuick"><i class="fa-solid fa-hand-pointer"></i> Nhập nhanh giờ hiện tại</button>
+
+    <div class="card">
+      <div class="card-header"><h3 class="card-title">Sản lượng theo giờ</h3><span class="badge badge-gray" id="saveState">Chưa lưu</span></div>
+      <div class="card-body p-3"><div id="grid"></div>
+        <p class="form-help mt-2"><i class="fa-solid fa-lightbulb text-amber-500"></i> Enter để xuống dòng · có thể dán nhiều ô từ Excel</p></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3 class="card-title">Trao đổi trong ca</h3></div>
+      <div class="card-body space-y-4">
+        <div class="comment-list" id="comments">
+          <div class="comment"><span class="avatar avatar-sm bg-sky-100 text-sky-700">QC</span><div class="comment-body"><div class="comment-meta"><span class="comment-author">Tổ QC</span><span class="text-slate-400">08:45</span></div>Giờ 8:30 có 6 sản phẩm lỗi đường may quai, nhờ chuyền kiểm tra máy số 12.</div></div>
+          <div class="comment mine"><span class="avatar avatar-sm">TT</span><div class="comment-body"><div class="comment-meta"><span class="comment-author">Tổ trưởng</span><span>08:52</span></div>Đã chỉnh lại kim máy 12, theo dõi tiếp giờ sau.</div></div>
+        </div>
+        <div class="flex gap-2"><input class="form-control" id="cmtInput" placeholder="Nhập ghi chú..."><button class="btn btn-primary btn-icon" id="cmtSend" aria-label="Gửi"><i class="fa-solid fa-paper-plane"></i></button></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-panel space-y-4" id="pageHistory">
+    <div class="card"><div class="empty-state"><div class="empty-state-icon"><i class="fa-solid fa-clock-rotate-left"></i></div><div class="empty-state-title">Lịch sử nhập</div><p class="empty-state-text">Ví dụ trang thứ 2 của bottom navigation.</p></div></div>
+  </div>
+</main>
+
+<div class="fixed inset-x-0 bottom-16 z-20 px-4 pb-2"><div class="mx-auto max-w-3xl"><button class="btn btn-primary btn-xl btn-block shadow-lg" id="btnSave"><i class="fa-solid fa-cloud-arrow-up"></i> Lưu sản lượng</button></div></div>
+
+<nav class="bottom-nav">
+  <a class="bottom-nav-item active" data-page="pageEntry"><i class="fa-solid fa-pen-to-square"></i>Nhập liệu</a>
+  <a class="bottom-nav-item" data-page="pageHistory"><i class="fa-solid fa-clock-rotate-left"></i>Lịch sử</a>
+  <a class="bottom-nav-item" href="<?= BASE_URL ?>?page=Dashboard" target="_top"><i class="fa-solid fa-chart-pie"></i>Báo cáo</a>
+  <a class="bottom-nav-item" id="navScan"><i class="fa-solid fa-qrcode"></i>Quét mã<span class="badge-count">2</span></a>
+</nav>
+
+<?!= include('TXTV_Scripts'); ?>
+<script>
+  /* ---------- Mock xem trước ---------- */
+  (function () {
+    var store = {};
+    TXTV.mocks.output_load = function (line, date) { return store[line + date] || []; };
+    TXTV.mocks.output_save = function (p) { store[p.line + p.date] = p.rows.map(function (r) { return { gio: r.gio, keHoach: r.keHoach, thucHien: r.thucHien, loi: r.loi, ghiChu: r.ghiChu }; }); return { saved: p.rows.length, at: TXTV.format.date(new Date(), 'HH:mm') }; };
+  })();
+
+  var HOURS = ['07:30', '08:30', '09:30', '10:30', '12:30', '13:30', '14:30', '15:30'];
+  var dp = TXTV.datepicker('#day'); dp.set(new Date());
+  var line = function () { return TXTV.$('#lineSel input:checked').value; };
+  var planHour = function () { return Math.round((TXTV.mask.parse(TXTV.$('#planDay').value) || 0) / HOURS.length); };
+
+  var grid = new TXTV.EditableGrid('#grid', {
+    allowAdd: false, allowRemove: false,
+    columns: [
+      { key: 'gio', label: 'Giờ', type: 'readonly', width: '70px' },
+      { key: 'keHoach', label: 'KH', type: 'readonly', format: 'number', width: '70px' },
+      { key: 'thucHien', label: 'Thực hiện', type: 'number', min: 0, max: 2000, total: true },
+      { key: 'loi', label: 'Lỗi', type: 'number', min: 0, total: true },
+      { key: 'dat', label: '% đạt', compute: function (r) { return r.thucHien !== '' && r.thucHien !== undefined && r.keHoach ? r.thucHien / r.keHoach : ''; }, format: 'percent', width: '72px' },
+      { key: 'ghiChu', label: 'Ghi chú', width: '30%' }
+    ],
+    onChange: function () { summary(); setState('dirty'); draft(); }
+  });
+
+  function blankRows() { return HOURS.map(function (h) { return { gio: h, keHoach: planHour(), thucHien: '', loi: '', ghiChu: '' }; }); }
+  function setState(s) {
+    var b = TXTV.$('#saveState');
+    b.className = 'badge ' + (s === 'saved' ? 'badge-success' : s === 'dirty' ? 'badge-warning' : 'badge-gray');
+    b.textContent = s === 'saved' ? 'Đã lưu' : s === 'dirty' ? 'Chưa lưu' : 'Trống';
+  }
+  function summary() {
+    var rows = grid.rows, out = TXTV.sumBy(rows, 'thucHien'), def = TXTV.sumBy(rows, 'loi');
+    var planned = TXTV.sumBy(rows.filter(function (r) { return r.thucHien !== '' && r.thucHien !== undefined && r.thucHien !== null; }), 'keHoach');
+    TXTV.$('#sumOut').textContent = TXTV.format.number(out);
+    TXTV.$('#sumDef').textContent = TXTV.format.number(def);
+    TXTV.gauge('#gPct', planned ? out / planned * 100 : 0, { label: 'Đạt KH', size: 96, stroke: 9 });
+  }
+  var draftKey = function () { return 'txtv-draft:sanluong:' + line() + ':' + dp.get(); };
+  var draft = TXTV.debounce(function () { TXTV.storage.set(draftKey(), grid.rows); }, 400);
+
+  function load() {
+    TXTV.loading.block('#grid', true);
+    return TXTV.run('output_load', line(), dp.get()).then(function (saved) {
+      var rows = blankRows(), local = TXTV.storage.get(draftKey());
+      saved.forEach(function (s) { var r = rows.filter(function (x) { return x.gio === s.gio; })[0]; if (r) Object.assign(r, s); });
+      if (local && local.length) { grid.setData(local); setState('dirty'); TXTV.toast('Đã khôi phục dữ liệu nhập dở (chưa lưu)', { type: 'info', duration: 2500 }); }
+      else { grid.setData(rows); setState(saved.length ? 'saved' : ''); }
+      summary();
+    }).catch(function (e) { TXTV.toast.error(e.message); }).finally(function () { TXTV.loading.block('#grid', false); });
+  }
+
+  TXTV.$('#lineSel').addEventListener('change', load);
+  TXTV.$('#day').addEventListener('change', load);
+  TXTV.$('#planDay').addEventListener('change', function () { var p = planHour(); grid.rows.forEach(function (r) { r.keHoach = p; }); grid.render(); summary(); });
+
+  // Nhập nhanh giờ hiện tại bằng bàn phím số lớn
+  TXTV.$('#btnQuick').addEventListener('click', async function () {
+    var now = TXTV.format.date(new Date(), 'HH:mm'), idx = 0;
+    HOURS.forEach(function (h, i) { if (h <= now) idx = i; });
+    var row = grid.rows[idx];
+    var n = await TXTV.numpad({ title: 'Sản lượng ' + line() + ' – giờ ' + row.gio, hint: 'Kế hoạch giờ: ' + TXTV.format.number(row.keHoach), value: row.thucHien, min: 0, max: 2000 });
+    if (n === null) return;
+    row.thucHien = n; row._state = 'dirty'; grid.render(); summary(); setState('dirty'); draft();
+    TXTV.toast('Giờ ' + row.gio + ': ' + TXTV.format.number(n), { type: 'success', duration: 1500 });
+  });
+
+  TXTV.$('#btnSave').addEventListener('click', function () {
+    if (!grid.validate()) return;
+    var rows = grid.getData().filter(function (r) { return r.thucHien !== '' && r.thucHien !== null && r.thucHien !== undefined; });
+    if (!rows.length) return TXTV.toast.warning('Chưa có số liệu để lưu');
+    TXTV.call('output_save', [{ line: line(), date: dp.get(), rows: rows }], { button: this, buttonText: 'Đang lưu...' }).then(function (r) {
+      TXTV.storage.remove(draftKey()); grid.markSaved(); setState('saved');
+      TXTV.toast('Đã lưu ' + r.saved + ' giờ lúc ' + r.at, { type: 'success', title: line() });
+    }).catch(function () {});
+  });
+
+  // Trao đổi
+  TXTV.$('#cmtSend').addEventListener('click', function () {
+    var v = TXTV.$('#cmtInput').value.trim(); if (!v) return;
+    TXTV.$('#comments').insertAdjacentHTML('beforeend', '<div class="comment mine"><span class="avatar avatar-sm">TT</span><div class="comment-body"><div class="comment-meta"><span class="comment-author">Bạn</span><span>' + TXTV.format.date(new Date(), 'HH:mm') + '</span></div>' + TXTV.escape(v) + '</div></div>');
+    TXTV.$('#cmtInput').value = '';
+  });
+  TXTV.$('#cmtInput').addEventListener('keydown', function (e) { if (e.key === 'Enter') TXTV.$('#cmtSend').click(); });
+
+  // Bottom nav
+  TXTV.$$('.bottom-nav [data-page]').forEach(function (a) {
+    a.addEventListener('click', function () {
+      TXTV.$$('.bottom-nav-item').forEach(function (x) { x.classList.toggle('active', x === a); });
+      TXTV.$$('main > .tab-panel').forEach(function (p) { p.classList.toggle('active', p.id === a.dataset.page); });
+      TXTV.$('#btnSave').parentElement.parentElement.classList.toggle('hidden', a.dataset.page !== 'pageEntry');
+    });
+  });
+  TXTV.$('#navScan').addEventListener('click', async function () { var c = await TXTV.scan({ title: 'Quét mã bó hàng' }); if (c) TXTV.toast.success('Bó hàng: ' + c); });
+
+  load();
+</script>
+</body>
+</html>
