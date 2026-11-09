@@ -1,14 +1,14 @@
 <!--
   ============================================================================
-  TXUI – UI Component Library cho Google Apps Script
+  TXTV – UI Component Library cho Google Apps Script
   Nhà máy Túi xách Trà Vinh (Chi nhánh 7 – Công ty CP Đầu tư Thái Bình / TBS Group)
   ----------------------------------------------------------------------------
-  File: TXUI_Head.html  –  Đặt trong <head> của mọi trang bằng scriptlet:
-      include('TXUI_Head')   (xem README – dùng thẻ "force-print" của Apps Script)
+  File: TXTV_Head.html  –  Đặt trong <head> của mọi trang bằng scriptlet:
+      include('TXTV_Head')   (xem README – dùng thẻ "force-print" của Apps Script)
   LƯU Ý: Không viết thẻ scriptlet Apps Script bên trong comment HTML,
          vì HtmlService vẫn thực thi chúng.
   Gồm: Font Inter, Font Awesome 6, Tailwind CSS (Play CDN) + cấu hình thương hiệu,
-       và toàn bộ style component (TXUI_Styles).
+       và toàn bộ style component (TXTV_Styles).
   ============================================================================
 -->
 <meta charset="utf-8">
@@ -81,7 +81,7 @@
 
 <!-- Áp dụng Dark mode sớm để tránh nháy màn hình -->
 <script>
-  try { if (localStorage.getItem('txui-theme') === 'dark') document.documentElement.classList.add('dark'); } catch (e) {}
+  try { if (localStorage.getItem('txtv-theme') === 'dark') document.documentElement.classList.add('dark'); } catch (e) {}
 </script>
 
-<?!= include('TXUI_Styles'); ?>
+<?!= include('TXTV_Styles'); ?>

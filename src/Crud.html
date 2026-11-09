@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <?!= include('TXTV_Head'); ?>
+</head>
+<body>
+<!--
+  CRUD – Mẫu trang quản lý danh mục hoàn chỉnh (Vật tư).
+  Server: crud_list / crud_save / crud_delete / crud_import trong Code.gs (dùng TVDB).
+  Sao chép trang này, đổi tên trường + tên hàm server là có ngay 1 màn hình quản lý.
+-->
+<div class="app">
+  <aside class="app-sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-logo">TBS</div>
+      <div class="sidebar-brand-text"><div class="text-sm font-bold">Kho vật tư</div><div class="text-[11px] text-white/50">Nhà máy Túi xách Trà Vinh</div></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">Danh mục</div>
+      <a class="nav-link active"><i class="fa-solid fa-boxes-stacked"></i><span class="nav-label">Vật tư</span></a>
+      <a class="nav-link" href="<?= BASE_URL ?>" target="_top"><i class="fa-solid fa-book"></i><span class="nav-label">Thư viện UI</span></a>
+    </nav>
+  </aside>
+  <div class="app-backdrop"></div>
+
+  <div class="app-main">
+    <header class="app-topbar">
+      <button class="btn btn-ghost btn-icon" data-tv-toggle="sidebar" aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
+      <button class="btn btn-secondary hidden h-9 w-72 justify-start text-slate-400 md:inline-flex" onclick="TXTV.commandPalette.open()"><i class="fa-solid fa-magnifying-glass"></i> Tìm chức năng... <span class="kbd ml-auto">Ctrl K</span></button>
+      <div class="ml-auto flex items-center gap-1">
+        <button class="btn btn-ghost btn-icon" data-tv-toggle="theme" aria-label="Giao diện"><i data-tv-theme-icon class="fa-solid fa-moon"></i></button>
+        <span class="avatar avatar-sm"><?= USER.initials ?></span>
+      </div>
+    </header>
+
+    <main class="app-content">
+      <div class="page-header">
+        <div>
+          <ol class="breadcrumb mb-1 text-xs"><li>Danh mục</li><li>Vật tư</li></ol>
+          <h1 class="page-title">Danh mục vật tư</h1>
+          <p class="page-subtitle">Thêm / sửa / xóa, nhập & xuất Excel – dữ liệu lưu trên Google Sheet</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button class="btn btn-secondary" onclick="document.getElementById('fileImport').click()"><i class="fa-solid fa-file-import"></i> Nhập Excel</button>
+          <input type="file" id="fileImport" accept=".xlsx,.xls,.csv" hidden>
+          <button class="btn btn-primary" onclick="openForm()"><i class="fa-solid fa-plus"></i> Thêm vật tư <span class="kbd ml-1 border-white/30 bg-white/10 text-white">Alt N</span></button>
+        </div>
+      </div>
+
+      <div class="grid gap-4 sm:grid-cols-3">
+        <div class="stat"><div class="stat-icon"><i class="fa-solid fa-boxes-stacked"></i></div><div><div class="stat-label">Số mã vật tư</div><div class="stat-value" id="kpiCount">–</div></div></div>
+        <div class="stat"><div class="stat-icon bg-accent-100 text-accent-700"><i class="fa-solid fa-coins"></i></div><div><div class="stat-label">Giá trị tồn</div><div class="stat-value" id="kpiValue">–</div></div></div>
+        <div class="stat"><div class="stat-icon bg-red-50 text-red-600"><i class="fa-solid fa-triangle-exclamation"></i></div><div><div class="stat-label">Sắp hết (&lt; 50)</div><div class="stat-value" id="kpiLow">–</div></div></div>
+      </div>
+
+      <div class="card mt-6">
+        <div class="card-body">
+          <div class="mb-3 flex flex-wrap items-center gap-2">
+            <div class="segmented" id="groupFilter">
+              <label><input type="radio" name="g" value="" checked><span>Tất cả</span></label>
+              <label><input type="radio" name="g" value="Vải"><span>Vải</span></label>
+              <label><input type="radio" name="g" value="Phụ liệu"><span>Phụ liệu</span></label>
+              <label><input type="radio" name="g" value="Bao bì"><span>Bao bì</span></label>
+            </div>
+            <button class="btn btn-soft-danger btn-sm ml-auto hidden" id="btnBulkDelete"><i class="fa-solid fa-trash"></i> Xóa <span></span> mục</button>
+          </div>
+          <div id="tbl"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Form thêm / sửa -->
+<div class="modal" id="formModal" role="dialog" aria-modal="true">
+  <div class="modal-backdrop"></div>
+  <form class="modal-dialog" id="frm" novalidate>
+    <div class="modal-header"><h3 class="modal-title" id="formTitle">Thêm vật tư</h3><button type="button" class="modal-close" data-tv-dismiss="modal"><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="modal-body grid gap-4 sm:grid-cols-2">
+      <input type="hidden" name="id">
+      <div class="form-group"><label class="form-label required">Mã vật tư</label><input name="maVT" class="form-control uppercase" required maxlength="20" placeholder="VD: PU-102"></div>
+      <div class="form-group"><label class="form-label required">Nhóm</label>
+        <select name="nhom" class="form-control" required><option value="">-- Chọn --</option><option>Vải</option><option>Phụ liệu</option><option>Bao bì</option></select></div>
+      <div class="form-group sm:col-span-2"><label class="form-label required">Tên vật tư</label><input name="tenVT" class="form-control" required></div>
+      <div class="form-group"><label class="form-label">Đơn vị</label><input name="donVi" class="form-control" list="dvList" placeholder="m, cái, cuộn..."><datalist id="dvList"><option>m</option><option>yard</option><option>cái</option><option>cuộn</option><option>kg</option></datalist></div>
+      <div class="form-group"><label class="form-label">Tồn kho</label><input name="tonKho" class="form-control text-right" data-tv-mask="number" data-decimals="2" inputmode="decimal" placeholder="0"></div>
+      <div class="form-group"><label class="form-label">Đơn giá</label><div class="input-group"><input name="donGia" class="form-control text-right" data-tv-mask="number" inputmode="numeric" placeholder="0"><span class="input-group-text">₫</span></div></div>
+      <div class="form-group sm:col-span-2"><label class="form-label">Ghi chú</label><textarea name="ghiChu" class="form-control" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer"><button type="button" class="btn btn-secondary" data-tv-dismiss="modal">Hủy</button><button type="submit" class="btn btn-primary" id="btnSave"><i class="fa-solid fa-floppy-disk"></i> Lưu <span class="kbd ml-1 border-white/30 bg-white/10 text-white">Ctrl S</span></button></div>
+  </form>
+</div>
+
+<?!= include('TXTV_Scripts'); ?>
+<script>
+  /* ---------- Mock dùng khi xem trước ngoài Apps Script ---------- */
+  (function () {
+    var db = [
+      { id: 'VT1', maVT: 'PU-102', tenVT: 'Da PU đen 1.2mm', nhom: 'Vải', donVi: 'yard', tonKho: 1250.5, donGia: 85000 },
+      { id: 'VT2', maVT: 'CV-210', tenVT: 'Vải canvas 12oz', nhom: 'Vải', donVi: 'm', tonKho: 32, donGia: 62000 },
+      { id: 'VT3', maVT: 'KH-05', tenVT: 'Khóa kéo YKK #5', nhom: 'Phụ liệu', donVi: 'cái', tonKho: 8400, donGia: 3500 },
+      { id: 'VT4', maVT: 'TH-01', tenVT: 'Thùng carton 5 lớp', nhom: 'Bao bì', donVi: 'cái', tonKho: 18, donGia: 12000 }
+    ];
+    TXTV.mocks.crud_list = function () { return db.slice(); };
+    TXTV.mocks.crud_save = function (o) {
+      if (db.some(function (r) { return r.maVT === o.maVT && r.id !== o.id; })) throw new Error('Mã vật tư "' + o.maVT + '" đã tồn tại');
+      if (o.id) { db = db.map(function (r) { return r.id === o.id ? Object.assign({}, r, o) : r; }); return o; }
+      o.id = 'VT' + Date.now(); db.push(o); return o;
+    };
+    TXTV.mocks.crud_delete = function (id) { db = db.filter(function (r) { return r.id !== id; }); return true; };
+    TXTV.mocks.crud_import = function (rows) { rows.forEach(function (r, i) { r.id = 'VTX' + Date.now() + i; db.push(r); }); return rows.length; };
+  })();
+
+  /* ---------- Bảng ---------- */
+  var GROUP_BADGE = { 'Vải': 'badge-brand', 'Phụ liệu': 'badge-info', 'Bao bì': 'badge-warning' };
+  var groupFilter = '';
+  var table = new TXTV.DataTable('#tbl', {
+    columns: [
+      { key: 'maVT', label: 'Mã VT', width: '110px', render: function (v) { return '<span class="font-mono text-xs font-semibold text-slate-900 dark:text-white">' + TXTV.escape(v) + '</span>'; } },
+      { key: 'tenVT', label: 'Tên vật tư', className: 'font-medium text-slate-900 dark:text-white' },
+      { key: 'nhom', label: 'Nhóm', render: function (v) { return '<span class="badge ' + (GROUP_BADGE[v] || 'badge-gray') + '">' + TXTV.escape(v) + '</span>'; } },
+      { key: 'donVi', label: 'ĐVT' },
+      { key: 'tonKho', label: 'Tồn kho', align: 'right', render: function (v) { return '<span class="' + (Number(v) < 50 ? 'font-semibold text-red-600' : '') + '">' + TXTV.format.number(v) + '</span>'; } },
+      { key: 'donGia', label: 'Đơn giá', align: 'right', format: 'currency' },
+      { key: '', label: '', noSort: true, export: false, width: '96px', render: function (v, r) {
+        return '<div class="flex justify-end gap-1"><button class="btn btn-ghost btn-icon btn-sm" data-tooltip="Sửa" onclick="openForm(\'' + r.id + '\')"><i class="fa-solid fa-pen"></i></button>' +
+          '<button class="btn btn-ghost btn-icon btn-sm text-red-600" data-tooltip="Xóa" onclick="removeItem(\'' + r.id + '\')"><i class="fa-solid fa-trash"></i></button></div>';
+      } }
+    ],
+    rowKey: 'id', selectable: true, exportable: true, exportName: 'danh-muc-vat-tu', sheetName: 'VatTu',
+    searchPlaceholder: 'Tìm mã, tên vật tư...', emptyText: 'Chưa có vật tư nào',
+    filter: function (r) { return !groupFilter || r.nhom === groupFilter; },
+    onRowClick: function (row) { openForm(row.id); },
+    onSelect: function (rows) {
+      var b = document.getElementById('btnBulkDelete');
+      b.classList.toggle('hidden', !rows.length); b.querySelector('span').textContent = rows.length;
+    }
+  });
+
+  function updateKpi() {
+    var rows = table.getData();
+    document.getElementById('kpiCount').textContent = TXTV.format.number(rows.length);
+    document.getElementById('kpiValue').textContent = TXTV.format.currency(TXTV.sumBy(rows, function (r) { return (Number(r.tonKho) || 0) * (Number(r.donGia) || 0); }));
+    document.getElementById('kpiLow').textContent = rows.filter(function (r) { return Number(r.tonKho) < 50; }).length;
+  }
+  function load() {
+    table.setLoading(true);
+    return TXTV.run('crud_list').then(function (rows) { table.setData(rows); updateKpi(); })
+      .catch(function (e) { TXTV.toast.error(e.message, 'Không tải được dữ liệu'); table.setData([]); });
+  }
+  load();
+
+  document.getElementById('groupFilter').addEventListener('change', function (e) { groupFilter = e.target.value; table.goTo(1); });
+
+  /* ---------- Form ---------- */
+  function openForm(id) {
+    TXTV.form.reset('#frm');
+    var row = id ? table.getData().filter(function (r) { return String(r.id) === String(id); })[0] : null;
+    document.getElementById('formTitle').textContent = row ? 'Sửa vật tư ' + row.maVT : 'Thêm vật tư';
+    if (row) TXTV.form.fill('#frm', row);
+    TXTV.modal.open('#formModal');
+  }
+  document.getElementById('frm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!TXTV.form.validate(this)) return;
+    var data = TXTV.form.serialize(this);
+    data.maVT = String(data.maVT).toUpperCase().trim();
+    TXTV.call('crud_save', [data], { button: '#btnSave', success: 'Đã lưu ' + data.maVT }).then(function (saved) {
+      if (data.id) table.updateRow(data.id, saved); else table.addRow(saved, true);
+      updateKpi(); TXTV.modal.close('#formModal');
+    }).catch(function () {});
+  });
+
+  async function removeItem(id) {
+    var row = table.getData().filter(function (r) { return String(r.id) === String(id); })[0];
+    if (!await TXTV.confirm({ title: 'Xóa ' + row.maVT + '?', text: row.tenVT, type: 'danger', confirmText: 'Xóa' })) return;
+    TXTV.call('crud_delete', [id], { loading: 'Đang xóa...', success: 'Đã xóa ' + row.maVT }).then(function () { table.removeRow(id); updateKpi(); }).catch(function () {});
+  }
+  document.getElementById('btnBulkDelete').addEventListener('click', async function () {
+    var rows = table.getSelected();
+    if (!await TXTV.confirm({ title: 'Xóa ' + rows.length + ' vật tư?', type: 'danger', confirmText: 'Xóa tất cả' })) return;
+    TXTV.loading.show('Đang xóa...');
+    for (var i = 0; i < rows.length; i++) { try { await TXTV.run('crud_delete', rows[i].id); table.removeRow(rows[i].id); } catch (e) { TXTV.toast.error(e.message); } }
+    TXTV.loading.hide(); updateKpi(); this.classList.add('hidden'); TXTV.toast.success('Đã xóa');
+  });
+
+  /* ---------- Nhập Excel (cột: maVT, tenVT, nhom, donVi, tonKho, donGia, ghiChu) ---------- */
+  document.getElementById('fileImport').addEventListener('change', async function () {
+    var file = this.files[0]; this.value = ''; if (!file) return;
+    try {
+      TXTV.loading.show('Đang đọc file...');
+      var rows = await TXTV.readExcel(file); TXTV.loading.hide();
+      rows = rows.filter(function (r) { return r.maVT && r.tenVT; });
+      if (!rows.length) return TXTV.alert({ title: 'Không có dữ liệu hợp lệ', text: 'File cần có các cột: maVT, tenVT, nhom, donVi, tonKho, donGia, ghiChu', type: 'warning' });
+      if (!await TXTV.confirm({ title: 'Nhập ' + rows.length + ' dòng?', text: 'Từ file ' + file.name, confirmText: 'Nhập' })) return;
+      var n = await TXTV.call('crud_import', [rows], { loading: 'Đang nhập ' + rows.length + ' dòng...' });
+      TXTV.toast.success('Đã nhập ' + n + ' dòng'); load();
+    } catch (e) { TXTV.loading.hide(true); TXTV.toast.error(e.message || String(e)); }
+  });
+
+  /* ---------- Phím tắt & Command palette ---------- */
+  TXTV.hotkey('alt+n', function () { openForm(); });
+  TXTV.hotkey('ctrl+s', function () { if (document.getElementById('formModal').classList.contains('open')) document.getElementById('frm').requestSubmit(); }, { inInputs: true });
+  TXTV.commandPalette.register([
+    { group: 'Vật tư', label: 'Thêm vật tư mới', icon: 'fa-plus', hint: 'Alt N', action: function () { openForm(); } },
+    { group: 'Vật tư', label: 'Nhập từ Excel', icon: 'fa-file-import', action: function () { document.getElementById('fileImport').click(); } },
+    { group: 'Vật tư', label: 'Xuất Excel', icon: 'fa-file-excel', action: function () { table.exportExcel(); } },
+    { group: 'Vật tư', label: 'Tải lại dữ liệu', icon: 'fa-rotate', action: load },
+    { group: 'Giao diện', label: 'Đổi Sáng / Tối', icon: 'fa-moon', keywords: 'dark theme', action: TXTV.theme.toggle }
+  ]);
+</script>
+</body>
+</html>

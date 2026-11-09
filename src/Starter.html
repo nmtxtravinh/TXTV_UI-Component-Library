@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <?!= include('TXUI_Head'); ?>
+  <?!= include('TXTV_Head'); ?>
 </head>
 <body>
 <!--
@@ -37,10 +37,10 @@
 
   <div class="app-main">
     <header class="app-topbar">
-      <button class="btn btn-ghost btn-icon" data-ui-toggle="sidebar" aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
+      <button class="btn btn-ghost btn-icon" data-tv-toggle="sidebar" aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
       <div class="input-icon hidden w-72 md:block"><i class="fa-solid fa-magnifying-glass text-xs"></i><input class="form-control" placeholder="Tìm kiếm..."></div>
       <div class="ml-auto flex items-center gap-1">
-        <button class="btn btn-ghost btn-icon" data-ui-toggle="theme" aria-label="Giao diện"><i data-ui-theme-icon class="fa-solid fa-moon"></i></button>
+        <button class="btn btn-ghost btn-icon" data-tv-toggle="theme" aria-label="Giao diện"><i data-tv-theme-icon class="fa-solid fa-moon"></i></button>
         <span class="avatar avatar-sm"><?= USER.initials ?></span>
       </div>
     </header>
@@ -75,10 +75,10 @@
   </div>
 </div>
 
-<?!= include('TXUI_Scripts'); ?>
+<?!= include('TXTV_Scripts'); ?>
 <script>
   // Ví dụ khởi tạo bảng – thay 'demo_getEmployees' bằng hàm server của bạn
-  var table = new TXUI.DataTable('#mainTable', {
+  var table = new TXTV.DataTable('#mainTable', {
     columns: [
       { key: 'id', label: 'Mã' },
       { key: 'name', label: 'Tên' },
@@ -87,12 +87,12 @@
     exportable: true
   });
   table.setLoading(true);
-  TXUI.run('demo_getEmployees')
+  TXTV.run('demo_getEmployees')
     .then(function (rows) { table.setData(rows); })
-    .catch(function (err) { TXUI.toast.error(err.message); table.setData([]); });
+    .catch(function (err) { TXTV.toast.error(err.message); table.setData([]); });
 
   document.getElementById('btnAdd').addEventListener('click', function () {
-    TXUI.toast.info('Gắn chức năng thêm mới tại đây');
+    TXTV.toast.info('Gắn chức năng thêm mới tại đây');
   });
 </script>
 </body>

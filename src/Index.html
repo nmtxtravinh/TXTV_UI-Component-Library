@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <?!= include('TXUI_Head'); ?>
+  <?!= include('TXTV_Head'); ?>
   <style>
     .demo-code { tab-size: 2; }
     .swatch { height: 56px; border-radius: 10px; }
@@ -15,7 +15,7 @@
     <div class="sidebar-brand">
       <div class="sidebar-logo">TBS</div>
       <div class="sidebar-brand-text">
-        <div class="text-sm font-bold">TXUI Library</div>
+        <div class="text-sm font-bold">TXTV Library</div>
         <div class="text-[11px] text-white/50">Nhà máy Túi xách Trà Vinh</div>
       </div>
     </div>
@@ -38,6 +38,13 @@
       <button class="nav-link" data-scroll="datatable"><i class="fa-solid fa-table-list"></i><span class="nav-label">DataTable</span><span class="nav-badge">JS</span></button>
       <button class="nav-link" data-scroll="display"><i class="fa-solid fa-id-card"></i><span class="nav-label">Hiển thị dữ liệu</span></button>
       <button class="nav-link" data-scroll="charts"><i class="fa-solid fa-chart-column"></i><span class="nav-label">Biểu đồ</span><span class="nav-badge">JS</span></button>
+      <div class="nav-section-title">Mở rộng</div>
+      <button class="nav-link" data-scroll="special-inputs"><i class="fa-solid fa-keyboard"></i><span class="nav-label">Input đặc biệt</span><span class="nav-badge">Mới</span></button>
+      <button class="nav-link" data-scroll="kanban"><i class="fa-solid fa-table-columns"></i><span class="nav-label">Kanban & Kéo thả</span><span class="nav-badge">Mới</span></button>
+      <button class="nav-link" data-scroll="calendar"><i class="fa-regular fa-calendar"></i><span class="nav-label">Lịch tháng</span><span class="nav-badge">Mới</span></button>
+      <button class="nav-link" data-scroll="tree"><i class="fa-solid fa-sitemap"></i><span class="nav-label">Cây phân cấp</span><span class="nav-badge">Mới</span></button>
+      <button class="nav-link" data-scroll="media"><i class="fa-solid fa-qrcode"></i><span class="nav-label">Chữ ký, QR, Ảnh</span><span class="nav-badge">Mới</span></button>
+      <button class="nav-link" data-scroll="power"><i class="fa-solid fa-bolt"></i><span class="nav-label">Công cụ nâng cao</span><span class="nav-badge">Mới</span></button>
       <div class="nav-section-title">Điều hướng</div>
       <button class="nav-link" data-scroll="navigation"><i class="fa-solid fa-compass"></i><span class="nav-label">Tabs, Breadcrumb...</span></button>
       <button class="nav-link" data-scroll="dropdowns"><i class="fa-solid fa-caret-down"></i><span class="nav-label">Dropdown</span></button>
@@ -48,6 +55,7 @@
       <div class="nav-section-title">Khác</div>
       <button class="nav-link" data-scroll="utils"><i class="fa-solid fa-screwdriver-wrench"></i><span class="nav-label">Tiện ích JS</span></button>
       <a class="nav-link" href="<?= BASE_URL ?>?page=Starter" target="_top"><i class="fa-solid fa-file"></i><span class="nav-label">Trang mẫu</span></a>
+      <a class="nav-link" href="<?= BASE_URL ?>?page=Crud" target="_top" data-page-link="Crud"><i class="fa-solid fa-table-list"></i><span class="nav-label">Mẫu CRUD (Sheet)</span></a>
       <a class="nav-link" href="<?= BASE_URL ?>?page=Login" target="_top"><i class="fa-solid fa-right-to-bracket"></i><span class="nav-label">Trang đăng nhập</span></a>
     </nav>
     <div class="sidebar-footer">
@@ -65,17 +73,18 @@
   <!-- ========================= MAIN ========================= -->
   <div class="app-main">
     <header class="app-topbar">
-      <button class="btn btn-ghost btn-icon" data-ui-toggle="sidebar" aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
+      <button class="btn btn-ghost btn-icon" data-tv-toggle="sidebar" aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
       <ol class="breadcrumb hidden sm:flex">
         <li><i class="fa-solid fa-house text-xs"></i></li>
-        <li>TXUI</li>
+        <li>TXTV</li>
         <li>Component Library</li>
       </ol>
       <div class="ml-auto flex items-center gap-1">
-        <span class="badge badge-accent badge-pill hidden sm:inline-flex">v1.0</span>
-        <button class="btn btn-ghost btn-icon" data-ui-toggle="theme" data-tooltip="Sáng / Tối" data-tooltip-pos="bottom"><i data-ui-theme-icon class="fa-solid fa-moon"></i></button>
+        <button class="btn btn-secondary btn-sm hidden text-slate-400 md:inline-flex" onclick="TXTV.commandPalette.open()"><i class="fa-solid fa-magnifying-glass"></i> Tìm... <span class="kbd">Ctrl K</span></button>
+        <span class="badge badge-accent badge-pill hidden sm:inline-flex">v1.1</span>
+        <button class="btn btn-ghost btn-icon" data-tv-toggle="theme" data-tooltip="Sáng / Tối" data-tooltip-pos="bottom"><i data-tv-theme-icon class="fa-solid fa-moon"></i></button>
         <div class="dropdown">
-          <button class="btn btn-ghost btn-icon relative" data-ui-toggle="dropdown" aria-label="Thông báo">
+          <button class="btn btn-ghost btn-icon relative" data-tv-toggle="dropdown" aria-label="Thông báo">
             <i class="fa-regular fa-bell"></i><span class="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500"></span>
           </button>
           <div class="dropdown-menu w-80">
@@ -85,7 +94,7 @@
           </div>
         </div>
         <div class="dropdown">
-          <button class="btn btn-ghost h-9 gap-2 px-1.5" data-ui-toggle="dropdown">
+          <button class="btn btn-ghost h-9 gap-2 px-1.5" data-tv-toggle="dropdown">
             <span class="avatar avatar-sm avatar-online"><?= USER.initials ?></span>
             <i class="fa-solid fa-chevron-down hidden text-[10px] text-slate-400 sm:inline"></i>
           </button>
@@ -109,7 +118,7 @@
           <div class="relative p-6 sm:p-8">
             <div class="absolute -right-10 -top-10 h-48 w-48 rounded-full bg-accent-400/20 blur-2xl"></div>
             <span class="badge badge-pill bg-white/10 text-accent-300 ring-white/20"><i class="fa-solid fa-leaf"></i> TBS Group · Chi nhánh 7</span>
-            <h1 class="mt-3 text-2xl font-bold text-white sm:text-3xl">TXUI – Bộ UI Component cho Google Apps Script</h1>
+            <h1 class="mt-3 text-2xl font-bold text-white sm:text-3xl">TXTV – Bộ UI Component cho Google Apps Script</h1>
             <p class="mt-2 max-w-2xl text-white/70">Thư viện giao diện dùng chung cho các Web App nội bộ của Nhà máy Túi xách Trà Vinh. Xây dựng trên Tailwind CSS, font Inter, icon Font Awesome 6 – chỉ cần chèn 2 dòng là dùng được.</p>
             <div class="mt-5 flex flex-wrap gap-2">
               <button class="btn btn-accent" data-scroll-btn="install"><i class="fa-solid fa-rocket"></i> Cài đặt</button>
@@ -119,8 +128,8 @@
         </div>
 
         <div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <div class="stat"><div class="stat-icon"><i class="fa-solid fa-cubes"></i></div><div><div class="stat-label">Component</div><div class="stat-value">60+</div><div class="stat-meta">CSS class sẵn dùng</div></div></div>
-          <div class="stat"><div class="stat-icon bg-accent-100 text-accent-700"><i class="fa-solid fa-code"></i></div><div><div class="stat-label">JS API</div><div class="stat-value">TXUI.*</div><div class="stat-meta">Không cần thư viện ngoài</div></div></div>
+          <div class="stat"><div class="stat-icon"><i class="fa-solid fa-cubes"></i></div><div><div class="stat-label">Component</div><div class="stat-value">90+</div><div class="stat-meta">CSS class sẵn dùng</div></div></div>
+          <div class="stat"><div class="stat-icon bg-accent-100 text-accent-700"><i class="fa-solid fa-code"></i></div><div><div class="stat-label">JS API</div><div class="stat-value">TXTV.*</div><div class="stat-meta">Không cần thư viện ngoài</div></div></div>
           <div class="stat"><div class="stat-icon bg-sky-50 text-sky-600"><i class="fa-solid fa-moon"></i></div><div><div class="stat-label">Dark mode</div><div class="stat-value">Có</div><div class="stat-meta">Tự lưu theo trình duyệt</div></div></div>
           <div class="stat"><div class="stat-icon bg-amber-50 text-amber-600"><i class="fa-solid fa-mobile-screen"></i></div><div><div class="stat-label">Responsive</div><div class="stat-value">100%</div><div class="stat-meta">Điện thoại → màn hình lớn</div></div></div>
         </div>
@@ -129,25 +138,25 @@
           <div class="card-header"><div><h3 class="card-title">Cài đặt vào dự án Apps Script</h3><p class="card-subtitle">Sao chép 4 file vào project rồi chèn vào template</p></div></div>
           <div class="card-body grid gap-6 lg:grid-cols-2">
             <ol class="space-y-3 text-sm">
-              <li class="flex gap-3"><span class="badge badge-solid badge-pill h-6 w-6 justify-center">1</span><div>Thêm các file <span class="code">TXUI_Head.html</span>, <span class="code">TXUI_Styles.html</span>, <span class="code">TXUI_Scripts.html</span>, <span class="code">TXUI_Server.gs</span> vào project.</div></li>
-              <li class="flex gap-3"><span class="badge badge-solid badge-pill h-6 w-6 justify-center">2</span><div>Trong <span class="code">doGet()</span> dùng <span class="code">TXUI.render('Index', {...}, 'Tiêu đề')</span>.</div></li>
+              <li class="flex gap-3"><span class="badge badge-solid badge-pill h-6 w-6 justify-center">1</span><div>Thêm các file <span class="code">TXTV_Head.html</span>, <span class="code">TXTV_Styles.html</span>, <span class="code">TXTV_Scripts.html</span>, <span class="code">TXTV_Server.gs</span> vào project.</div></li>
+              <li class="flex gap-3"><span class="badge badge-solid badge-pill h-6 w-6 justify-center">2</span><div>Trong <span class="code">doGet()</span> dùng <span class="code">TXTV.render('Index', {...}, 'Tiêu đề')</span>.</div></li>
               <li class="flex gap-3"><span class="badge badge-solid badge-pill h-6 w-6 justify-center">3</span><div>Chèn Head trong thẻ <span class="code">&lt;head&gt;</span> và Scripts cuối <span class="code">&lt;body&gt;</span> (xem code bên cạnh).</div></li>
-              <li class="flex gap-3"><span class="badge badge-solid badge-pill h-6 w-6 justify-center">4</span><div>Dùng class (<span class="code">btn btn-primary</span>, <span class="code">card</span>, <span class="code">form-control</span>...) và API <span class="code">TXUI.toast()</span>, <span class="code">TXUI.call()</span>...</div></li>
+              <li class="flex gap-3"><span class="badge badge-solid badge-pill h-6 w-6 justify-center">4</span><div>Dùng class (<span class="code">btn btn-primary</span>, <span class="code">card</span>, <span class="code">form-control</span>...) và API <span class="code">TXTV.toast()</span>, <span class="code">TXTV.call()</span>...</div></li>
             </ol>
             <pre class="overflow-auto rounded-xl bg-slate-900 p-4 text-xs leading-relaxed text-slate-100"><code>&lt;!DOCTYPE html&gt;
 &lt;html lang="vi"&gt;
 &lt;head&gt;
-  &lt;?!= include('TXUI_Head'); ?&gt;
+  &lt;?!= include('TXTV_Head'); ?&gt;
 &lt;/head&gt;
 &lt;body&gt;
   &lt;button class="btn btn-primary" onclick="save()"&gt;
     &lt;i class="fa-solid fa-floppy-disk"&gt;&lt;/i&gt; Lưu
   &lt;/button&gt;
 
-  &lt;?!= include('TXUI_Scripts'); ?&gt;
+  &lt;?!= include('TXTV_Scripts'); ?&gt;
   &lt;script&gt;
     function save() {
-      TXUI.call('saveData', [{ a: 1 }], { success: 'Đã lưu!' });
+      TXTV.call('saveData', [{ a: 1 }], { success: 'Đã lưu!' });
     }
   &lt;/script&gt;
 &lt;/body&gt;
@@ -278,12 +287,12 @@
 
       <!-- ===================== ALERTS ===================== -->
       <section id="alerts" class="space-y-4">
-        <div class="page-header mb-0"><div><h2 class="page-title">Alert</h2><p class="page-subtitle">Thông báo nội tuyến; thêm <span class="code">data-ui-dismiss="alert"</span> để đóng</p></div></div>
+        <div class="page-header mb-0"><div><h2 class="page-title">Alert</h2><p class="page-subtitle">Thông báo nội tuyến; thêm <span class="code">data-tv-dismiss="alert"</span> để đóng</p></div></div>
         <div data-demo="Alert">
           <div class="space-y-3">
             <div class="alert alert-info"><i class="fa-solid fa-circle-info"></i><div><div class="alert-title">Thông tin</div>Hệ thống sẽ bảo trì lúc 22:00 tối nay.</div></div>
-            <div class="alert alert-success"><i class="fa-solid fa-circle-check"></i><div><div class="alert-title">Thành công</div>Đã cập nhật sản lượng chuyền May 2.</div><button class="alert-close" data-ui-dismiss="alert"><i class="fa-solid fa-xmark"></i></button></div>
-            <div class="alert alert-warning"><i class="fa-solid fa-triangle-exclamation"></i><div>Tồn kho vải <strong>PU-102</strong> dưới mức an toàn.</div><button class="alert-close" data-ui-dismiss="alert"><i class="fa-solid fa-xmark"></i></button></div>
+            <div class="alert alert-success"><i class="fa-solid fa-circle-check"></i><div><div class="alert-title">Thành công</div>Đã cập nhật sản lượng chuyền May 2.</div><button class="alert-close" data-tv-dismiss="alert"><i class="fa-solid fa-xmark"></i></button></div>
+            <div class="alert alert-warning"><i class="fa-solid fa-triangle-exclamation"></i><div>Tồn kho vải <strong>PU-102</strong> dưới mức an toàn.</div><button class="alert-close" data-tv-dismiss="alert"><i class="fa-solid fa-xmark"></i></button></div>
             <div class="alert alert-danger"><i class="fa-solid fa-circle-xmark"></i><div><div class="alert-title">Lỗi</div>Không thể kết nối Google Sheet.</div></div>
             <div class="alert alert-brand"><i class="fa-solid fa-leaf"></i><div>Alert màu thương hiệu TBS.</div></div>
             <div class="callout"><strong>Callout:</strong> dùng để nhấn mạnh ghi chú, hướng dẫn trong trang.</div>
@@ -368,7 +377,7 @@
           <div class="grid gap-4 md:grid-cols-2">
             <div class="input-icon"><i class="fa-solid fa-magnifying-glass"></i><input class="form-control" placeholder="Tìm kiếm..."></div>
             <div class="input-icon input-icon-right"><i class="fa-regular fa-calendar"></i><input class="form-control" placeholder="dd/mm/yyyy"></div>
-            <div class="input-icon"><i class="fa-solid fa-lock"></i><input type="password" class="form-control pr-10" value="matkhau123"><button type="button" class="input-action" data-ui-toggle="password"><i class="fa-solid fa-eye"></i></button></div>
+            <div class="input-icon"><i class="fa-solid fa-lock"></i><input type="password" class="form-control pr-10" value="matkhau123"><button type="button" class="input-action" data-tv-toggle="password"><i class="fa-solid fa-eye"></i></button></div>
             <div class="input-group"><span class="input-group-text">https://</span><input class="form-control" placeholder="tbsgroup.vn"></div>
             <div class="input-group"><input class="form-control" placeholder="0" type="number"><span class="input-group-text">VNĐ</span></div>
             <div class="input-group"><input class="form-control" placeholder="Mã đơn hàng"><button class="btn btn-primary"><i class="fa-solid fa-magnifying-glass"></i> Tra cứu</button></div>
@@ -429,7 +438,7 @@
         <div data-demo="Combobox · Tag input · Number">
           <div class="grid gap-4 md:grid-cols-3">
             <div class="form-group"><label class="form-label">Combobox (gõ "nguyen" vẫn tìm ra "Nguyễn")</label>
-              <select data-ui-combo data-placeholder="Chọn nhân viên...">
+              <select data-tv-combo data-placeholder="Chọn nhân viên...">
                 <option value=""></option>
                 <option value="NV01">Nguyễn Thị Hoa</option><option value="NV02">Trần Văn Bình</option><option value="NV03">Thạch Thị Sương</option>
                 <option value="NV04">Lê Minh Đức</option><option value="NV05">Kim Sơn Thành</option><option value="NV06">Huỳnh Ngọc Ánh</option>
@@ -437,11 +446,11 @@
               </select>
             </div>
             <div class="form-group"><label class="form-label">Tag input</label>
-              <div class="tag-input" data-ui-tags data-name="tags" data-value="PU,Canvas" data-placeholder="Thêm chất liệu..."></div>
+              <div class="tag-input" data-tv-tags data-name="tags" data-value="PU,Canvas" data-placeholder="Thêm chất liệu..."></div>
               <p class="form-help">Enter hoặc dấu phẩy để thêm.</p>
             </div>
             <div class="form-group"><label class="form-label">Số lượng</label>
-              <div class="number-input" data-ui-number>
+              <div class="number-input" data-tv-number>
                 <button type="button" data-step="-1"><i class="fa-solid fa-minus text-xs"></i></button>
                 <input type="number" value="10" min="0" max="999">
                 <button type="button" data-step="1"><i class="fa-solid fa-plus text-xs"></i></button>
@@ -453,7 +462,7 @@
           <div class="grid gap-4 md:grid-cols-2">
             <div class="form-group"><label class="form-label">Input file</label><input type="file" class="form-file"></div>
             <div>
-              <div class="dropzone" data-ui-dropzone data-multiple data-max-size="10" data-list="#dzList">
+              <div class="dropzone" data-tv-dropzone data-multiple data-max-size="10" data-list="#dzList">
                 <div class="dropzone-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
                 <div class="text-sm font-medium text-slate-700 dark:text-slate-200">Kéo thả file vào đây hoặc <span class="text-brand-700 dark:text-accent-400">chọn file</span></div>
                 <div class="text-xs text-slate-400">PDF, Excel, hình ảnh – tối đa 10MB</div>
@@ -466,7 +475,7 @@
 
       <!-- ===================== FORM DEMO ===================== -->
       <section id="form-demo" class="space-y-4">
-        <div class="page-header mb-0"><div><h2 class="page-title">Form hoàn chỉnh</h2><p class="page-subtitle">TXUI.form.validate() + TXUI.form.serialize() + TXUI.call() gửi lên server</p></div></div>
+        <div class="page-header mb-0"><div><h2 class="page-title">Form hoàn chỉnh</h2><p class="page-subtitle">TXTV.form.validate() + TXTV.form.serialize() + TXTV.call() gửi lên server</p></div></div>
         <div data-demo="Phiếu đề xuất">
           <form id="demoForm" class="card" novalidate>
             <div class="card-header"><h3 class="card-title"><i class="fa-solid fa-file-signature mr-2 text-brand-600"></i>Phiếu đề xuất vật tư</h3></div>
@@ -498,7 +507,7 @@
               </div>
             </div>
             <div class="card-footer">
-              <button type="button" class="btn btn-ghost" onclick="TXUI.form.reset('#demoForm')">Làm lại</button>
+              <button type="button" class="btn btn-ghost" onclick="TXTV.form.reset('#demoForm')">Làm lại</button>
               <button type="button" class="btn btn-secondary" onclick="demoFill()">Điền mẫu</button>
               <button type="submit" class="btn btn-primary" id="btnSubmit"><i class="fa-solid fa-paper-plane"></i> Gửi đề xuất</button>
             </div>
@@ -526,21 +535,21 @@
 
       <!-- ===================== DATATABLE ===================== -->
       <section id="datatable" class="space-y-4">
-        <div class="page-header mb-0"><div><h2 class="page-title">DataTable</h2><p class="page-subtitle">Tìm kiếm không dấu, sắp xếp, phân trang, chọn dòng, xuất CSV – dữ liệu tải từ server qua TXUI.run()</p></div></div>
+        <div class="page-header mb-0"><div><h2 class="page-title">DataTable</h2><p class="page-subtitle">Tìm kiếm không dấu, sắp xếp, phân trang, chọn dòng, xuất CSV – dữ liệu tải từ server qua TXTV.run()</p></div></div>
         <div class="card card-body"><div id="empTable"></div></div>
-        <pre class="demo-code overflow-auto rounded-xl bg-slate-900 p-4 text-xs leading-relaxed text-slate-100"><code>var dt = new TXUI.DataTable('#empTable', {
+        <pre class="demo-code overflow-auto rounded-xl bg-slate-900 p-4 text-xs leading-relaxed text-slate-100"><code>var dt = new TXTV.DataTable('#empTable', {
   columns: [
     { key: 'id', label: 'Mã NV', width: '100px' },
-    { key: 'name', label: 'Họ tên', render: (v, r) => `&lt;b&gt;${TXUI.escape(v)}&lt;/b&gt;` },
+    { key: 'name', label: 'Họ tên', render: (v, r) => `&lt;b&gt;${TXTV.escape(v)}&lt;/b&gt;` },
     { key: 'dept', label: 'Bộ phận' },
     { key: 'salary', label: 'Lương', align: 'right', format: 'currency' },
     { key: 'joined', label: 'Ngày vào', format: 'date' }
   ],
   selectable: true, exportable: true, pageSize: 10,
-  onRowClick: row => TXUI.toast(row.name)
+  onRowClick: row => TXTV.toast(row.name)
 });
 dt.setLoading(true);
-TXUI.run('demo_getEmployees').then(rows => dt.setData(rows));</code></pre>
+TXTV.run('demo_getEmployees').then(rows => dt.setData(rows));</code></pre>
       </section>
 
       <!-- ===================== DATA DISPLAY ===================== -->
@@ -576,7 +585,7 @@ TXUI.run('demo_getEmployees').then(rows => dt.setData(rows));</code></pre>
         </div>
         <div class="grid gap-4 lg:grid-cols-2">
           <div data-demo="Accordion">
-            <div class="accordion" data-ui-accordion="single">
+            <div class="accordion" data-tv-accordion="single">
               <div class="accordion-item open"><button class="accordion-trigger">Quy trình xin nghỉ phép? <i class="fa-solid fa-chevron-down accordion-icon"></i></button><div class="accordion-content">Tạo đề xuất trên hệ thống, tổ trưởng duyệt, sau đó phòng Nhân sự xác nhận.</div></div>
               <div class="accordion-item"><button class="accordion-trigger">Giờ làm việc ca hành chính? <i class="fa-solid fa-chevron-down accordion-icon"></i></button><div class="accordion-content">Từ 07:30 đến 16:30, nghỉ trưa 11:30 – 12:30.</div></div>
               <div class="accordion-item"><button class="accordion-trigger">Liên hệ hỗ trợ IT? <i class="fa-solid fa-chevron-down accordion-icon"></i></button><div class="accordion-content">Gọi nội bộ 123 hoặc gửi email bộ phận IT.</div></div>
@@ -603,10 +612,162 @@ TXUI.run('demo_getEmployees').then(rows => dt.setData(rows));</code></pre>
 
       <!-- ===================== CHARTS ===================== -->
       <section id="charts" class="space-y-4">
-        <div class="page-header mb-0"><div><h2 class="page-title">Biểu đồ</h2><p class="page-subtitle">TXUI.chart(canvas, config) – tự tải Chart.js, tự áp màu thương hiệu & dark mode</p></div></div>
+        <div class="page-header mb-0"><div><h2 class="page-title">Biểu đồ</h2><p class="page-subtitle">TXTV.chart(canvas, config) – tự tải Chart.js, tự áp màu thương hiệu & dark mode</p></div></div>
         <div class="grid gap-4 lg:grid-cols-3">
           <div class="card lg:col-span-2"><div class="card-header"><h3 class="card-title">Sản lượng theo chuyền (tuần)</h3></div><div class="card-body"><div class="h-72"><canvas id="chartBar"></canvas></div></div></div>
           <div class="card"><div class="card-header"><h3 class="card-title">Tỷ lệ lỗi</h3></div><div class="card-body"><div class="h-72"><canvas id="chartPie"></canvas></div></div></div>
+        </div>
+      </section>
+
+      <!-- ===================== INPUT ĐẶC BIỆT (v1.1) ===================== -->
+      <section id="special-inputs" class="space-y-4">
+        <div class="page-header mb-0"><div><h2 class="page-title">Input đặc biệt <span class="badge badge-accent badge-pill align-middle">Mới</span></h2><p class="page-subtitle">Số có phân cách hàng nghìn, OTP / PIN, chấm sao, segmented control</p></div></div>
+        <div data-demo="Mask số · OTP · Rating · Segmented">
+          <div class="grid gap-6 md:grid-cols-2">
+            <div class="form-group"><label class="form-label">Đơn giá (data-tv-mask="number")</label>
+              <div class="input-group"><input class="form-control text-right" data-tv-mask="number" value="1250000" inputmode="numeric"><span class="input-group-text">₫</span></div>
+              <p class="form-help">Tự thêm dấu chấm; serialize() trả về Number.</p></div>
+            <div class="form-group"><label class="form-label">Số lượng thập phân (data-decimals="2")</label>
+              <input class="form-control text-right" data-tv-mask="number" data-decimals="2" value="1234,5" inputmode="decimal"></div>
+            <div class="form-group"><label class="form-label">Mã PIN / OTP</label>
+              <div class="otp" data-tv-otp data-length="6" data-name="otp" id="demoOtp"></div></div>
+            <div class="form-group"><label class="form-label">Đánh giá chất lượng</label>
+              <div class="rating rating-input" data-tv-rating data-name="score" data-value="4"></div></div>
+            <div class="form-group md:col-span-2"><label class="form-label">Segmented control</label>
+              <div class="segmented">
+                <label><input type="radio" name="seg" checked><span><i class="fa-solid fa-list"></i> Danh sách</span></label>
+                <label><input type="radio" name="seg"><span><i class="fa-solid fa-table-cells-large"></i> Lưới</span></label>
+                <label><input type="radio" name="seg"><span><i class="fa-solid fa-calendar"></i> Lịch</span></label>
+              </div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== KANBAN ===================== -->
+      <section id="kanban" class="space-y-4">
+        <div class="page-header mb-0"><div><h2 class="page-title">Kanban & Kéo thả sắp xếp <span class="badge badge-accent badge-pill align-middle">Mới</span></h2><p class="page-subtitle">data-tv-sortable="nhom" – kéo thẻ giữa các cột, nhận sự kiện tv:sort để lưu lên server</p></div></div>
+        <div data-demo="Kanban theo dõi đơn hàng">
+          <div class="kanban" id="demoKanban">
+            <div class="kanban-col">
+              <div class="kanban-head"><span class="dot"></span> Chờ sản xuất <span class="kanban-count"></span></div>
+              <div class="kanban-list" data-tv-sortable="po" data-status="cho">
+                <div class="kanban-card" data-id="PO-2611"><div class="kanban-card-title">PO-2611 · Túi tote</div><div class="mt-2 flex items-center justify-between text-xs text-slate-500"><span><i class="fa-regular fa-calendar"></i> 15/12</span><span class="badge badge-warning">5.000</span></div></div>
+                <div class="kanban-card" data-id="PO-2615"><div class="kanban-card-title">PO-2615 · Balo PU</div><div class="mt-2 flex items-center justify-between text-xs text-slate-500"><span><i class="fa-regular fa-calendar"></i> 20/12</span><span class="badge badge-gray">2.400</span></div></div>
+              </div>
+            </div>
+            <div class="kanban-col">
+              <div class="kanban-head"><span class="dot dot-info"></span> Đang may <span class="kanban-count"></span></div>
+              <div class="kanban-list" data-tv-sortable="po" data-status="may">
+                <div class="kanban-card" data-id="PO-2598"><div class="kanban-card-title">PO-2598 · Ví da</div><div class="progress progress-sm mt-2"><div class="progress-bar" style="width:62%"></div></div></div>
+              </div>
+            </div>
+            <div class="kanban-col">
+              <div class="kanban-head"><span class="dot dot-warning"></span> QC <span class="kanban-count"></span></div>
+              <div class="kanban-list" data-tv-sortable="po" data-status="qc"></div>
+            </div>
+            <div class="kanban-col">
+              <div class="kanban-head"><span class="dot dot-success"></span> Hoàn thành <span class="kanban-count"></span></div>
+              <div class="kanban-list" data-tv-sortable="po" data-status="xong">
+                <div class="kanban-card" data-id="PO-2580"><div class="kanban-card-title">PO-2580 · Túi du lịch</div><div class="mt-1 text-xs text-emerald-600"><i class="fa-solid fa-check"></i> Đã xuất hàng</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div data-demo="Danh sách kéo thả (ưu tiên công việc)">
+          <ul class="list-group max-w-md" data-tv-sortable>
+            <li class="list-item sortable-item" data-id="1"><i class="fa-solid fa-grip-vertical drag-handle"></i> 1. Kiểm tra máy may chuyền 3</li>
+            <li class="list-item sortable-item" data-id="2"><i class="fa-solid fa-grip-vertical drag-handle"></i> 2. Nhận vải PU-102 từ kho</li>
+            <li class="list-item sortable-item" data-id="3"><i class="fa-solid fa-grip-vertical drag-handle"></i> 3. Họp giao ban 9:00</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ===================== CALENDAR ===================== -->
+      <section id="calendar" class="space-y-4">
+        <div class="page-header mb-0"><div><h2 class="page-title">Lịch tháng <span class="badge badge-accent badge-pill align-middle">Mới</span></h2><p class="page-subtitle">new TXTV.Calendar(el, { events, onDateClick, onEventClick }) – lịch nghỉ phép, kế hoạch giao hàng, bảo trì máy</p></div></div>
+        <div id="demoCalendar"></div>
+      </section>
+
+      <!-- ===================== TREE ===================== -->
+      <section id="tree" class="space-y-4">
+        <div class="page-header mb-0"><div><h2 class="page-title">Cây phân cấp (Tree view) <span class="badge badge-accent badge-pill align-middle">Mới</span></h2><p class="page-subtitle">TXTV.tree(el, nodes, { onSelect }) – sơ đồ tổ chức, định mức BOM, thư mục; có lọc không dấu</p></div></div>
+        <div class="grid gap-4 lg:grid-cols-3">
+          <div class="card lg:col-span-1">
+            <div class="card-header"><div class="input-icon w-full"><i class="fa-solid fa-magnifying-glass text-xs"></i><input class="form-control form-control-sm" id="treeSearch" placeholder="Lọc (vd: khoa keo)"></div></div>
+            <div class="card-body max-h-96 overflow-y-auto p-3"><div id="demoTree"></div></div>
+            <div class="card-footer justify-start"><button class="btn btn-ghost btn-xs" onclick="demoTreeApi.expandAll()">Mở tất cả</button><button class="btn btn-ghost btn-xs" onclick="demoTreeApi.collapseAll()">Thu gọn</button></div>
+          </div>
+          <div class="card lg:col-span-2"><div class="card-body" id="treeDetail"><div class="empty-state py-8"><div class="empty-state-icon"><i class="fa-solid fa-sitemap"></i></div><div class="empty-state-text">Chọn một mục bên trái để xem chi tiết</div></div></div></div>
+        </div>
+      </section>
+
+      <!-- ===================== MEDIA ===================== -->
+      <section id="media" class="space-y-4">
+        <div class="page-header mb-0"><div><h2 class="page-title">Chữ ký, Ảnh, QR & Mã vạch <span class="badge badge-accent badge-pill align-middle">Mới</span></h2><p class="page-subtitle">Ký duyệt trên màn hình, xem ảnh lớn, in tem QR / barcode, quét mã bằng camera hoặc súng bắn mã</p></div></div>
+        <div class="grid gap-4 lg:grid-cols-2">
+          <div data-demo="Chữ ký điện tử">
+            <div class="space-y-3">
+              <div class="signature-pad"><canvas data-tv-signature id="sigCanvas"></canvas><div class="signature-hint"><i class="fa-solid fa-signature"></i> Ký tại đây (chuột hoặc ngón tay)</div></div>
+              <div class="flex gap-2"><button class="btn btn-secondary btn-sm" onclick="TXTV.signature('#sigCanvas').clear()"><i class="fa-solid fa-eraser"></i> Xóa</button><button class="btn btn-primary btn-sm" onclick="demoSignature()"><i class="fa-solid fa-check"></i> Xác nhận chữ ký</button></div>
+            </div>
+          </div>
+          <div data-demo="Lightbox ảnh (bấm vào ảnh)">
+            <div class="flex flex-wrap gap-3" id="demoGallery">
+              <img class="thumb" data-tv-lightbox="g1" data-caption="Chuyền May 1" alt="Chuyền May 1" data-demo-img="Chuyền May 1|#0b5a41">
+              <img class="thumb" data-tv-lightbox="g1" data-caption="Khu vực QC" alt="Khu vực QC" data-demo-img="Khu vực QC|#278464">
+              <img class="thumb" data-tv-lightbox="g1" data-caption="Kho thành phẩm" alt="Kho thành phẩm" data-demo-img="Kho thành phẩm|#6e921f">
+              <img class="thumb" data-tv-lightbox="g1" data-caption="Mẫu túi TX-021" alt="Mẫu túi TX-021" data-demo-img="Mẫu TX-021|#00402a">
+            </div>
+          </div>
+        </div>
+        <div data-demo="QR code · Mã vạch · Quét mã">
+          <div class="grid items-center gap-6 md:grid-cols-3">
+            <div class="flex flex-col items-center gap-2"><div id="demoQr" class="rounded-lg bg-white p-2 ring-1 ring-slate-200"></div><span class="text-xs text-slate-500">TXTV.qrcode(el, 'PO-2611|TX-021|500')</span></div>
+            <div class="flex flex-col items-center gap-2"><svg id="demoBarcode" class="rounded-lg bg-white ring-1 ring-slate-200"></svg><span class="text-xs text-slate-500">TXTV.barcode(svg, 'TX021-0001')</span></div>
+            <div class="flex flex-col items-center gap-3"><button class="btn btn-primary btn-lg" onclick="demoScan()"><i class="fa-solid fa-qrcode"></i> Quét mã</button><span class="text-center text-xs text-slate-500">Camera hoặc súng bắn mã USB (bắn thẳng vào ô nhập)</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== NÂNG CAO ===================== -->
+      <section id="power" class="space-y-4">
+        <div class="page-header mb-0"><div><h2 class="page-title">Công cụ nâng cao <span class="badge badge-accent badge-pill align-middle">Mới</span></h2><p class="page-subtitle">Command palette, menu chuột phải, popover, phím tắt, đồng hồ, đếm ngược, sparkline, banner, Excel, in ấn</p></div></div>
+        <div data-demo="Command palette · Phím tắt · Menu chuột phải · Popover">
+          <div class="flex flex-wrap items-center gap-3">
+            <button class="btn btn-secondary" onclick="TXTV.commandPalette.open()"><i class="fa-solid fa-magnifying-glass"></i> Tìm chức năng <span class="kbd">Ctrl</span><span class="kbd">K</span></button>
+            <div id="ctxArea" class="grid h-20 w-56 place-items-center rounded-xl border-2 border-dashed border-slate-300 text-sm text-slate-500 dark:border-slate-700"><span><i class="fa-solid fa-computer-mouse"></i> Bấm chuột phải vào đây</span></div>
+            <div class="dropdown">
+              <button class="btn btn-soft" data-tv-toggle="dropdown"><i class="fa-solid fa-circle-info"></i> Popover</button>
+              <div class="dropdown-menu dropdown-left popover"><div class="popover-title">Định mức tiêu hao</div>Định mức vải cho 1 túi TX-021 là <b>0,85 yard</b>, hao hụt cho phép 3%.<div class="mt-3 flex justify-end"><button class="btn btn-primary btn-xs">Xem BOM</button></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="grid gap-4 lg:grid-cols-2">
+          <div data-demo="Đồng hồ & Đếm ngược">
+            <div class="space-y-4">
+              <div class="flex items-center gap-3"><i class="fa-regular fa-clock text-2xl text-brand-700"></i><div><div class="text-2xl font-bold tabular-nums text-slate-900 dark:text-white" data-tv-clock></div><div class="text-xs text-slate-500" data-tv-clock data-format="dd/MM/yyyy"></div></div></div>
+              <div><div class="mb-2 text-sm font-medium">Hạn giao PO-2611:</div><div class="countdown" data-tv-countdown="2026-12-15T17:00:00"></div></div>
+            </div>
+          </div>
+          <div data-demo="Sparkline trong thẻ KPI">
+            <div class="grid gap-3 sm:grid-cols-2">
+              <div class="stat flex-col gap-2"><div class="flex w-full items-center justify-between"><div class="stat-label">Sản lượng 7 ngày</div><span class="trend-up"><i class="fa-solid fa-arrow-up"></i> 6%</span></div><div class="stat-value mt-0">14.820</div><div class="w-full" data-tv-sparkline="1950,2080,2050,2180,2260,1420,2300"></div></div>
+              <div class="stat flex-col gap-2"><div class="flex w-full items-center justify-between"><div class="stat-label">Tỷ lệ lỗi</div><span class="trend-down"><i class="fa-solid fa-arrow-down"></i> 0,3%</span></div><div class="stat-value mt-0">2,4%</div><div class="w-full" data-tv-sparkline="3.1,2.9,3.4,2.8,2.6,2.5,2.4" data-color="#ef4444"></div></div>
+            </div>
+          </div>
+        </div>
+        <div data-demo="Banner thông báo">
+          <div class="space-y-2">
+            <div class="banner rounded-lg"><i class="fa-solid fa-bullhorn text-accent-400"></i><span>Hệ thống bảo trì 22:00 tối nay. <a>Xem chi tiết</a></span><button class="banner-close" data-tv-dismiss="banner"><i class="fa-solid fa-xmark"></i></button></div>
+            <div class="banner banner-warning rounded-lg"><i class="fa-solid fa-triangle-exclamation"></i><span>Còn 2 ngày đến hạn chốt sổ công.</span><button class="banner-close" data-tv-dismiss="banner"><i class="fa-solid fa-xmark"></i></button></div>
+          </div>
+        </div>
+        <div data-demo="Excel & In ấn">
+          <div class="flex flex-wrap gap-2">
+            <button class="btn btn-success" onclick="demoExcel()"><i class="fa-solid fa-file-excel"></i> Xuất Excel (.xlsx)</button>
+            <label class="btn btn-secondary"><i class="fa-solid fa-file-import"></i> Đọc file Excel<input type="file" accept=".xlsx,.xls,.csv" hidden onchange="demoReadExcel(this)"></label>
+            <button class="btn btn-secondary" onclick="demoPrint()"><i class="fa-solid fa-print"></i> In phiếu</button>
+          </div>
         </div>
       </section>
 
@@ -622,7 +783,7 @@ TXUI.run('demo_getEmployees').then(rows => dt.setData(rows));</code></pre>
           </ol>
         </div>
         <div data-demo="Tabs">
-          <div data-ui-tabs>
+          <div data-tv-tabs>
             <div class="tabs">
               <button class="tab active" data-tab="t1"><i class="fa-solid fa-list"></i> Tổng quan</button>
               <button class="tab" data-tab="t2">Chi tiết <span class="badge badge-brand badge-pill">12</span></button>
@@ -634,7 +795,7 @@ TXUI.run('demo_getEmployees').then(rows => dt.setData(rows));</code></pre>
           </div>
         </div>
         <div data-demo="Tabs dạng pill">
-          <div data-ui-tabs>
+          <div data-tv-tabs>
             <div class="tabs tabs-pills">
               <button class="tab active" data-tab="d">Ngày</button>
               <button class="tab" data-tab="w">Tuần</button>
@@ -677,11 +838,11 @@ TXUI.run('demo_getEmployees').then(rows => dt.setData(rows));</code></pre>
 
       <!-- ===================== DROPDOWNS ===================== -->
       <section id="dropdowns" class="space-y-4">
-        <div class="page-header mb-0"><div><h2 class="page-title">Dropdown</h2><p class="page-subtitle">.dropdown > [data-ui-toggle="dropdown"] + .dropdown-menu</p></div></div>
+        <div class="page-header mb-0"><div><h2 class="page-title">Dropdown</h2><p class="page-subtitle">.dropdown > [data-tv-toggle="dropdown"] + .dropdown-menu</p></div></div>
         <div data-demo="Dropdown">
           <div class="flex flex-wrap gap-3">
             <div class="dropdown">
-              <button class="btn btn-secondary" data-ui-toggle="dropdown">Thao tác <i class="fa-solid fa-chevron-down text-xs"></i></button>
+              <button class="btn btn-secondary" data-tv-toggle="dropdown">Thao tác <i class="fa-solid fa-chevron-down text-xs"></i></button>
               <div class="dropdown-menu dropdown-left">
                 <div class="dropdown-header">Đơn hàng</div>
                 <a class="dropdown-item"><i class="fa-solid fa-eye"></i> Xem chi tiết</a>
@@ -692,7 +853,7 @@ TXUI.run('demo_getEmployees').then(rows => dt.setData(rows));</code></pre>
               </div>
             </div>
             <div class="dropdown">
-              <button class="btn btn-primary" data-ui-toggle="dropdown"><i class="fa-solid fa-download"></i> Xuất file <i class="fa-solid fa-chevron-down text-xs"></i></button>
+              <button class="btn btn-primary" data-tv-toggle="dropdown"><i class="fa-solid fa-download"></i> Xuất file <i class="fa-solid fa-chevron-down text-xs"></i></button>
               <div class="dropdown-menu dropdown-left">
                 <a class="dropdown-item"><i class="fa-solid fa-file-excel text-emerald-600"></i> Excel (.xlsx)</a>
                 <a class="dropdown-item"><i class="fa-solid fa-file-pdf text-red-500"></i> PDF</a>
@@ -700,7 +861,7 @@ TXUI.run('demo_getEmployees').then(rows => dt.setData(rows));</code></pre>
               </div>
             </div>
             <div class="dropdown">
-              <button class="btn btn-ghost btn-icon" data-ui-toggle="dropdown"><i class="fa-solid fa-ellipsis"></i></button>
+              <button class="btn btn-ghost btn-icon" data-tv-toggle="dropdown"><i class="fa-solid fa-ellipsis"></i></button>
               <div class="dropdown-menu dropdown-left">
                 <a class="dropdown-item"><i class="fa-solid fa-print"></i> In</a>
                 <a class="dropdown-item"><i class="fa-solid fa-share-nodes"></i> Chia sẻ</a>
@@ -712,21 +873,21 @@ TXUI.run('demo_getEmployees').then(rows => dt.setData(rows));</code></pre>
 
       <!-- ===================== OVERLAYS ===================== -->
       <section id="overlays" class="space-y-4">
-        <div class="page-header mb-0"><div><h2 class="page-title">Modal, Drawer & Dialog</h2><p class="page-subtitle">data-ui-toggle="modal|drawer" · TXUI.modal.open() · TXUI.confirm() · TXUI.alert() · TXUI.prompt()</p></div></div>
+        <div class="page-header mb-0"><div><h2 class="page-title">Modal, Drawer & Dialog</h2><p class="page-subtitle">data-tv-toggle="modal|drawer" · TXTV.modal.open() · TXTV.confirm() · TXTV.alert() · TXTV.prompt()</p></div></div>
         <div data-demo="Mở Modal / Drawer">
           <div class="flex flex-wrap gap-2">
-            <button class="btn btn-primary" data-ui-toggle="modal" data-ui-target="#modalDemo"><i class="fa-solid fa-window-maximize"></i> Modal</button>
-            <button class="btn btn-secondary" data-ui-toggle="modal" data-ui-target="#modalLg">Modal lớn</button>
-            <button class="btn btn-secondary" data-ui-toggle="modal" data-ui-target="#modalStatic">Modal tĩnh (static)</button>
-            <button class="btn btn-secondary" data-ui-toggle="drawer" data-ui-target="#drawerDemo"><i class="fa-solid fa-table-columns"></i> Drawer phải</button>
-            <button class="btn btn-secondary" data-ui-toggle="drawer" data-ui-target="#drawerLeft">Drawer trái</button>
+            <button class="btn btn-primary" data-tv-toggle="modal" data-tv-target="#modalDemo"><i class="fa-solid fa-window-maximize"></i> Modal</button>
+            <button class="btn btn-secondary" data-tv-toggle="modal" data-tv-target="#modalLg">Modal lớn</button>
+            <button class="btn btn-secondary" data-tv-toggle="modal" data-tv-target="#modalStatic">Modal tĩnh (static)</button>
+            <button class="btn btn-secondary" data-tv-toggle="drawer" data-tv-target="#drawerDemo"><i class="fa-solid fa-table-columns"></i> Drawer phải</button>
+            <button class="btn btn-secondary" data-tv-toggle="drawer" data-tv-target="#drawerLeft">Drawer trái</button>
             <button class="btn btn-secondary" onclick="demoDynamicModal()">Modal tạo bằng JS</button>
           </div>
         </div>
         <div data-demo="Dialog (Promise)">
           <div class="flex flex-wrap gap-2">
-            <button class="btn btn-soft-info" onclick="TXUI.alert({ title: 'Thông báo', text: 'Đây là hộp thoại thông báo.', type: 'info' })">Alert</button>
-            <button class="btn btn-soft-success" onclick="TXUI.alert({ title: 'Thành công', text: 'Đã lưu phiếu PX-001.', type: 'success' })">Alert thành công</button>
+            <button class="btn btn-soft-info" onclick="TXTV.alert({ title: 'Thông báo', text: 'Đây là hộp thoại thông báo.', type: 'info' })">Alert</button>
+            <button class="btn btn-soft-success" onclick="TXTV.alert({ title: 'Thành công', text: 'Đã lưu phiếu PX-001.', type: 'success' })">Alert thành công</button>
             <button class="btn btn-soft" onclick="demoConfirm()">Confirm</button>
             <button class="btn btn-soft-danger" onclick="demoConfirmDelete()">Confirm xóa</button>
             <button class="btn btn-soft-warning" onclick="demoPrompt()">Prompt</button>
@@ -736,14 +897,14 @@ TXUI.run('demo_getEmployees').then(rows => dt.setData(rows));</code></pre>
 
       <!-- ===================== FEEDBACK ===================== -->
       <section id="feedback" class="space-y-4">
-        <div class="page-header mb-0"><div><h2 class="page-title">Toast & Loading</h2><p class="page-subtitle">TXUI.toast() · TXUI.loading.show/hide() · TXUI.btnLoading() · TXUI.call()</p></div></div>
+        <div class="page-header mb-0"><div><h2 class="page-title">Toast & Loading</h2><p class="page-subtitle">TXTV.toast() · TXTV.loading.show/hide() · TXTV.btnLoading() · TXTV.call()</p></div></div>
         <div data-demo="Toast">
           <div class="flex flex-wrap gap-2">
-            <button class="btn btn-soft-success" onclick="TXUI.toast.success('Đã lưu dữ liệu thành công', 'Thành công')">Success</button>
-            <button class="btn btn-soft-danger" onclick="TXUI.toast.error('Không thể kết nối máy chủ', 'Lỗi')">Error</button>
-            <button class="btn btn-soft-warning" onclick="TXUI.toast.warning('Phiếu sắp hết hạn duyệt')">Warning</button>
-            <button class="btn btn-soft-info" onclick="TXUI.toast.info('Có 3 phiếu mới cần duyệt')">Info</button>
-            <button class="btn btn-secondary" onclick="TXUI.toast('Toast hiển thị phía dưới', { position: 'bottom' })">Phía dưới</button>
+            <button class="btn btn-soft-success" onclick="TXTV.toast.success('Đã lưu dữ liệu thành công', 'Thành công')">Success</button>
+            <button class="btn btn-soft-danger" onclick="TXTV.toast.error('Không thể kết nối máy chủ', 'Lỗi')">Error</button>
+            <button class="btn btn-soft-warning" onclick="TXTV.toast.warning('Phiếu sắp hết hạn duyệt')">Warning</button>
+            <button class="btn btn-soft-info" onclick="TXTV.toast.info('Có 3 phiếu mới cần duyệt')">Info</button>
+            <button class="btn btn-secondary" onclick="TXTV.toast('Toast hiển thị phía dưới', { position: 'bottom' })">Phía dưới</button>
           </div>
         </div>
         <div data-demo="Loading & gọi server">
@@ -771,8 +932,8 @@ TXUI.run('demo_getEmployees').then(rows => dt.setData(rows));</code></pre>
         </div>
         <div data-demo="Progress ring & Spinner">
           <div class="flex flex-wrap items-center gap-8">
-            <div data-ui-progress-ring data-value="72"></div>
-            <div data-ui-progress-ring data-value="45" data-color="#a6ce39" data-size="72" data-stroke="6"></div>
+            <div data-tv-progress-ring data-value="72"></div>
+            <div data-tv-progress-ring data-value="45" data-color="#a6ce39" data-size="72" data-stroke="6"></div>
             <span class="spinner spinner-sm text-brand-700"></span>
             <span class="spinner text-brand-700"></span>
             <span class="spinner spinner-lg text-accent-500"></span>
@@ -802,42 +963,53 @@ TXUI.run('demo_getEmployees').then(rows => dt.setData(rows));</code></pre>
           <div class="card-header"><h3 class="card-title">Tóm tắt API</h3></div>
           <div class="card-body">
             <pre class="overflow-auto rounded-xl bg-slate-900 p-4 text-xs leading-relaxed text-slate-100"><code>// Gọi server
-TXUI.run('tenHam', a, b)                       // Promise (google.script.run)
-TXUI.call('tenHam', [a, b], { loading, success, button, error })
+TXTV.run('tenHam', a, b)                       // Promise (google.script.run)
+TXTV.call('tenHam', [a, b], { loading, success, button, error })
 
 // Thông báo & hộp thoại
-TXUI.toast(msg, { type, title, duration, position })   // TXUI.toast.success(msg, title)
-await TXUI.alert({ title, text, type })
-await TXUI.confirm({ title, text, type: 'danger', confirmText }) // true/false
-await TXUI.prompt({ title, label, value, required, multiline })   // chuỗi | null
+TXTV.toast(msg, { type, title, duration, position })   // TXTV.toast.success(msg, title)
+await TXTV.alert({ title, text, type })
+await TXTV.confirm({ title, text, type: 'danger', confirmText }) // true/false
+await TXTV.prompt({ title, label, value, required, multiline })   // chuỗi | null
 
 // Overlay
-TXUI.modal.open('#id') / .close() / .create({ title, body, footer, size })
-TXUI.drawer.open('#id') / .close()
-TXUI.loading.show(text) / .hide() / .block(el, on)
-TXUI.btnLoading(btn, true|false, text)
+TXTV.modal.open('#id') / .close() / .create({ title, body, footer, size })
+TXTV.drawer.open('#id') / .close()
+TXTV.loading.show(text) / .hide() / .block(el, on)
+TXTV.btnLoading(btn, true|false, text)
 
 // Form
-TXUI.form.validate(form) / .serialize(form) / .fill(form, obj) / .reset(form)
-TXUI.fileToBase64(file)  → TXUI.uploadFile(obj, folderId) phía server
-TXUI.combo.setOptions(select, [{value,label}], selected)
+TXTV.form.validate(form) / .serialize(form) / .fill(form, obj) / .reset(form)
+TXTV.fileToBase64(file)  → TXTV.uploadFile(obj, folderId) phía server
+TXTV.combo.setOptions(select, [{value,label}], selected)
 
 // Dữ liệu
-new TXUI.DataTable(el, { columns, data, ... })  .setData() .getSelected() .exportCSV()
-TXUI.chart(canvas, chartJsConfig)
-TXUI.pagination(el, { page, totalPages, onChange })
-TXUI.steps.set(el, index) · TXUI.progress(el, value) · TXUI.progressRing(el, value)
-TXUI.tabs.show(root, name) · TXUI.theme.toggle() · TXUI.sidebar.toggle()
+new TXTV.DataTable(el, { columns, data, ... })  .setData() .getSelected() .exportCSV()
+TXTV.chart(canvas, chartJsConfig)
+TXTV.pagination(el, { page, totalPages, onChange })
+TXTV.steps.set(el, index) · TXTV.progress(el, value) · TXTV.progressRing(el, value)
+TXTV.tabs.show(root, name) · TXTV.theme.toggle() · TXTV.sidebar.toggle()
 
 // Tiện ích
-TXUI.format.number / currency / percent / date / datetime / relative / fileSize / initials
-TXUI.escape · TXUI.removeAccents · TXUI.matchText · TXUI.debounce · TXUI.copy · TXUI.download</code></pre>
+TXTV.format.number / currency / percent / date / datetime / relative / fileSize / initials
+TXTV.escape · TXTV.removeAccents · TXTV.matchText · TXTV.debounce · TXTV.copy · TXTV.download
+TXTV.groupBy · TXTV.sumBy · TXTV.sortBy · TXTV.unique · TXTV.storage.get/set · TXTV.poll(fn, ms)
+
+// Mở rộng v1.1
+new TXTV.Calendar(el, { events, onDateClick, onEventClick }) · TXTV.tree(el, nodes, { onSelect })
+TXTV.exportExcel(rows, cols, 'ten-file') · TXTV.readExcel(file) · dt.exportExcel()
+TXTV.qrcode(el, text) · TXTV.barcode(svg, text) · await TXTV.scan()
+TXTV.signature(canvas).toBase64() · TXTV.lightbox(items) · TXTV.print(elOrHtml)
+TXTV.commandPalette.register([...]) · TXTV.hotkey('ctrl+s', fn) · TXTV.contextMenu(el, items)
+TXTV.mask.parse('1.250.000') · TXTV.sparkline(el, data) · TXTV.url.params() / .set()
+TXTV.form.autosave(form, key) · TXTV.form.guard(form)</code></pre>
           </div>
         </div>
       </section>
     </main>
 
-    <footer class="app-footer">© 2026 Nhà máy Túi xách Trà Vinh – Chi nhánh 7, Công ty Cổ phần Đầu tư Thái Bình (TBS Group) · TXUI v1.0</footer>
+    <footer class="app-footer">© 2026 Nhà máy Túi xách Trà Vinh – Chi nhánh 7, Công ty Cổ phần Đầu tư Thái Bình (TBS Group) · TXTV v1.1</footer>
+    <button class="no-print" data-tv-backtop aria-label="Lên đầu trang"><i class="fa-solid fa-arrow-up"></i></button>
   </div>
 </div>
 
@@ -845,7 +1017,7 @@ TXUI.escape · TXUI.removeAccents · TXUI.matchText · TXUI.debounce · TXUI.cop
 <div class="modal" id="modalDemo" role="dialog" aria-modal="true">
   <div class="modal-backdrop"></div>
   <div class="modal-dialog">
-    <div class="modal-header"><h3 class="modal-title">Thêm nhân viên</h3><button class="modal-close" data-ui-dismiss="modal"><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="modal-header"><h3 class="modal-title">Thêm nhân viên</h3><button class="modal-close" data-tv-dismiss="modal"><i class="fa-solid fa-xmark"></i></button></div>
     <div class="modal-body space-y-4">
       <div class="form-group"><label class="form-label required">Họ tên</label><input class="form-control" placeholder="Nguyễn Văn A"></div>
       <div class="grid gap-4 sm:grid-cols-2">
@@ -853,17 +1025,17 @@ TXUI.escape · TXUI.removeAccents · TXUI.matchText · TXUI.debounce · TXUI.cop
         <div class="form-group"><label class="form-label">Ngày vào</label><input type="date" class="form-control"></div>
       </div>
     </div>
-    <div class="modal-footer"><button class="btn btn-secondary" data-ui-dismiss="modal">Hủy</button><button class="btn btn-primary" onclick="TXUI.modal.close('#modalDemo'); TXUI.toast.success('Đã thêm nhân viên')">Lưu</button></div>
+    <div class="modal-footer"><button class="btn btn-secondary" data-tv-dismiss="modal">Hủy</button><button class="btn btn-primary" onclick="TXTV.modal.close('#modalDemo'); TXTV.toast.success('Đã thêm nhân viên')">Lưu</button></div>
   </div>
 </div>
 
 <div class="modal modal-lg" id="modalLg" role="dialog" aria-modal="true">
   <div class="modal-backdrop"></div>
   <div class="modal-dialog">
-    <div class="modal-header"><h3 class="modal-title">Modal lớn (.modal-lg)</h3><button class="modal-close" data-ui-dismiss="modal"><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="modal-header"><h3 class="modal-title">Modal lớn (.modal-lg)</h3><button class="modal-close" data-tv-dismiss="modal"><i class="fa-solid fa-xmark"></i></button></div>
     <div class="modal-body"><p class="text-slate-500">Kích thước: <span class="code">modal-sm</span>, mặc định, <span class="code">modal-lg</span>, <span class="code">modal-xl</span>, <span class="code">modal-full</span>. Nội dung dài sẽ tự cuộn bên trong modal-body.</p>
       <div class="mt-4 space-y-2"><div class="skeleton h-4 w-3/4"></div><div class="skeleton h-4 w-full"></div><div class="skeleton h-4 w-2/3"></div></div></div>
-    <div class="modal-footer"><button class="btn btn-primary" data-ui-dismiss="modal">Đóng</button></div>
+    <div class="modal-footer"><button class="btn btn-primary" data-tv-dismiss="modal">Đóng</button></div>
   </div>
 </div>
 
@@ -871,28 +1043,28 @@ TXUI.escape · TXUI.removeAccents · TXUI.matchText · TXUI.debounce · TXUI.cop
   <div class="modal-backdrop"></div>
   <div class="modal-dialog">
     <div class="modal-body text-center"><div class="dialog-icon warning"><i class="fa-solid fa-lock"></i></div><h3 class="text-lg font-semibold">Modal tĩnh</h3><p class="mt-1 text-sm text-slate-500">Click nền hoặc Esc sẽ không đóng. Phải bấm nút.</p></div>
-    <div class="modal-footer"><button class="btn btn-primary btn-block" data-ui-dismiss="modal">Tôi đã hiểu</button></div>
+    <div class="modal-footer"><button class="btn btn-primary btn-block" data-tv-dismiss="modal">Tôi đã hiểu</button></div>
   </div>
 </div>
 
 <div class="drawer" id="drawerDemo">
   <div class="modal-backdrop"></div>
   <div class="drawer-panel">
-    <div class="drawer-header"><h3 class="modal-title">Bộ lọc</h3><button class="modal-close" data-ui-dismiss="drawer"><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="drawer-header"><h3 class="modal-title">Bộ lọc</h3><button class="modal-close" data-tv-dismiss="drawer"><i class="fa-solid fa-xmark"></i></button></div>
     <div class="drawer-body space-y-4">
       <div class="form-group"><label class="form-label">Từ ngày</label><input type="date" class="form-control"></div>
       <div class="form-group"><label class="form-label">Đến ngày</label><input type="date" class="form-control"></div>
       <div class="form-group"><label class="form-label">Bộ phận</label><select class="form-control"><option>Tất cả</option><option>May</option><option>Cắt</option></select></div>
       <label class="form-check"><input type="checkbox" class="form-switch" checked> Chỉ hiện phiếu chưa duyệt</label>
     </div>
-    <div class="drawer-footer"><button class="btn btn-secondary" data-ui-dismiss="drawer">Đóng</button><button class="btn btn-primary" data-ui-dismiss="drawer">Áp dụng</button></div>
+    <div class="drawer-footer"><button class="btn btn-secondary" data-tv-dismiss="drawer">Đóng</button><button class="btn btn-primary" data-tv-dismiss="drawer">Áp dụng</button></div>
   </div>
 </div>
 
 <div class="drawer drawer-left" id="drawerLeft">
   <div class="modal-backdrop"></div>
   <div class="drawer-panel max-w-xs">
-    <div class="drawer-header"><h3 class="modal-title">Menu</h3><button class="modal-close" data-ui-dismiss="drawer"><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="drawer-header"><h3 class="modal-title">Menu</h3><button class="modal-close" data-tv-dismiss="drawer"><i class="fa-solid fa-xmark"></i></button></div>
     <div class="drawer-body space-y-1 p-3">
       <a class="dropdown-item"><i class="fa-solid fa-house"></i> Trang chủ</a>
       <a class="dropdown-item"><i class="fa-solid fa-industry"></i> Sản xuất</a>
@@ -901,25 +1073,25 @@ TXUI.escape · TXUI.removeAccents · TXUI.matchText · TXUI.debounce · TXUI.cop
   </div>
 </div>
 
-<?!= include('TXUI_Scripts'); ?>
+<?!= include('TXTV_Scripts'); ?>
 <script>
   /* ---------- Mock cho chế độ xem trước ngoài Apps Script ---------- */
-  TXUI.mocks.demo_getEmployees = function () {
+  TXTV.mocks.demo_getEmployees = function () {
     var ho = ['Nguyễn', 'Trần', 'Lê', 'Phạm', 'Huỳnh', 'Võ', 'Thạch', 'Kim', 'Sơn', 'Dương'], dem = ['Thị', 'Văn', 'Minh', 'Ngọc', 'Thanh', 'Hoàng'];
     var ten = ['An', 'Bình', 'Chi', 'Dũng', 'Hà', 'Khánh', 'Linh', 'Nam', 'Phúc', 'Sương', 'Tâm', 'Vy'];
     var bp = ['May', 'Cắt', 'Hoàn thiện', 'QC', 'Kho', 'Kỹ thuật', 'Văn phòng'], tt = ['Đang làm', 'Đang làm', 'Đang làm', 'Nghỉ phép', 'Thử việc'];
     var rows = [];
-    for (var i = 1; i <= 57; i++) rows.push({ id: 'NV' + ('000' + i).slice(-4), name: ho[i % 10] + ' ' + dem[i % 6] + ' ' + ten[(i * 7) % 12], dept: bp[(i * 3) % 7], status: tt[(i * 3) % 5], output: 80 + ((i * 37) % 70), salary: 6500000 + ((i * 131) % 40) * 100000, joined: TXUI.format.isoDate(new Date(2018 + (i % 7), i % 12, (i % 27) + 1)) });
+    for (var i = 1; i <= 57; i++) rows.push({ id: 'NV' + ('000' + i).slice(-4), name: ho[i % 10] + ' ' + dem[i % 6] + ' ' + ten[(i * 7) % 12], dept: bp[(i * 3) % 7], status: tt[(i * 3) % 5], output: 80 + ((i * 37) % 70), salary: 6500000 + ((i * 131) % 40) * 100000, joined: TXTV.format.isoDate(new Date(2018 + (i % 7), i % 12, (i % 27) + 1)) });
     return rows;
   };
-  TXUI.mocks.demo_saveForm = function (d) { return { ok: true, id: 'PX' + Date.now().toString().slice(-6), data: d }; };
-  TXUI.mocks.demo_fail = function () { throw new Error('Không kết nối được Google Sheet (lỗi demo)'); };
+  TXTV.mocks.demo_saveForm = function (d) { return { ok: true, id: 'PX' + Date.now().toString().slice(-6), data: d }; };
+  TXTV.mocks.demo_fail = function () { throw new Error('Không kết nối được Google Sheet (lỗi demo)'); };
 
   /* ---------- Khung demo + nút xem code (tự sinh từ HTML) ---------- */
   (function () {
-    TXUI.$$('[data-demo]').forEach(function (box) {
-      var code = TXUI.dedent(box.innerHTML);
-      var wrap = TXUI.html(
+    TXTV.$$('[data-demo]').forEach(function (box) {
+      var code = TXTV.dedent(box.innerHTML);
+      var wrap = TXTV.html(
         '<div class="card">' +
           '<div class="flex items-center justify-between gap-2 border-b border-slate-200 px-4 py-2.5 dark:border-slate-800">' +
             '<h4 class="text-sm font-semibold text-slate-800 dark:text-slate-100"></h4>' +
@@ -934,7 +1106,7 @@ TXUI.escape · TXUI.removeAccents · TXUI.matchText · TXUI.debounce · TXUI.cop
       box.parentNode.insertBefore(wrap, box);
       wrap.querySelector('.demo-body').appendChild(box);
       wrap.querySelector('[data-code-toggle]').onclick = function () { wrap.querySelector('pre').classList.toggle('hidden'); };
-      wrap.querySelector('[data-code-copy]').onclick = function () { TXUI.copy(code); };
+      wrap.querySelector('[data-code-copy]').onclick = function () { TXTV.copy(code); };
     });
   })();
 
@@ -949,7 +1121,7 @@ TXUI.escape · TXUI.removeAccents · TXUI.matchText · TXUI.debounce · TXUI.cop
   })();
 
   /* ---------- Điều hướng trong trang (không dùng #hash vì Apps Script dùng target=_top) ---------- */
-  function scrollToId(id) { var el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); TXUI.sidebar.close(); }
+  function scrollToId(id) { var el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); TXTV.sidebar.close(); }
   document.addEventListener('click', function (e) {
     var b = e.target.closest('[data-scroll], [data-scroll-btn]'); if (!b) return;
     scrollToId(b.getAttribute('data-scroll') || b.getAttribute('data-scroll-btn'));
@@ -957,107 +1129,221 @@ TXUI.escape · TXUI.removeAccents · TXUI.matchText · TXUI.debounce · TXUI.cop
   if ('IntersectionObserver' in window) {
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (en) {
-        if (en.isIntersecting) TXUI.$$('#docNav [data-scroll]').forEach(function (l) { l.classList.toggle('active', l.getAttribute('data-scroll') === en.target.id); });
+        if (en.isIntersecting) TXTV.$$('#docNav [data-scroll]').forEach(function (l) { l.classList.toggle('active', l.getAttribute('data-scroll') === en.target.id); });
       });
     }, { rootMargin: '-20% 0px -70% 0px' });
-    TXUI.$$('main > section[id]').forEach(function (s) { io.observe(s); });
+    TXTV.$$('main > section[id]').forEach(function (s) { io.observe(s); });
   }
 
   /* ---------- Demo handlers ---------- */
-  function demoBtnLoading(btn) { TXUI.btnLoading(btn, true, 'Đang lưu...'); setTimeout(function () { TXUI.btnLoading(btn, false); TXUI.toast.success('Đã lưu'); }, 1500); }
+  function demoBtnLoading(btn) { TXTV.btnLoading(btn, true, 'Đang lưu...'); setTimeout(function () { TXTV.btnLoading(btn, false); TXTV.toast.success('Đã lưu'); }, 1500); }
   async function demoConfirm() {
-    var ok = await TXUI.confirm({ title: 'Duyệt phiếu?', text: 'Bạn có chắc muốn duyệt phiếu đề xuất PX-001?', confirmText: 'Duyệt' });
-    TXUI.toast(ok ? 'Đã duyệt' : 'Đã hủy', { type: ok ? 'success' : 'info' });
+    var ok = await TXTV.confirm({ title: 'Duyệt phiếu?', text: 'Bạn có chắc muốn duyệt phiếu đề xuất PX-001?', confirmText: 'Duyệt' });
+    TXTV.toast(ok ? 'Đã duyệt' : 'Đã hủy', { type: ok ? 'success' : 'info' });
   }
   async function demoConfirmDelete() {
-    if (await TXUI.confirm({ title: 'Xóa bản ghi?', text: 'Dữ liệu đã xóa không thể khôi phục.', type: 'danger', confirmText: 'Xóa' })) TXUI.toast.success('Đã xóa');
+    if (await TXTV.confirm({ title: 'Xóa bản ghi?', text: 'Dữ liệu đã xóa không thể khôi phục.', type: 'danger', confirmText: 'Xóa' })) TXTV.toast.success('Đã xóa');
   }
   async function demoPrompt() {
-    var reason = await TXUI.prompt({ title: 'Từ chối phiếu', label: 'Lý do từ chối', placeholder: 'Nhập lý do...', required: true, multiline: true, confirmText: 'Gửi' });
-    if (reason !== null) TXUI.toast('Lý do: ' + reason, { type: 'info' });
+    var reason = await TXTV.prompt({ title: 'Từ chối phiếu', label: 'Lý do từ chối', placeholder: 'Nhập lý do...', required: true, multiline: true, confirmText: 'Gửi' });
+    if (reason !== null) TXTV.toast('Lý do: ' + reason, { type: 'info' });
   }
   function demoDynamicModal() {
-    TXUI.modal.create({ title: 'Modal động', size: 'sm', body: '<p class="text-sm text-slate-500">Modal này được tạo bằng <span class="code">TXUI.modal.create()</span> và tự hủy khi đóng.</p>', footer: '<button class="btn btn-primary" data-ui-dismiss="modal">OK</button>' });
+    TXTV.modal.create({ title: 'Modal động', size: 'sm', body: '<p class="text-sm text-slate-500">Modal này được tạo bằng <span class="code">TXTV.modal.create()</span> và tự hủy khi đóng.</p>', footer: '<button class="btn btn-primary" data-tv-dismiss="modal">OK</button>' });
   }
-  function demoLoading() { TXUI.loading.show('Đang tải dữ liệu...'); setTimeout(function () { TXUI.loading.hide(); }, 2000); }
-  function demoBlockLoading() { TXUI.loading.block('#blockArea', true); setTimeout(function () { TXUI.loading.block('#blockArea', false); }, 1500); }
-  function demoCallOk(btn) { TXUI.call('demo_saveForm', [{ fullName: 'Demo' }], { button: btn, success: function (r) { return 'Server trả về mã ' + r.id; } }); }
-  function demoCallFail() { TXUI.call('demo_fail', [], { loading: 'Đang kết nối...' }).catch(function () {}); }
+  function demoLoading() { TXTV.loading.show('Đang tải dữ liệu...'); setTimeout(function () { TXTV.loading.hide(); }, 2000); }
+  function demoBlockLoading() { TXTV.loading.block('#blockArea', true); setTimeout(function () { TXTV.loading.block('#blockArea', false); }, 1500); }
+  function demoCallOk(btn) { TXTV.call('demo_saveForm', [{ fullName: 'Demo' }], { button: btn, success: function (r) { return 'Server trả về mã ' + r.id; } }); }
+  function demoCallFail() { TXTV.call('demo_fail', [], { loading: 'Đang kết nối...' }).catch(function () {}); }
   var curStep = 1;
-  function demoStep(d) { curStep = Math.max(0, Math.min(4, curStep + d)); TXUI.steps.set('#demoSteps', curStep); }
-  TXUI.steps.set('#demoSteps', curStep);
+  function demoStep(d) { curStep = Math.max(0, Math.min(4, curStep + d)); TXTV.steps.set('#demoSteps', curStep); }
+  TXTV.steps.set('#demoSteps', curStep);
 
   function demoFill() {
-    TXUI.form.fill('#demoForm', { fullName: 'Thạch Thị Sương', empCode: 'NV0123', dept: 'Kho', email: 'suong.tt@tbsgroup.vn', qty: 250, needDate: new Date(Date.now() + 3 * 86400000), priority: 'Gấp', reason: 'Bổ sung vải lót cho đơn PO-2611', agree: true });
+    TXTV.form.fill('#demoForm', { fullName: 'Thạch Thị Sương', empCode: 'NV0123', dept: 'Kho', email: 'suong.tt@tbsgroup.vn', qty: 250, needDate: new Date(Date.now() + 3 * 86400000), priority: 'Gấp', reason: 'Bổ sung vải lót cho đơn PO-2611', agree: true });
   }
   document.getElementById('demoForm').addEventListener('submit', function (e) {
     e.preventDefault();
-    if (!TXUI.form.validate(this)) return;
-    var data = TXUI.form.serialize(this);
-    TXUI.call('demo_saveForm', [data], { button: '#btnSubmit' }).then(function (res) {
-      TXUI.alert({ title: 'Đã gửi đề xuất', html: true, type: 'success', text: 'Mã phiếu: <b>' + TXUI.escape(res.id) + '</b><pre class="mt-3 max-h-48 overflow-auto rounded-lg bg-slate-100 p-3 text-left text-[11px] dark:bg-slate-800">' + TXUI.escape(JSON.stringify(data, null, 2)) + '</pre>' });
-      TXUI.form.reset('#demoForm');
+    if (!TXTV.form.validate(this)) return;
+    var data = TXTV.form.serialize(this);
+    TXTV.call('demo_saveForm', [data], { button: '#btnSubmit' }).then(function (res) {
+      TXTV.alert({ title: 'Đã gửi đề xuất', html: true, type: 'success', text: 'Mã phiếu: <b>' + TXTV.escape(res.id) + '</b><pre class="mt-3 max-h-48 overflow-auto rounded-lg bg-slate-100 p-3 text-left text-[11px] dark:bg-slate-800">' + TXTV.escape(JSON.stringify(data, null, 2)) + '</pre>' });
+      TXTV.form.reset('#demoForm');
     });
   });
 
   /* ---------- Pagination JS ---------- */
-  (function render(p) { TXUI.pagination('#jsPager', { page: p, totalPages: 20, onChange: render }); })(5);
+  (function render(p) { TXTV.pagination('#jsPager', { page: p, totalPages: 20, onChange: render }); })(5);
 
   /* ---------- DataTable ---------- */
   var STATUS = { 'Đang làm': 'badge-success', 'Nghỉ phép': 'badge-warning', 'Thử việc': 'badge-info' };
-  var dt = new TXUI.DataTable('#empTable', {
+  var dt = new TXTV.DataTable('#empTable', {
     columns: [
-      { key: 'id', label: 'Mã NV', width: '100px', render: function (v) { return '<span class="font-mono text-xs font-semibold text-slate-900 dark:text-white">' + TXUI.escape(v) + '</span>'; } },
-      { key: 'name', label: 'Họ tên', render: function (v) { return '<div class="flex items-center gap-2.5"><span class="avatar avatar-sm">' + TXUI.format.initials(v) + '</span><span class="font-medium text-slate-900 dark:text-white">' + TXUI.escape(v) + '</span></div>'; } },
+      { key: 'id', label: 'Mã NV', width: '100px', render: function (v) { return '<span class="font-mono text-xs font-semibold text-slate-900 dark:text-white">' + TXTV.escape(v) + '</span>'; } },
+      { key: 'name', label: 'Họ tên', render: function (v) { return '<div class="flex items-center gap-2.5"><span class="avatar avatar-sm">' + TXTV.format.initials(v) + '</span><span class="font-medium text-slate-900 dark:text-white">' + TXTV.escape(v) + '</span></div>'; } },
       { key: 'dept', label: 'Bộ phận' },
-      { key: 'status', label: 'Trạng thái', render: function (v) { return '<span class="badge ' + (STATUS[v] || 'badge-gray') + '">' + TXUI.escape(v) + '</span>'; } },
+      { key: 'status', label: 'Trạng thái', render: function (v) { return '<span class="badge ' + (STATUS[v] || 'badge-gray') + '">' + TXTV.escape(v) + '</span>'; } },
       { key: 'output', label: 'Năng suất', align: 'right', render: function (v) { return '<div class="flex items-center justify-end gap-2"><div class="progress w-16"><div class="progress-bar ' + (v >= 120 ? 'success' : v < 100 ? 'warning' : '') + '" style="width:' + Math.min(100, v / 1.5) + '%"></div></div><span class="w-10 text-right">' + v + '%</span></div>'; } },
       { key: 'salary', label: 'Lương CB', align: 'right', format: 'currency' },
       { key: 'joined', label: 'Ngày vào', format: 'date' },
       { key: '', label: '', noSort: true, width: '60px', export: false, render: function (v, r) {
-        return '<div class="dropdown"><button class="btn btn-ghost btn-icon btn-sm" data-ui-toggle="dropdown"><i class="fa-solid fa-ellipsis-vertical"></i></button>' +
-          '<div class="dropdown-menu"><a class="dropdown-item" onclick="TXUI.toast(\'Sửa ' + r.id + '\')"><i class="fa-solid fa-pen"></i> Sửa</a>' +
+        return '<div class="dropdown"><button class="btn btn-ghost btn-icon btn-sm" data-tv-toggle="dropdown"><i class="fa-solid fa-ellipsis-vertical"></i></button>' +
+          '<div class="dropdown-menu"><a class="dropdown-item" onclick="TXTV.toast(\'Sửa ' + r.id + '\')"><i class="fa-solid fa-pen"></i> Sửa</a>' +
           '<a class="dropdown-item danger" onclick="demoDeleteRow(\'' + r.id + '\')"><i class="fa-solid fa-trash"></i> Xóa</a></div></div>';
       } }
     ],
     selectable: true, exportable: true, exportName: 'danh-sach-nhan-vien', pageSize: 10,
     searchPlaceholder: 'Tìm theo mã, tên, bộ phận...',
-    toolbar: '<button class="btn btn-primary btn-sm" onclick="TXUI.modal.open(\'#modalDemo\')"><i class="fa-solid fa-plus"></i> Thêm</button>',
-    onRowClick: function (row) { TXUI.toast(row.name + ' – ' + row.dept, { title: row.id }); },
-    onSelect: function (rows) { if (rows.length) TXUI.toast('Đã chọn ' + rows.length + ' dòng', { duration: 1200 }); }
+    toolbar: '<button class="btn btn-primary btn-sm" onclick="TXTV.modal.open(\'#modalDemo\')"><i class="fa-solid fa-plus"></i> Thêm</button>',
+    onRowClick: function (row) { TXTV.toast(row.name + ' – ' + row.dept, { title: row.id }); },
+    onSelect: function (rows) { if (rows.length) TXTV.toast('Đã chọn ' + rows.length + ' dòng', { duration: 1200 }); }
   });
   dt.setLoading(true);
-  TXUI.run('demo_getEmployees').then(function (rows) { dt.setData(rows); }).catch(function (e) { TXUI.toast.error(e.message); dt.setData([]); });
+  TXTV.run('demo_getEmployees').then(function (rows) { dt.setData(rows); }).catch(function (e) { TXTV.toast.error(e.message); dt.setData([]); });
   async function demoDeleteRow(id) {
-    if (await TXUI.confirm({ title: 'Xóa ' + id + '?', type: 'danger', confirmText: 'Xóa' })) { dt.removeRow(id); TXUI.toast.success('Đã xóa ' + id); }
+    if (await TXTV.confirm({ title: 'Xóa ' + id + '?', type: 'danger', confirmText: 'Xóa' })) { dt.removeRow(id); TXTV.toast.success('Đã xóa ' + id); }
   }
 
   /* ---------- Bảng tiện ích ---------- */
   (function () {
     var rows = [
-      ["TXUI.format.number(1234567.891)", TXUI.format.number(1234567.891)],
-      ["TXUI.format.currency(15500000)", TXUI.format.currency(15500000)],
-      ["TXUI.format.currency(12.5, 'USD')", TXUI.format.currency(12.5, 'USD')],
-      ["TXUI.format.percent(0.976)", TXUI.format.percent(0.976)],
-      ["TXUI.format.date(new Date())", TXUI.format.date(new Date())],
-      ["TXUI.format.datetime(new Date())", TXUI.format.datetime(new Date())],
-      ["TXUI.format.relative(Date.now() - 3600e3 * 5)", TXUI.format.relative(Date.now() - 3600e3 * 5)],
-      ["TXUI.format.fileSize(2457600)", TXUI.format.fileSize(2457600)],
-      ["TXUI.format.initials('Thạch Thị Sương')", TXUI.format.initials('Thạch Thị Sương')],
-      ["TXUI.removeAccents('Trà Vinh – Đồng')", TXUI.removeAccents('Trà Vinh – Đồng')],
-      ["TXUI.matchText('Nguyễn Văn An', 'nguyen an')", String(TXUI.matchText('Nguyễn Văn An', 'nguyen van'))]
+      ["TXTV.format.number(1234567.891)", TXTV.format.number(1234567.891)],
+      ["TXTV.format.currency(15500000)", TXTV.format.currency(15500000)],
+      ["TXTV.format.currency(12.5, 'USD')", TXTV.format.currency(12.5, 'USD')],
+      ["TXTV.format.percent(0.976)", TXTV.format.percent(0.976)],
+      ["TXTV.format.date(new Date())", TXTV.format.date(new Date())],
+      ["TXTV.format.datetime(new Date())", TXTV.format.datetime(new Date())],
+      ["TXTV.format.relative(Date.now() - 3600e3 * 5)", TXTV.format.relative(Date.now() - 3600e3 * 5)],
+      ["TXTV.format.fileSize(2457600)", TXTV.format.fileSize(2457600)],
+      ["TXTV.format.initials('Thạch Thị Sương')", TXTV.format.initials('Thạch Thị Sương')],
+      ["TXTV.removeAccents('Trà Vinh – Đồng')", TXTV.removeAccents('Trà Vinh – Đồng')],
+      ["TXTV.matchText('Nguyễn Văn An', 'nguyen an')", String(TXTV.matchText('Nguyễn Văn An', 'nguyen van'))]
     ];
-    document.getElementById('utilsTable').innerHTML = rows.map(function (r) { return '<tr><td><span class="code">' + TXUI.escape(r[0]) + '</span></td><td class="font-medium">' + TXUI.escape(r[1]) + '</td></tr>'; }).join('');
+    document.getElementById('utilsTable').innerHTML = rows.map(function (r) { return '<tr><td><span class="code">' + TXTV.escape(r[0]) + '</span></td><td class="font-medium">' + TXTV.escape(r[1]) + '</td></tr>'; }).join('');
   })();
+
+
+  /* =====================  DEMO v1.1  ===================== */
+  // OTP
+  document.getElementById('demoOtp').addEventListener('tv:complete', function (e) { TXTV.toast('Mã đã nhập: ' + e.detail.value, { type: 'success' }); });
+
+  // Kanban: lưu trạng thái khi kéo thả
+  document.getElementById('demoKanban').addEventListener('tv:sort', function (e) {
+    var d = e.detail;
+    if (d.from !== d.to) TXTV.toast(d.id + ' → ' + d.to.closest('.kanban-col').querySelector('.kanban-head').textContent.trim().replace(/\d+$/, ''), { type: 'info', title: 'Đã chuyển trạng thái', duration: 2000 });
+    // Thực tế: TXTV.run('capNhatTrangThai', d.id, d.to.dataset.status)
+  });
+
+  // Lịch
+  (function () {
+    var t = new Date(), y = t.getFullYear(), m = t.getMonth();
+    var iso = function (d) { return TXTV.format.isoDate(new Date(y, m, d)); };
+    new TXTV.Calendar('#demoCalendar', {
+      events: [
+        { date: iso(3), title: 'Bảo trì máy cắt', color: 'warning' },
+        { date: iso(8), end: iso(10), title: 'Đánh giá khách hàng', color: 'info' },
+        { date: iso(t.getDate()), title: 'Họp giao ban', color: 'brand' },
+        { date: iso(t.getDate()), title: 'Nhận vải PU-102', color: 'success' },
+        { date: iso(15), title: 'Giao PO-2611', color: 'danger' },
+        { date: iso(22), title: 'Kiểm kê kho', color: 'warning' },
+        { date: iso(25), title: 'Chốt công', color: 'brand' }
+      ],
+      onDateClick: function (d) { TXTV.toast('Chọn ngày ' + TXTV.format.date(d), { duration: 1500 }); },
+      onEventClick: function (ev) { TXTV.alert({ title: ev.title, text: 'Ngày: ' + TXTV.format.date(ev.date) + (ev.end ? ' → ' + TXTV.format.date(ev.end) : ''), type: 'info' }); }
+    });
+  })();
+
+  // Tree
+  var demoTreeApi = TXTV.tree('#demoTree', [
+    { id: 'nm', label: 'Nhà máy Túi xách Trà Vinh', icon: 'fa-industry text-brand-700', open: true, children: [
+      { id: 'sx', label: 'Xưởng sản xuất', open: true, children: [
+        { id: 'cat', label: 'Tổ Cắt', icon: 'fa-scissors text-slate-500', badge: 42 },
+        { id: 'may', label: 'Chuyền May', children: [
+          { id: 'm1', label: 'Chuyền May 1', icon: 'fa-users text-slate-500', badge: 38 },
+          { id: 'm2', label: 'Chuyền May 2', icon: 'fa-users text-slate-500', badge: 36 }
+        ] },
+        { id: 'ht', label: 'Tổ Hoàn thiện', icon: 'fa-wand-magic-sparkles text-slate-500', badge: 25 }
+      ] },
+      { id: 'bom', label: 'BOM – Túi tote TX-021', icon: 'fa-list-check text-amber-500', children: [
+        { id: 'b1', label: 'Vải canvas 12oz – 0,85 m' },
+        { id: 'b2', label: 'Khóa kéo YKK #5 – 1 cái' },
+        { id: 'b3', label: 'Dây đai PP 3cm – 1,2 m' }
+      ] },
+      { id: 'kho', label: 'Kho vật tư', icon: 'fa-warehouse text-sky-600' }
+    ] }
+  ], {
+    onSelect: function (n) {
+      document.getElementById('treeDetail').innerHTML = '<h3 class="heading-4 mb-3"><i class="fa-solid ' + (n.icon || 'fa-file') + ' mr-2"></i>' + TXTV.escape(n.label) + '</h3>' +
+        '<dl class="desc-list"><dt>Mã</dt><dd>' + TXTV.escape(n.id) + '</dd><dt>Số mục con</dt><dd>' + ((n.children || []).length) + '</dd>' + (n.badge ? '<dt>Nhân sự</dt><dd>' + n.badge + ' người</dd>' : '') + '</dl>';
+    }
+  });
+  document.getElementById('treeSearch').addEventListener('input', TXTV.debounce(function (e) { demoTreeApi.filter(e.target.value); }, 150));
+
+  // Ảnh demo (SVG tự sinh để không phụ thuộc ảnh ngoài)
+  TXTV.$$('[data-demo-img]').forEach(function (img) {
+    var p = img.getAttribute('data-demo-img').split('|');
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="560"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + p[1] + '"/><stop offset="1" stop-color="#a6ce39"/></linearGradient></defs><rect width="800" height="560" fill="url(#g)"/><text x="400" y="290" font-family="Inter,Arial" font-size="48" font-weight="700" fill="#fff" text-anchor="middle">' + p[0] + '</text></svg>';
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  });
+
+  // Chữ ký
+  function demoSignature() {
+    var sig = TXTV.signature('#sigCanvas');
+    if (sig.isEmpty()) return TXTV.toast.warning('Vui lòng ký trước khi xác nhận');
+    TXTV.modal.create({ title: 'Chữ ký đã ghi nhận', size: 'sm', body: '<img class="mx-auto rounded-lg border border-slate-200 bg-white" src="' + sig.toDataURL() + '"><p class="mt-3 text-xs text-slate-500">Gửi lên server bằng <span class="code">sig.toBase64()</span> → <span class="code">TXTV.uploadFile()</span></p>', footer: '<button class="btn btn-primary" data-tv-dismiss="modal">OK</button>' });
+  }
+
+  // QR, barcode, scan
+  TXTV.qrcode('#demoQr', 'PO-2611|TX-021|500', { size: 140 }).catch(function () { document.getElementById('demoQr').innerHTML = '<div class="p-6 text-xs text-slate-400">Cần Internet để tải thư viện QR</div>'; });
+  TXTV.barcode('#demoBarcode', 'TX021-0001').catch(function () {});
+  async function demoScan() {
+    var code = await TXTV.scan({ title: 'Quét mã bó hàng' });
+    if (code) TXTV.alert({ title: 'Đã quét', text: code, type: 'success' });
+  }
+
+  // Context menu
+  TXTV.contextMenu('#ctxArea', [
+    { header: 'Thao tác' },
+    { label: 'Xem chi tiết', icon: 'fa-eye', action: function () { TXTV.toast('Xem chi tiết'); } },
+    { label: 'Sao chép mã', icon: 'fa-copy', action: function () { TXTV.copy('PO-2611'); } },
+    { divider: true },
+    { label: 'Xóa', icon: 'fa-trash', danger: true, action: function () { TXTV.toast.error('Đã xóa (demo)'); } }
+  ]);
+
+  // Command palette: điều hướng đến các mục của trang tài liệu
+  TXTV.commandPalette.register(TXTV.$$('#docNav [data-scroll]').map(function (b) {
+    return { group: 'Đi đến', label: b.textContent.trim().replace(/JS$/, ''), icon: (b.querySelector('i').className.match(/fa-[a-z0-9-]+$/) || [])[0], action: function () { scrollToId(b.getAttribute('data-scroll')); } };
+  }).concat([
+    { group: 'Thao tác', label: 'Đổi giao diện Sáng / Tối', icon: 'fa-moon', keywords: 'dark mode theme', action: TXTV.theme.toggle },
+    { group: 'Thao tác', label: 'Mở trang mẫu CRUD', icon: 'fa-table-list', action: function () { window.open(document.querySelector('[data-page-link="Crud"]').href, '_top'); } }
+  ]));
+
+  // Countdown: luôn hiển thị hạn trong tương lai cho demo
+  TXTV.$('[data-tv-countdown]').setAttribute('data-tv-countdown', new Date(Date.now() + 36 * 86400000 + 5 * 3600000).toISOString());
+
+  // Excel / In
+  function demoExcel() { dt.exportExcel('nhan-vien-demo'); }
+  function demoReadExcel(input) {
+    var f = input.files[0]; input.value = ''; if (!f) return;
+    TXTV.readExcel(f).then(function (rows) {
+      TXTV.alert({ title: 'Đọc được ' + rows.length + ' dòng', html: true, type: 'success', text: '<pre class="mt-2 max-h-48 overflow-auto rounded-lg bg-slate-100 p-3 text-left text-[11px] dark:bg-slate-800">' + TXTV.escape(JSON.stringify(rows.slice(0, 5), null, 2)) + '</pre>' });
+    }).catch(function (e) { TXTV.toast.error(e.message); });
+  }
+  function demoPrint() {
+    TXTV.print('<div class="mx-auto max-w-2xl"><div class="flex items-center justify-between border-b-2 border-brand-900 pb-3"><div><div class="text-lg font-bold text-brand-900">TBS GROUP – NHÀ MÁY TÚI XÁCH TRÀ VINH</div><div class="text-xs">Chi nhánh 7 – Công ty CP Đầu tư Thái Bình</div></div><div class="text-right text-xs">Số: PX-001<br>Ngày: ' + TXTV.format.date(new Date()) + '</div></div>' +
+      '<h1 class="my-5 text-center text-xl font-bold">PHIẾU XUẤT KHO</h1><table class="table table-bordered table-compact"><thead><tr><th>STT</th><th>Mã VT</th><th>Tên vật tư</th><th class="text-right">SL</th></tr></thead><tbody>' +
+      '<tr><td>1</td><td>PU-102</td><td>Da PU đen 1.2mm</td><td class="text-right">250</td></tr><tr><td>2</td><td>KH-05</td><td>Khóa kéo YKK #5</td><td class="text-right">1.000</td></tr></tbody></table>' +
+      '<div class="mt-10 grid grid-cols-3 text-center text-sm font-semibold"><div>Người lập</div><div>Thủ kho</div><div>Giám đốc</div></div></div>', { title: 'Phiếu xuất kho PX-001' });
+  }
 
   /* ---------- Biểu đồ ---------- */
   function drawCharts() {
-    TXUI.chart('#chartBar', { type: 'bar', data: { labels: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7'], datasets: [
+    TXTV.chart('#chartBar', { type: 'bar', data: { labels: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7'], datasets: [
       { label: 'Kế hoạch', data: [2000, 2000, 2100, 2100, 2200, 1500] },
       { label: 'Thực hiện', data: [1950, 2080, 2050, 2180, 2260, 1420] } ] } }).catch(function () {
         document.getElementById('chartBar').parentElement.innerHTML = '<div class="empty-state h-full"><div class="empty-state-icon"><i class="fa-solid fa-chart-column"></i></div><div class="empty-state-text">Không tải được Chart.js (cần Internet)</div></div>';
       });
-    TXUI.chart('#chartPie', { type: 'doughnut', data: { labels: ['Đạt', 'Lỗi đường may', 'Lỗi vật tư', 'Khác'], datasets: [{ data: [92, 4, 3, 1] }] }, options: { cutout: '65%' } }).catch(function () {});
+    TXTV.chart('#chartPie', { type: 'doughnut', data: { labels: ['Đạt', 'Lỗi đường may', 'Lỗi vật tư', 'Khác'], datasets: [{ data: [92, 4, 3, 1] }] }, options: { cutout: '65%' } }).catch(function () {});
   }
   drawCharts();
   new MutationObserver(function () { if (window.Chart) drawCharts(); }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });

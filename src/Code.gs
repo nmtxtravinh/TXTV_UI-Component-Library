@@ -5,23 +5,25 @@
  *  Các trang:   ?page=Index (mặc định – thư viện component)
  *               ?page=Starter (mẫu trang trống để bắt đầu dự án mới)
  *               ?page=Login   (mẫu trang đăng nhập)
+ *               ?page=Crud    (mẫu quản lý danh mục: thêm/sửa/xóa, nhập/xuất Excel – lưu Google Sheet)
  */
 
 var PAGES = {
   Index:   'Thư viện UI',
   Starter: 'Trang mẫu',
-  Login:   'Đăng nhập'
+  Login:   'Đăng nhập',
+  Crud:    'Quản lý vật tư'
 };
 
 function doGet(e) {
   var page = (e && e.parameter && e.parameter.page) || 'Index';
   if (!PAGES[page]) page = 'Index';
-  TXUI.config.appName = 'TXUI';
-  return TXUI.render(page, { PAGE: page, PARAMS: (e && e.parameter) || {} }, PAGES[page]);
+  TXTV.config.appName = 'TXTV';
+  return TXTV.render(page, { PAGE: page, PARAMS: (e && e.parameter) || {} }, PAGES[page]);
 }
 
 /* ---------------------------------------------------------------------------
- * HÀM DEMO (gọi từ client bằng TXUI.run / TXUI.call)
+ * HÀM DEMO (gọi từ client bằng TXTV.run / TXTV.call)
  * ------------------------------------------------------------------------- */
 
 /** Trả về danh sách nhân viên giả lập để demo DataTable */
@@ -50,7 +52,7 @@ function demo_getEmployees() {
 function demo_saveForm(data) {
   if (!data || !data.fullName) throw new Error('Thiếu họ tên');
   Utilities.sleep(600);
-  return { ok: true, id: TXDB.newId('PX'), savedAt: TXUI.formatDate(new Date()), data: data };
+  return { ok: true, id: TVDB.newId('PX'), savedAt: TXTV.formatDate(new Date()), data: data };
 }
 
 /** Giả lập lỗi server */
@@ -58,8 +60,54 @@ function demo_fail() {
   throw new Error('Không kết nối được Google Sheet (lỗi demo)');
 }
 
-/** Demo đăng nhập cho trang Login (thay bằng kiểm tra tài khoản thật, vd: TXDB.findById('TaiKhoan', ...)) */
+/** Demo đăng nhập cho trang Login (thay bằng kiểm tra tài khoản thật, vd: TVDB.findById('TaiKhoan', ...)) */
 function demo_login(data) {
   if (!data || data.password !== '1234') throw new Error('Sai mã nhân viên hoặc mật khẩu (demo: mật khẩu 1234)');
   return { ok: true, username: data.username };
+}
+
+/* ---------------------------------------------------------------------------
+ * MẪU CRUD (trang Crud.html) – lưu vào sheet "DemoVatTu"
+ *  - Nếu script gắn với Google Sheet: dùng file đó.
+ *  - Nếu là script độc lập: tự tạo file "TXTV Demo – Vật tư" trong Drive lần đầu chạy.
+ * ------------------------------------------------------------------------- */
+var CRUD_SHEET = 'DemoVatTu';
+var CRUD_HEADERS = ['id', 'maVT', 'tenVT', 'nhom', 'donVi', 'tonKho', 'donGia', 'ghiChu', 'createdAt', 'createdBy', 'updatedAt', 'updatedBy'];
+
+function crudInit_() {
+  if (!TVDB.SPREADSHEET_ID && !SpreadsheetApp.getActiveSpreadsheet()) {
+    var props = PropertiesService.getScriptProperties(), id = props.getProperty('DEMO_SS_ID');
+    if (!id) { id = SpreadsheetApp.create('TXTV Demo – Vật tư').getId(); props.setProperty('DEMO_SS_ID', id); }
+    TVDB.SPREADSHEET_ID = id;
+  }
+  TVDB.ensureSheet(CRUD_SHEET, CRUD_HEADERS);
+}
+
+function crud_list() {
+  crudInit_();
+  return TXTV.toClient(TVDB.getAll(CRUD_SHEET));
+}
+
+function crud_save(obj) {
+  crudInit_();
+  if (!obj || !obj.maVT || !obj.tenVT) throw new Error('Thiếu mã hoặc tên vật tư');
+  var dup = TVDB.find(CRUD_SHEET, function (r) { return String(r.maVT).toUpperCase() === String(obj.maVT).toUpperCase() && String(r.id) !== String(obj.id || ''); });
+  if (dup.length) throw new Error('Mã vật tư "' + obj.maVT + '" đã tồn tại');
+  var saved = obj.id ? TVDB.update(CRUD_SHEET, obj.id, obj) : TVDB.insert(CRUD_SHEET, obj, { prefix: 'VT' });
+  TXTV.audit(obj.id ? 'SUA_VAT_TU' : 'THEM_VAT_TU', { id: saved.id, maVT: saved.maVT });
+  return TXTV.toClient(saved);
+}
+
+function crud_delete(id) {
+  crudInit_();
+  var ok = TVDB.remove(CRUD_SHEET, id);
+  if (ok) TXTV.audit('XOA_VAT_TU', { id: id });
+  return ok;
+}
+
+function crud_import(rows) {
+  crudInit_();
+  var n = TVDB.insertMany(CRUD_SHEET, (rows || []).filter(function (r) { return r.maVT && r.tenVT; }), { prefix: 'VT' });
+  TXTV.audit('NHAP_EXCEL_VAT_TU', { soDong: n });
+  return n;
 }

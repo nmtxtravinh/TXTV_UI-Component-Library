@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <?!= include('TXUI_Head'); ?>
+  <?!= include('TXTV_Head'); ?>
 </head>
 <body>
 <!--
   LOGIN – Mẫu trang đăng nhập (dùng khi Web App có tài khoản riêng, không dùng Google Account).
-  Gắn hàm server kiểm tra tài khoản tại TXUI.call('demo_login', ...).
+  Gắn hàm server kiểm tra tài khoản tại TXTV.call('demo_login', ...).
 -->
 <div class="auth-wrap">
   <div class="w-full max-w-md">
@@ -25,7 +25,7 @@
       </div>
       <div class="form-group">
         <div class="flex items-center justify-between"><label class="form-label required">Mật khẩu</label><a class="link text-xs">Quên mật khẩu?</a></div>
-        <div class="input-icon"><i class="fa-solid fa-lock"></i><input name="password" type="password" class="form-control form-control-lg pr-10" placeholder="••••••••" required minlength="4"><button type="button" class="input-action" data-ui-toggle="password"><i class="fa-solid fa-eye"></i></button></div>
+        <div class="input-icon"><i class="fa-solid fa-lock"></i><input name="password" type="password" class="form-control form-control-lg pr-10" placeholder="••••••••" required minlength="4"><button type="button" class="input-action" data-tv-toggle="password"><i class="fa-solid fa-eye"></i></button></div>
       </div>
       <label class="form-check"><input type="checkbox" name="remember" class="form-check-input"> Ghi nhớ đăng nhập</label>
       <button type="submit" class="btn btn-primary btn-lg btn-block" id="btnLogin"><i class="fa-solid fa-right-to-bracket"></i> Đăng nhập</button>
@@ -36,14 +36,14 @@
   </div>
 </div>
 
-<?!= include('TXUI_Scripts'); ?>
+<?!= include('TXTV_Scripts'); ?>
 <script>
-  TXUI.mocks.demo_login = function (d) { if (d.password !== '1234') throw new Error('Sai mã nhân viên hoặc mật khẩu (thử 1234)'); return { ok: true }; };
+  TXTV.mocks.demo_login = function (d) { if (d.password !== '1234') throw new Error('Sai mã nhân viên hoặc mật khẩu (thử 1234)'); return { ok: true }; };
   document.getElementById('loginForm').addEventListener('submit', function (e) {
     e.preventDefault();
-    if (!TXUI.form.validate(this, { toast: false })) return;
-    TXUI.call('demo_login', [TXUI.form.serialize(this)], { button: '#btnLogin', buttonText: 'Đang đăng nhập...' })
-      .then(function () { TXUI.toast.success('Đăng nhập thành công'); })
+    if (!TXTV.form.validate(this, { toast: false })) return;
+    TXTV.call('demo_login', [TXTV.form.serialize(this)], { button: '#btnLogin', buttonText: 'Đang đăng nhập...' })
+      .then(function () { TXTV.toast.success('Đăng nhập thành công'); })
       .catch(function () {});
   });
 </script>

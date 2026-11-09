@@ -5,14 +5,14 @@ Tạo bản xem trước (preview) chạy trực tiếp trên trình duyệt, KH
 Kết quả: thư mục preview/ (Index.html, Starter.html, Login.html)
 - Thay các thẻ include('...') bằng nội dung file tương ứng.
 - Thay các biến template (USER, BASE_URL...) bằng giá trị mẫu.
-- Gọi server (TXUI.run) sẽ dùng TXUI.mocks khi chạy ngoài Apps Script.
+- Gọi server (TXTV.run) sẽ dùng TXTV.mocks khi chạy ngoài Apps Script.
 """
 import os, re, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, 'src')
 OUT = os.path.join(ROOT, 'preview')
-PAGES = ['Index', 'Starter', 'Login']
+PAGES = ['Index', 'Starter', 'Login', 'Crud']
 
 SAMPLE = {
     'USER.initials': 'NV',
