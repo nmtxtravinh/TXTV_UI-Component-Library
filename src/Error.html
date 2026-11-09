@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <?!= include('TXTV_Head'); ?>
+</head>
+<body>
+<!--
+  ERROR – Trang thông báo lỗi / kết quả dùng chung (404, 403, 500, bảo trì...).
+  Server: return TXTV.errorPage(404)  hoặc  TXTV.errorPage(403, 'Không có quyền', 'Liên hệ quản trị để được cấp quyền.')
+-->
+<main class="grid min-h-screen place-items-center p-4">
+  <div class="result">
+    <div class="result-icon" id="errIcon"></div>
+    <div class="result-code"><?= CODE ?></div>
+    <h1 class="result-title"><?= TITLE ?></h1>
+    <p class="result-text"><?= MESSAGE ?></p>
+    <div class="mt-8 flex flex-wrap justify-center gap-2">
+      <a class="btn btn-primary" href="<?= BASE_URL ?>" target="_top"><i class="fa-solid fa-house"></i> Về trang chủ</a>
+      <button class="btn btn-secondary" onclick="history.length > 1 ? history.back() : location.reload()"><i class="fa-solid fa-arrow-left"></i> Quay lại</button>
+    </div>
+    <p class="mt-10 text-xs text-slate-400">Nhà máy Túi xách Trà Vinh – TBS Group</p>
+  </div>
+</main>
+<?!= include('TXTV_Scripts'); ?>
+<script>
+  (function () {
+    var code = TXTV.$('.result-code').textContent.trim();
+    var map = {
+      '403': ['fa-lock', 'bg-amber-100 text-amber-600 dark:bg-amber-950 dark:text-amber-300'],
+      '404': ['fa-compass', 'bg-brand-100 text-brand-700 dark:bg-brand-900 dark:text-brand-200'],
+      '500': ['fa-bug', 'bg-red-100 text-red-600 dark:bg-red-950 dark:text-red-300'],
+      '503': ['fa-screwdriver-wrench', 'bg-sky-100 text-sky-600 dark:bg-sky-950 dark:text-sky-300'],
+      'OK':  ['fa-check', 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-300']
+    };
+    var m = map[code] || map['404'], ic = TXTV.$('#errIcon');
+    ic.className = 'result-icon ' + m[1]; ic.innerHTML = '<i class="fa-solid ' + m[0] + '"></i>';
+  })();
+</script>
+</body>
+</html>

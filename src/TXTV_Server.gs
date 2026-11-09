@@ -497,3 +497,22 @@ TXTV.listFiles = function (folderId, opts) {
   }
   return out.sort(function (a, b) { return a.updated < b.updated ? 1 : -1; });
 };
+
+/**
+ * ============================================================================
+ * MỞ RỘNG v1.3 – Trang lỗi dùng chung
+ *   return TXTV.errorPage(404);
+ *   return TXTV.errorPage(403, 'Không có quyền truy cập', 'Liên hệ quản trị để được cấp quyền.');
+ *   (cần file Error.html trong project)
+ * ============================================================================
+ */
+TXTV.errorPage = function (code, title, message) {
+  var D = {
+    403: ['Không có quyền truy cập', 'Tài khoản của bạn chưa được cấp quyền vào trang này. Vui lòng liên hệ quản trị hệ thống.'],
+    404: ['Không tìm thấy trang', 'Trang bạn tìm không tồn tại hoặc đã được chuyển đi.'],
+    500: ['Đã xảy ra lỗi', 'Hệ thống gặp sự cố khi xử lý yêu cầu. Vui lòng thử lại sau ít phút.'],
+    503: ['Đang bảo trì', 'Hệ thống đang được nâng cấp, vui lòng quay lại sau.']
+  };
+  var d = D[code] || ['Thông báo', ''];
+  return TXTV.render('Error', { CODE: String(code), TITLE: title || d[0], MESSAGE: message || d[1] }, title || d[0]);
+};

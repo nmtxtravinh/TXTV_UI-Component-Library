@@ -12,13 +12,16 @@ import os, re, sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, 'src')
 OUT = os.path.join(ROOT, 'preview')
-PAGES = ['Index', 'Starter', 'Login', 'Crud', 'Dashboard', 'Mobile']
+PAGES = ['Index', 'Starter', 'Login', 'Crud', 'Dashboard', 'Mobile', 'Error']
 
 SAMPLE = {
     'USER.initials': 'NV',
     'USER.name': 'nguyen van a',
     'USER.email': 'nguyen.van.a@tbsgroup.vn',
     'BASE_URL': 'Index.html',
+    'CODE': '404',
+    'TITLE': 'Không tìm thấy trang',
+    'MESSAGE': 'Trang bạn tìm không tồn tại hoặc đã được chuyển đi.',
 }
 
 INCLUDE_RE = re.compile(r"<\?!=\s*include\(\s*['\"]([\w-]+)['\"]\s*\);?\s*\?>")

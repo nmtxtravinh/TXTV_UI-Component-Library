@@ -1,4 +1,4 @@
-# TXTV – UI Component Library cho Google Apps Script (v1.2)
+# TXTV – UI Component Library cho Google Apps Script (v1.3)
 
 Bộ giao diện dùng chung cho các **Web App nội bộ** của **Nhà máy Túi xách Trà Vinh** (Chi nhánh 7 – Công ty Cổ phần Đầu tư Thái Bình / TBS Group).
 
@@ -32,7 +32,8 @@ src/
 ├── Login.html           # Mẫu trang đăng nhập
 ├── Crud.html            # Mẫu quản lý danh mục hoàn chỉnh: thêm/sửa/xóa, lọc, nhập & xuất Excel, phím tắt (lưu Google Sheet)
 ├── Dashboard.html       # Mẫu báo cáo sản xuất: KPI + sparkline, OEE (gauge), biểu đồ, Gantt, Pivot, xuất Excel, tour hướng dẫn
-└── Mobile.html          # Mẫu nhập sản lượng theo giờ cho tablet/điện thoại: bàn phím số lớn, bảng nhập, lưu nháp, bottom nav
+├── Mobile.html          # Mẫu nhập sản lượng theo giờ cho tablet/điện thoại: bàn phím số lớn, bảng nhập, lưu nháp, bottom nav
+└── Error.html           # Trang lỗi / kết quả dùng chung (404, 403, 500, 503) – server: return TXTV.errorPage(404)
 tools/build_preview.py   # Tạo bản xem trước chạy ngoài Apps Script
 ```
 
@@ -128,6 +129,7 @@ function saveData(obj) {
 | **Hiển thị** | `avatar` (`-xs/-sm/-lg/-xl`, `avatar-square`, `avatar-online/offline/busy`) `avatar-group` · `list-group` `list-item` `list-item-action` · `timeline` `timeline-item` `timeline-dot` · `accordion` `accordion-item` `accordion-trigger` `accordion-content` · `desc-list` · `divider` · `kbd` `code` · `rating` |
 | **Mở rộng v1.1** | `segmented` · `otp` · `rating-input` · `signature-pad` · `lightbox` `thumb` · `kanban` `kanban-col` `kanban-head` `kanban-count` `kanban-list` `kanban-card` · `sortable-item` `drag-handle` · `tree` · `calendar` · `popover` `popover-title` · `banner` (`banner-warning` `banner-danger`) · `countdown` · `back-to-top` · `sparkline` · `context-menu` · `scanner-view` |
 | **Mở rộng v1.2** | `datepicker` · `combo-multi` · `autocomplete-panel` · `numpad` `numpad-display` · `editor` `editor-toolbar` `editor-content` · `transfer` · `grid-edit` · `gantt` · `gauge` · `pivot` · `wizard-step` · `tour-spot` `tour-pop` · `toast-actions` · `bottom-nav` `bottom-nav-item` `has-bottom-nav` · `comment-list` `comment` `comment-body` (`mine`) |
+| **Mở rộng v1.3** | `btn-check` (nút bật/tắt) · `indicator` `indicator-item` · `steps-vertical` `step-v` · `dropdown-sub` (menu con) · `nav-group` `nav-sub` (menu sidebar nhiều cấp) · `ticker` (chữ chạy) · `result` (trang kết quả/lỗi) · `code-block` · `card-media` `card-horizontal` `profile-card` · `filter-bar` · `carousel` · `range-dual` · `char-counter` · `strength` · `split` · `avatar-upload` · `notif-panel` · `swatches` · `tv-tip` · `popconfirm` |
 | **Tiện ích** | `heading-1..4` `text-muted` `link` · `no-print` `print-only` · `scrollbar-none` |
 
 ## 5. Thuộc tính `data-tv-*` (không cần viết JS)
@@ -169,6 +171,22 @@ function saveData(obj) {
 | `data-tv-editor data-name="..."` | Soạn thảo văn bản (đậm, nghiêng, danh sách, liên kết…) – HTML đã lọc an toàn |
 | `data-tv-wizard` + `.wizard-step` + `data-wizard="prev/next/finish"` | Biểu mẫu nhiều bước, kiểm tra từng bước |
 | `data-tv-gauge data-value="87" data-label="OEE"` | Đồng hồ đo |
+| `data-tv-validate="phone\|tel\|cccd\|cmnd\|mst\|email\|url\|number\|code"` | Kiểm tra định dạng (SĐT di động VN, CCCD 12 số, MST…) trong `TXTV.form.validate()` |
+| `data-tv-range data-name data-min data-max data-step data-from data-to data-format` | Thanh trượt 2 đầu – `serialize()` trả `{ from, to }` |
+| `data-tv-counter` (kèm `maxlength`) · `textarea data-tv-autosize` | Đếm ký tự · tự giãn chiều cao |
+| `data-tv-strength` | Thanh đo độ mạnh mật khẩu |
+| `data-tv-swatches data-name data-colors data-value data-custom` | Chọn màu |
+| `data-tv-avatar-upload data-name data-initials` | Chọn ảnh đại diện (tự nén) – `serialize()` trả `{ name, mimeType, data }` |
+| `data-tv-avatar="Họ Tên"` | Avatar chữ cái đầu, màu cố định theo tên |
+| `data-tv-carousel data-autoplay="5000"` | Trình chiếu ảnh / banner (vuốt được) |
+| `data-tv-ticker` | Chữ chạy (đặt `.ticker-track` bên trong) |
+| `data-tv-countup="12480" data-format` | Số đếm tăng dần khi cuộn tới |
+| `pre data-tv-code data-title` | Khối code có nút Copy |
+| `data-tv-split data-sizes="30,70" data-key` | Chia 2 khung kéo đổi kích thước (thêm class `vertical` để chia dọc) |
+| `data-tv-tip="..." data-tv-tip-pos` | Tooltip JS tự lật hướng, không bị cắt trong bảng/modal |
+| `data-tv-confirm="Xóa?" data-confirm-text data-confirm-ok` | Hỏi xác nhận tại chỗ trước khi chạy `onclick` |
+| `data-tv-scroll="idPhan"` | Cuộn tới phần trong trang (thay `href="#id"` – không dùng được trong Apps Script) |
+| `data-tv-toggle="fullscreen"` | Bật/tắt toàn màn hình |
 
 Khi chèn HTML động có các thành phần trên, gọi `TXTV.init(container)`.
 
@@ -296,6 +314,33 @@ TXTV.sanitize(html); TXTV.toDate('09/11/2026');
 ```
 
 > Component tùy biến tương thích sẵn với `TXTV.form.serialize / fill / reset`. Khi tự viết component mới, gắn các hàm `el._serialize`, `el._onFill(v)`, `el._onReset()` lên input mang `name` để form tự nhận.
+
+### Mở rộng v1.3
+
+```js
+// DataTable nâng cao
+new TXTV.DataTable('#tbl', {
+  columns: [..., { key: 'luong', label: 'Lương', format: 'currency', total: true }, { key: 'ngayVao', label: 'Ngày vào', hidden: true }],
+  filters: [{ key: 'boPhan', label: 'Bộ phận' }, { key: 'trangThai', label: 'Trạng thái' }],   // ô lọc tự lấy giá trị từ dữ liệu
+  columnToggle: true, stateKey: 'ds-nhan-vien',   // nút "Cột" ẩn/hiện cột, nhớ theo trình duyệt
+  expandRow: row => '<div>Chi tiết ' + TXTV.escape(row.ten) + '</div>',   // nút ▸ mở dòng chi tiết
+  totals: true                                     // dòng tổng cho cột có total: true | fn(rows)
+});
+dt.setFilter('boPhan', 'May'); dt.toggleColumn('ngayVao', true);
+
+// Phản hồi
+if (await TXTV.popconfirm(btn, { title: 'Xóa dòng này?', type: 'danger', confirmText: 'Xóa' })) {...}
+TXTV.toast.promise(TXTV.run('luu', d), { loading: 'Đang lưu...', success: r => 'Đã lưu ' + r.id, error: e => e.message });
+const nc = TXTV.notifications('#bellMenu', { items, countEl: '#bellCount', onClick: it => {} }); nc.add({ title, text, time: new Date() });
+
+// Khác
+TXTV.infinite('#sentinel', () => TXTV.run('trang', ++page).then(r => { ve(r); return r.length > 0; }));
+TXTV.skeleton('#vung', 'table|list|card|text', 5);
+TXTV.avatarHtml('Nguyễn Văn An', 'avatar-sm');   TXTV.countUp(el, 12480);
+TXTV.scrollTo('phanB');  TXTV.scrollspy('#menuTrang');
+TXTV.hotkey('ctrl+s', luu, { desc: 'Lưu phiếu' });   // bấm ? để xem danh sách phím tắt
+TXTV.validators.maNV = { test: v => /^NV\d{4}$/.test(v), message: 'Mã NV dạng NV0001' };  // <input data-tv-validate="maNV">
+```
 
 ## 7. Server: `TVDB` – dùng Google Sheet như bảng dữ liệu
 

@@ -49,6 +49,10 @@
       <button class="nav-link" data-scroll="v12-inputs"><i class="fa-solid fa-calendar-days"></i><span class="nav-label">Nhập liệu nâng cao</span><span class="nav-badge">1.2</span></button>
       <button class="nav-link" data-scroll="v12-data"><i class="fa-solid fa-table-cells"></i><span class="nav-label">Bảng nhập, Gauge, Gantt</span><span class="nav-badge">1.2</span></button>
       <button class="nav-link" data-scroll="v12-flow"><i class="fa-solid fa-route"></i><span class="nav-label">Wizard, Tour, Di động</span><span class="nav-badge">1.2</span></button>
+      <div class="nav-section-title">Mới v1.3</div>
+      <button class="nav-link" data-scroll="v13-forms"><i class="fa-solid fa-sliders"></i><span class="nav-label">Form phổ biến</span><span class="nav-badge">1.3</span></button>
+      <button class="nav-link" data-scroll="v13-display"><i class="fa-solid fa-images"></i><span class="nav-label">Hiển thị phổ biến</span><span class="nav-badge">1.3</span></button>
+      <button class="nav-link" data-scroll="v13-interact"><i class="fa-solid fa-hand-sparkles"></i><span class="nav-label">Tương tác phổ biến</span><span class="nav-badge">1.3</span></button>
       <div class="nav-section-title">Điều hướng</div>
       <button class="nav-link" data-scroll="navigation"><i class="fa-solid fa-compass"></i><span class="nav-label">Tabs, Breadcrumb...</span></button>
       <button class="nav-link" data-scroll="dropdowns"><i class="fa-solid fa-caret-down"></i><span class="nav-label">Dropdown</span></button>
@@ -62,6 +66,7 @@
       <a class="nav-link" href="<?= BASE_URL ?>?page=Crud" target="_top" data-page-link="Crud"><i class="fa-solid fa-table-list"></i><span class="nav-label">Mẫu CRUD (Sheet)</span></a>
       <a class="nav-link" href="<?= BASE_URL ?>?page=Dashboard" target="_top"><i class="fa-solid fa-chart-line"></i><span class="nav-label">Mẫu Dashboard</span></a>
       <a class="nav-link" href="<?= BASE_URL ?>?page=Mobile" target="_top"><i class="fa-solid fa-tablet-screen-button"></i><span class="nav-label">Mẫu nhập sản lượng</span></a>
+      <a class="nav-link" href="<?= BASE_URL ?>?page=KhongTonTai" target="_top"><i class="fa-solid fa-triangle-exclamation"></i><span class="nav-label">Mẫu trang lỗi 404</span></a>
       <a class="nav-link" href="<?= BASE_URL ?>?page=Login" target="_top"><i class="fa-solid fa-right-to-bracket"></i><span class="nav-label">Trang đăng nhập</span></a>
     </nav>
     <div class="sidebar-footer">
@@ -87,7 +92,7 @@
       </ol>
       <div class="ml-auto flex items-center gap-1">
         <button class="btn btn-secondary btn-sm hidden text-slate-400 md:inline-flex" onclick="TXTV.commandPalette.open()"><i class="fa-solid fa-magnifying-glass"></i> Tìm... <span class="kbd">Ctrl K</span></button>
-        <span class="badge badge-accent badge-pill hidden sm:inline-flex">v1.2</span>
+        <span class="badge badge-accent badge-pill hidden sm:inline-flex">v1.3</span>
         <button class="btn btn-ghost btn-icon" data-tv-toggle="theme" data-tooltip="Sáng / Tối" data-tooltip-pos="bottom"><i data-tv-theme-icon class="fa-solid fa-moon"></i></button>
         <div class="dropdown">
           <button class="btn btn-ghost btn-icon relative" data-tv-toggle="dropdown" aria-label="Thông báo">
@@ -134,7 +139,7 @@
         </div>
 
         <div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <div class="stat"><div class="stat-icon"><i class="fa-solid fa-cubes"></i></div><div><div class="stat-label">Component</div><div class="stat-value">120+</div><div class="stat-meta">CSS class sẵn dùng</div></div></div>
+          <div class="stat"><div class="stat-icon"><i class="fa-solid fa-cubes"></i></div><div><div class="stat-label">Component</div><div class="stat-value">150+</div><div class="stat-meta">CSS class sẵn dùng</div></div></div>
           <div class="stat"><div class="stat-icon bg-accent-100 text-accent-700"><i class="fa-solid fa-code"></i></div><div><div class="stat-label">JS API</div><div class="stat-value">TXTV.*</div><div class="stat-meta">Không cần thư viện ngoài</div></div></div>
           <div class="stat"><div class="stat-icon bg-sky-50 text-sky-600"><i class="fa-solid fa-moon"></i></div><div><div class="stat-label">Dark mode</div><div class="stat-value">Có</div><div class="stat-meta">Tự lưu theo trình duyệt</div></div></div>
           <div class="stat"><div class="stat-icon bg-amber-50 text-amber-600"><i class="fa-solid fa-mobile-screen"></i></div><div><div class="stat-label">Responsive</div><div class="stat-value">100%</div><div class="stat-meta">Điện thoại → màn hình lớn</div></div></div>
@@ -890,6 +895,191 @@ TXTV.run('demo_getEmployees').then(rows => dt.setData(rows));</code></pre>
         </div>
       </section>
 
+      <!-- ===================== v1.3: FORM PHỔ BIẾN ===================== -->
+      <section id="v13-forms" class="space-y-4">
+        <div class="page-header mb-0"><div><h2 class="page-title">Form phổ biến <span class="badge badge-purple badge-pill align-middle">v1.3</span></h2><p class="page-subtitle">Kiểm tra SĐT / CCCD / MST, thanh trượt 2 đầu, đếm ký tự, tự giãn ô nhập, độ mạnh mật khẩu, chọn màu, ảnh đại diện, nút bật/tắt</p></div></div>
+        <div data-demo="Kiểm tra dữ liệu theo mẫu (data-tv-validate)">
+          <form id="v13Form" class="grid gap-4 md:grid-cols-3" novalidate>
+            <div class="form-group"><label class="form-label required">Số điện thoại</label><div class="input-icon"><i class="fa-solid fa-phone"></i><input class="form-control" name="sdt" data-tv-validate="phone" required placeholder="0912 345 678"></div></div>
+            <div class="form-group"><label class="form-label">Số CCCD</label><input class="form-control" name="cccd" data-tv-validate="cccd" inputmode="numeric" placeholder="12 chữ số"></div>
+            <div class="form-group"><label class="form-label">Mã số thuế</label><input class="form-control" name="mst" data-tv-validate="mst" placeholder="0301234567"></div>
+            <div class="form-group"><label class="form-label">Email</label><input class="form-control" name="email" data-tv-validate="email" placeholder="ten@tbsgroup.vn"></div>
+            <div class="form-group"><label class="form-label">Website</label><input class="form-control" name="web" data-tv-validate="url" placeholder="https://..."></div>
+            <div class="form-group flex items-end"><button type="submit" class="btn btn-primary"><i class="fa-solid fa-check-double"></i> Kiểm tra</button></div>
+          </form>
+        </div>
+        <div class="grid gap-4 lg:grid-cols-2">
+          <div data-demo="Thanh trượt 2 đầu · Đếm ký tự · Tự giãn">
+            <div class="space-y-5">
+              <div class="form-group"><label class="form-label">Khoảng lương</label><div data-tv-range data-name="luong" data-min="0" data-max="30000000" data-step="500000" data-from="7000000" data-to="15000000" data-format="currency"></div></div>
+              <div class="form-group"><label class="form-label">Tiêu đề (tối đa 60 ký tự)</label><input class="form-control" maxlength="60" data-tv-counter placeholder="Nhập tiêu đề..."></div>
+              <div class="form-group"><label class="form-label">Ghi chú (tự giãn theo nội dung)</label><textarea class="form-control" rows="2" maxlength="500" data-tv-counter data-tv-autosize placeholder="Gõ nhiều dòng để thấy ô tự cao lên..."></textarea></div>
+            </div>
+          </div>
+          <div data-demo="Mật khẩu · Chọn màu · Ảnh đại diện · Nút bật/tắt">
+            <div class="space-y-5">
+              <div class="form-group"><label class="form-label">Mật khẩu mới</label><div class="input-icon"><i class="fa-solid fa-key"></i><input type="password" class="form-control pr-10" data-tv-strength placeholder="Tối thiểu 8 ký tự"><button type="button" class="input-action" data-tv-toggle="password"><i class="fa-solid fa-eye"></i></button></div></div>
+              <div class="form-group"><label class="form-label">Màu nhãn</label><div data-tv-swatches data-name="mau" data-value="#0b5a41" data-colors="#0b5a41,#a6ce39,#0ea5e9,#f59e0b,#ef4444,#8b5cf6,#64748b" data-custom></div></div>
+              <div class="flex flex-wrap items-center gap-6">
+                <div data-tv-avatar-upload data-name="anh" data-initials="NV"></div>
+                <div class="space-y-2">
+                  <div class="text-sm font-medium">Nút bật/tắt (btn-check)</div>
+                  <div class="flex flex-wrap gap-2">
+                    <input type="checkbox" class="btn-check" id="bc1" checked><label class="btn btn-secondary btn-sm" for="bc1"><i class="fa-solid fa-bold"></i></label>
+                    <input type="checkbox" class="btn-check" id="bc2"><label class="btn btn-secondary btn-sm" for="bc2"><i class="fa-solid fa-italic"></i></label>
+                    <input type="checkbox" class="btn-check" id="bc3"><label class="btn btn-secondary btn-sm" for="bc3"><i class="fa-solid fa-underline"></i></label>
+                  </div>
+                  <div class="btn-group">
+                    <input type="radio" class="btn-check" name="ca" id="ca1" checked><label class="btn btn-secondary btn-sm" for="ca1">Ca 1</label>
+                    <input type="radio" class="btn-check" name="ca" id="ca2"><label class="btn btn-secondary btn-sm" for="ca2">Ca 2</label>
+                    <input type="radio" class="btn-check" name="ca" id="ca3"><label class="btn btn-secondary btn-sm" for="ca3">Ca 3</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== v1.3: HIỂN THỊ ===================== -->
+      <section id="v13-display" class="space-y-4">
+        <div class="page-header mb-0"><div><h2 class="page-title">Hiển thị phổ biến <span class="badge badge-purple badge-pill align-middle">v1.3</span></h2><p class="page-subtitle">Carousel, chữ chạy, số đếm tăng dần, indicator, steps dọc, card ảnh / ngang / hồ sơ, khối code, avatar màu tự động, skeleton mẫu</p></div></div>
+        <div data-demo="Chữ chạy (ticker)">
+          <div class="ticker" data-tv-ticker>
+            <div class="ticker-label"><i class="fa-solid fa-bullhorn"></i> Tin mới</div>
+            <div class="ticker-track"><span>📢 Lịch nghỉ Tết Nguyên đán 2027 từ 03/02 đến 13/02</span><span>🏆 Chuyền May 4 đạt 112% kế hoạch tháng 10</span><span>🩺 Khám sức khỏe định kỳ ngày 20/11 tại nhà ăn</span></div>
+          </div>
+        </div>
+        <div class="grid gap-4 lg:grid-cols-2">
+          <div data-demo="Carousel (tự chạy, vuốt được)">
+            <div class="carousel aspect-[16/7]" data-tv-carousel data-autoplay="4000">
+              <div class="carousel-track h-full">
+                <div class="grid h-full place-items-center bg-gradient-to-br from-brand-800 to-brand-950 text-white"><div class="text-center"><i class="fa-solid fa-leaf text-3xl text-accent-400"></i><div class="mt-2 text-xl font-bold">Chào mừng đến TBS Group</div></div></div>
+                <div class="grid h-full place-items-center bg-gradient-to-br from-accent-500 to-brand-700 text-white"><div class="text-center"><i class="fa-solid fa-shield-halved text-3xl"></i><div class="mt-2 text-xl font-bold">An toàn là trên hết</div></div></div>
+                <div class="grid h-full place-items-center bg-gradient-to-br from-sky-600 to-brand-800 text-white"><div class="text-center"><i class="fa-solid fa-medal text-3xl"></i><div class="mt-2 text-xl font-bold">Chất lượng tạo nên thương hiệu</div></div></div>
+              </div>
+            </div>
+          </div>
+          <div data-demo="Số đếm tăng dần · Indicator · Avatar màu tự động">
+            <div class="space-y-5">
+              <div class="grid grid-cols-3 gap-3 text-center">
+                <div><div class="text-2xl font-bold text-brand-700 dark:text-accent-400" data-tv-countup="1236">0</div><div class="text-xs text-slate-500">Nhân viên</div></div>
+                <div><div class="text-2xl font-bold text-brand-700 dark:text-accent-400" data-tv-countup="2450000">0</div><div class="text-xs text-slate-500">Sản phẩm / năm</div></div>
+                <div><div class="text-2xl font-bold text-brand-700 dark:text-accent-400" data-tv-countup="0.976" data-format="percent">0</div><div class="text-xs text-slate-500">Tỷ lệ đạt</div></div>
+              </div>
+              <div class="flex flex-wrap items-center gap-5">
+                <span class="indicator"><button class="btn btn-secondary btn-icon"><i class="fa-regular fa-bell"></i></button><span class="indicator-item">8</span></span>
+                <span class="indicator"><button class="btn btn-secondary btn-icon"><i class="fa-regular fa-envelope"></i></button><span class="indicator-item dot-only"></span></span>
+                <span class="indicator"><span class="avatar" data-tv-avatar="Thạch Thị Sương"></span><span class="indicator-item bottom bg-emerald-500">✓</span></span>
+                <span class="avatar" data-tv-avatar="Nguyễn Văn An"></span><span class="avatar" data-tv-avatar="Lê Minh Đức"></span><span class="avatar" data-tv-avatar="Kim Sơn Thành"></span><span class="avatar" data-tv-avatar="Huỳnh Ngọc Ánh"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div data-demo="Card ảnh · Card ngang · Card hồ sơ">
+          <div class="grid gap-4 md:grid-cols-3">
+            <div class="card card-media card-hover"><div class="card-cover bg-gradient-to-br from-brand-700 to-accent-400"></div><div class="card-body"><span class="badge badge-brand">Tin tức</span><h3 class="mt-2 font-semibold text-slate-900 dark:text-white">Khánh thành chuyền may tự động</h3><p class="mt-1 text-sm text-slate-500">Nâng năng suất thêm 15%…</p></div></div>
+            <div class="card card-horizontal"><div class="card-cover bg-gradient-to-b from-sky-500 to-brand-700"></div><div class="card-body"><h3 class="font-semibold text-slate-900 dark:text-white">Đào tạo an toàn</h3><p class="mt-1 text-sm text-slate-500">Thứ 6, 14:00 – Hội trường A</p><button class="btn btn-soft btn-xs mt-3">Đăng ký</button></div></div>
+            <div class="card profile-card"><div class="profile-cover"></div><span class="avatar avatar-xl" data-tv-avatar="Kim Thị Mai"></span><div class="p-5 pt-3"><div class="font-semibold text-slate-900 dark:text-white">Kim Thị Mai</div><div class="text-xs text-slate-500">Tổ trưởng · Chuyền May 2</div><div class="mt-4 flex justify-center gap-2"><button class="btn btn-primary btn-sm"><i class="fa-regular fa-message"></i> Nhắn tin</button><button class="btn btn-secondary btn-sm">Hồ sơ</button></div></div></div>
+          </div>
+        </div>
+        <div class="grid gap-4 lg:grid-cols-2">
+          <div data-demo="Steps dọc">
+            <div class="steps-vertical">
+              <div class="step-v done"><span class="step-index"><i class="fa-solid fa-check"></i></span><div><div class="step-v-title">Gửi đề xuất</div><div class="step-v-text">08:15 – Nguyễn Văn An</div></div></div>
+              <div class="step-v done"><span class="step-index"><i class="fa-solid fa-check"></i></span><div><div class="step-v-title">Trưởng bộ phận duyệt</div><div class="step-v-text">09:40 – Lê Minh Đức</div></div></div>
+              <div class="step-v active"><span class="step-index">3</span><div><div class="step-v-title">Giám đốc duyệt</div><div class="step-v-text">Đang chờ</div></div></div>
+              <div class="step-v"><span class="step-index">4</span><div><div class="step-v-title">Hoàn tất</div></div></div>
+            </div>
+          </div>
+          <div data-demo="Khối code có nút copy · Skeleton mẫu">
+            <div class="space-y-4">
+              <pre data-tv-code data-title="Code.gs">function doGet() {
+  return TXTV.render('Index', {}, 'Trang chủ');
+}</pre>
+              <div class="flex gap-2"><button class="btn btn-secondary btn-xs" onclick="TXTV.skeleton('#skDemo', 'list', 3)">list</button><button class="btn btn-secondary btn-xs" onclick="TXTV.skeleton('#skDemo', 'table', 3)">table</button><button class="btn btn-secondary btn-xs" onclick="TXTV.skeleton('#skDemo', 'text', 4)">text</button></div>
+              <div id="skDemo"></div>
+            </div>
+          </div>
+        </div>
+        <div data-demo="Trang kết quả / lỗi (.result) – xem trang Error.html">
+          <div class="result py-6">
+            <div class="result-icon bg-emerald-100 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-300"><i class="fa-solid fa-check"></i></div>
+            <h3 class="result-title">Gửi đơn thành công!</h3><p class="result-text">Mã đơn <b>NP2611-0012</b>. Bạn sẽ nhận thông báo khi đơn được duyệt.</p>
+            <div class="mt-5 flex gap-2"><button class="btn btn-primary btn-sm">Xem đơn</button><button class="btn btn-secondary btn-sm">Tạo đơn mới</button></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== v1.3: TƯƠNG TÁC ===================== -->
+      <section id="v13-interact" class="space-y-4">
+        <div class="page-header mb-0"><div><h2 class="page-title">Tương tác phổ biến <span class="badge badge-purple badge-pill align-middle">v1.3</span></h2><p class="page-subtitle">DataTable nâng cao, xác nhận tại chỗ, tooltip thông minh, toast theo tiến trình, trung tâm thông báo, menu con, chia khung, tải thêm khi cuộn, phím tắt, toàn màn hình</p></div></div>
+        <div class="card">
+          <div class="card-header"><div><h3 class="card-title">DataTable nâng cao</h3><p class="card-subtitle">filters (lọc theo cột) · columnToggle (ẩn/hiện cột, nhớ lựa chọn) · expandRow (bấm ▸ xem chi tiết) · totals (dòng tổng)</p></div></div>
+          <div class="card-body"><div id="dtPro"></div></div>
+        </div>
+        <div data-demo="Xác nhận tại chỗ (popconfirm) · Tooltip thông minh · Toast theo tiến trình">
+          <div class="flex flex-wrap items-center gap-2">
+            <button class="btn btn-soft-danger" data-tv-confirm="Xóa phiếu PX-001?" data-confirm-text="Không thể hoàn tác sau khi xóa." data-confirm-ok="Xóa" onclick="TXTV.toast.success('Đã xóa PX-001')"><i class="fa-solid fa-trash"></i> Xóa (data-tv-confirm)</button>
+            <button class="btn btn-secondary" onclick="demoPop(this)">TXTV.popconfirm()</button>
+            <button class="btn btn-secondary" data-tv-tip="Tooltip JS – tự lật xuống khi sát mép trên">Tooltip thông minh</button>
+            <button class="btn btn-ghost btn-icon" data-tv-tip="Sửa" data-tv-tip-pos="right"><i class="fa-solid fa-pen"></i></button>
+            <button class="btn btn-primary" onclick="demoToastPromise(true)"><i class="fa-solid fa-cloud-arrow-up"></i> Toast promise (thành công)</button>
+            <button class="btn btn-outline-danger" onclick="demoToastPromise(false)">Toast promise (lỗi)</button>
+          </div>
+        </div>
+        <div class="grid gap-4 lg:grid-cols-2">
+          <div data-demo="Trung tâm thông báo · Menu con · Nhóm menu sidebar">
+            <div class="flex flex-wrap items-start gap-4">
+              <div class="dropdown">
+                <span class="indicator"><button class="btn btn-secondary btn-icon" data-tv-toggle="dropdown" aria-label="Thông báo"><i class="fa-regular fa-bell"></i></button><span class="indicator-item hidden" id="ncCount"></span></span>
+                <div class="dropdown-menu dropdown-left" id="ncMenu"></div>
+              </div>
+              <button class="btn btn-soft btn-sm" onclick="demoNotify()"><i class="fa-solid fa-plus"></i> Giả lập thông báo mới</button>
+              <div class="dropdown">
+                <button class="btn btn-secondary btn-sm" data-tv-toggle="dropdown">Menu con <i class="fa-solid fa-chevron-down text-[10px]"></i></button>
+                <div class="dropdown-menu dropdown-left">
+                  <a class="dropdown-item"><i class="fa-solid fa-file"></i> Tạo mới</a>
+                  <div class="dropdown-sub"><a class="dropdown-item" tabindex="0"><i class="fa-solid fa-download"></i> Xuất file</a>
+                    <div class="dropdown-menu"><a class="dropdown-item"><i class="fa-solid fa-file-excel text-emerald-600"></i> Excel</a><a class="dropdown-item"><i class="fa-solid fa-file-pdf text-red-500"></i> PDF</a></div></div>
+                  <div class="dropdown-sub"><a class="dropdown-item" tabindex="0"><i class="fa-solid fa-share-nodes"></i> Chia sẻ</a>
+                    <div class="dropdown-menu"><a class="dropdown-item"><i class="fa-regular fa-envelope"></i> Email</a><a class="dropdown-item"><i class="fa-regular fa-comment"></i> Google Chat</a></div></div>
+                </div>
+              </div>
+              <nav class="w-60 rounded-xl bg-brand-950 p-2 text-white">
+                <a class="nav-link"><i class="fa-solid fa-house"></i><span class="nav-label">Trang chủ</span></a>
+                <div class="nav-group">
+                  <a class="nav-link"><i class="fa-solid fa-warehouse"></i><span class="nav-label">Kho</span><i class="fa-solid fa-chevron-right nav-caret"></i></a>
+                  <div class="nav-sub"><a class="nav-link active">Nhập kho</a><a class="nav-link">Xuất kho</a><a class="nav-link">Tồn kho</a></div>
+                </div>
+                <div class="nav-group">
+                  <a class="nav-link"><i class="fa-solid fa-users"></i><span class="nav-label">Nhân sự</span><i class="fa-solid fa-chevron-right nav-caret"></i></a>
+                  <div class="nav-sub"><a class="nav-link">Chấm công</a><a class="nav-link">Nghỉ phép</a></div>
+                </div>
+              </nav>
+            </div>
+          </div>
+          <div data-demo="Chia khung kéo đổi kích thước (data-tv-split)">
+            <div class="split h-64 rounded-xl border border-slate-200 dark:border-slate-800" data-tv-split data-sizes="35,65" data-min="120" data-key="demo-split">
+              <div class="bg-slate-50 p-3 text-sm dark:bg-slate-900"><div class="mb-2 font-semibold">Danh sách</div><div class="space-y-1"><div class="rounded-md bg-brand-50 px-2 py-1.5 text-brand-800 dark:bg-brand-900/40 dark:text-brand-100">PX2611-0012</div><div class="px-2 py-1.5">PX2611-0011</div><div class="px-2 py-1.5">PX2611-0010</div></div></div>
+              <div class="p-4 text-sm"><div class="font-semibold">Chi tiết PX2611-0012</div><p class="mt-2 text-slate-500">Kéo thanh giữa để đổi kích thước 2 khung. Kích thước được nhớ cho lần sau.</p></div>
+            </div>
+          </div>
+        </div>
+        <div class="grid gap-4 lg:grid-cols-2">
+          <div class="card">
+            <div class="card-header"><div><h3 class="card-title">Tải thêm khi cuộn (TXTV.infinite)</h3><p class="card-subtitle">Cuộn trong khung để tải tiếp 10 dòng</p></div></div>
+            <div class="max-h-72 overflow-y-auto" id="infBox"><div class="list-group rounded-none border-0" id="infList"></div><div id="infSentinel"></div></div>
+          </div>
+          <div data-demo="Phím tắt có mô tả · Toàn màn hình">
+            <div class="space-y-3 text-sm">
+              <p>Bấm <span class="kbd">?</span> để xem danh sách phím tắt đã đăng ký (khai báo bằng <span class="code">TXTV.hotkey(combo, fn, { desc })</span>).</p>
+              <div class="flex flex-wrap gap-2"><button class="btn btn-secondary btn-sm" onclick="TXTV.shortcuts()"><i class="fa-regular fa-keyboard"></i> Xem phím tắt</button><button class="btn btn-secondary btn-sm" data-tv-toggle="fullscreen"><i class="fa-solid fa-expand"></i> Toàn màn hình</button></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- ===================== NAVIGATION ===================== -->
       <section id="navigation" class="space-y-4">
         <div class="page-header mb-0"><div><h2 class="page-title">Điều hướng</h2><p class="page-subtitle">Breadcrumb, Tabs, Pills, Pagination, Steps, Navbar</p></div></div>
@@ -1130,13 +1320,22 @@ new TXTV.EditableGrid(el, { columns, data }) .getChanges() .validate() .markSave
 TXTV.gauge(el, 87) · TXTV.renderPivot(el, rows, { rows, cols, value }) · TXTV.gantt(el, tasks)
 TXTV.transfer(el, { items, selected }) · data-tv-editor · TXTV.wizard(form) · TXTV.tour(steps, { key })
 TXTV.toast(msg, { actions: [{ label: 'Hoàn tác', onClick }] }) · await TXTV.compressImage(file)
-TXTV.toDate(v) · TXTV.sanitize(html)</code></pre>
+TXTV.toDate(v) · TXTV.sanitize(html)
+
+// Mở rộng v1.3
+data-tv-validate="phone|cccd|mst|email|url" · TXTV.validators.ten = { test, message }
+data-tv-range · data-tv-counter · data-tv-autosize · data-tv-strength · data-tv-swatches · data-tv-avatar-upload
+data-tv-carousel · data-tv-ticker · data-tv-countup · data-tv-avatar="Tên" · pre[data-tv-code] · data-tv-split
+data-tv-tip · data-tv-confirm · await TXTV.popconfirm(btn, { title }) · TXTV.toast.promise(p, { loading, success, error })
+TXTV.notifications(menu, { items, countEl }) · TXTV.infinite(sentinel, loadFn) · TXTV.skeleton(el, 'table')
+TXTV.scrollTo(id) · data-tv-scroll="id" · TXTV.scrollspy(nav) · TXTV.hotkey(k, fn, { desc }) · TXTV.shortcuts()
+new TXTV.DataTable(el, { filters, columnToggle, expandRow, totals, stateKey }) · TXTV.errorPage(404) (server)</code></pre>
           </div>
         </div>
       </section>
     </main>
 
-    <footer class="app-footer">© 2026 Nhà máy Túi xách Trà Vinh – Chi nhánh 7, Công ty Cổ phần Đầu tư Thái Bình (TBS Group) · TXTV v1.2</footer>
+    <footer class="app-footer">© 2026 Nhà máy Túi xách Trà Vinh – Chi nhánh 7, Công ty Cổ phần Đầu tư Thái Bình (TBS Group) · TXTV v1.3</footer>
     <button class="no-print" data-tv-backtop aria-label="Lên đầu trang"><i class="fa-solid fa-arrow-up"></i></button>
   </div>
 </div>
@@ -1569,6 +1768,73 @@ TXTV.toDate(v) · TXTV.sanitize(html)</code></pre>
       TXTV.$('#compressInfo').innerHTML = '<img src="' + r.dataUrl + '" class="mr-2 inline h-10 w-10 rounded object-cover" alt="">' + TXTV.format.fileSize(f.size) + ' → <b>' + TXTV.format.fileSize(r.size) + '</b> (' + r.width + '×' + r.height + ')';
     }).catch(function (e) { TXTV.toast.error(e.message); });
   }
+
+
+  /* =====================  DEMO v1.3  ===================== */
+  TXTV.$('#v13Form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (TXTV.form.validate(this)) TXTV.toast.success('Dữ liệu hợp lệ: ' + JSON.stringify(TXTV.form.serialize(this)));
+  });
+  async function demoPop(btn) {
+    var ok = await TXTV.popconfirm(btn, { title: 'Duyệt phiếu này?', text: 'Phiếu sẽ chuyển sang Kho xuất hàng.', type: 'info', confirmText: 'Duyệt' });
+    TXTV.toast(ok ? 'Đã duyệt' : 'Đã hủy', { type: ok ? 'success' : 'info', duration: 1500 });
+  }
+  function demoToastPromise(ok) {
+    var job = new Promise(function (res, rej) { setTimeout(function () { ok ? res({ id: 'PX2611-0013' }) : rej(new Error('Mất kết nối máy chủ')); }, 1500); });
+    TXTV.toast.promise(job, { loading: 'Đang lưu phiếu...', success: function (r) { return 'Đã lưu ' + r.id; }, error: function (e) { return 'Lỗi: ' + e.message; } }).catch(function () {});
+  }
+
+  // DataTable nâng cao
+  var dtPro = new TXTV.DataTable('#dtPro', {
+    columns: [
+      { key: 'id', label: 'Mã NV', width: '90px' },
+      { key: 'name', label: 'Họ tên', render: function (v) { return '<div class="flex items-center gap-2">' + TXTV.avatarHtml(v, 'avatar-sm') + '<span class="font-medium text-slate-900 dark:text-white">' + TXTV.escape(v) + '</span></div>'; } },
+      { key: 'dept', label: 'Bộ phận' },
+      { key: 'status', label: 'Trạng thái', render: function (v) { return '<span class="badge ' + ({ 'Đang làm': 'badge-success', 'Nghỉ phép': 'badge-warning', 'Thử việc': 'badge-info' }[v] || 'badge-gray') + '">' + TXTV.escape(v) + '</span>'; } },
+      { key: 'output', label: 'Năng suất', align: 'right', format: 'number', total: function (rows) { return rows.length ? TXTV.sumBy(rows, 'output') / rows.length : 0; } },
+      { key: 'salary', label: 'Lương CB', align: 'right', format: 'currency', total: true },
+      { key: 'joined', label: 'Ngày vào', format: 'date', hidden: true }
+    ],
+    rowKey: 'id', pageSize: 5, pageSizes: [5, 10, 25], totals: true, columnToggle: true, stateKey: 'demo-dtpro',
+    filters: [{ key: 'dept', label: 'Bộ phận' }, { key: 'status', label: 'Trạng thái' }],
+    expandRow: function (r) {
+      return '<dl class="desc-list max-w-xl"><dt>Ngày vào làm</dt><dd>' + TXTV.format.date(r.joined) + '</dd><dt>Thâm niên</dt><dd>' + Math.max(0, new Date().getFullYear() - new Date(r.joined).getFullYear()) + ' năm</dd>' +
+        '<dt>Lương / ngày công (26)</dt><dd>' + TXTV.format.currency(r.salary / 26) + '</dd></dl>';
+    }
+  });
+  dtPro.setLoading(true);
+  TXTV.run('demo_getEmployees').then(function (rows) { dtPro.setData(rows); });
+
+  // Thông báo
+  var nc = TXTV.notifications('#ncMenu', {
+    countEl: '#ncCount',
+    items: [
+      { title: 'Phiếu PX2611-0012 cần duyệt', text: 'Kho vật tư · Nguyễn Văn An', time: new Date(Date.now() - 5 * 60000), icon: 'fa-file-signature' },
+      { title: 'Đơn nghỉ phép đã được duyệt', text: 'Từ 12/11 đến 13/11', time: new Date(Date.now() - 3 * 3600000), icon: 'fa-check', color: 'bg-emerald-50 text-emerald-600' },
+      { title: 'Bảo trì hệ thống 22:00', time: new Date(Date.now() - 26 * 3600000), icon: 'fa-screwdriver-wrench', color: 'bg-amber-50 text-amber-600', read: true }
+    ],
+    onClick: function (it) { TXTV.toast(it.title, { duration: 1500 }); }
+  });
+  function demoNotify() { nc.add({ title: 'Đơn hàng PO-2620 vừa tạo', text: 'Phòng Kế hoạch', time: new Date(), icon: 'fa-box', color: 'bg-sky-50 text-sky-600' }); }
+
+  // Tải thêm khi cuộn
+  (function () {
+    var page = 0, all = TXTV.mocks.demo_getEmployees();
+    TXTV.infinite('#infSentinel', function () {
+      return new Promise(function (res) {
+        setTimeout(function () {
+          var chunk = all.slice(page * 10, ++page * 10);
+          TXTV.$('#infList').insertAdjacentHTML('beforeend', chunk.map(function (r) { return '<div class="list-item">' + TXTV.avatarHtml(r.name, 'avatar-sm') + '<div class="min-w-0 flex-1"><div class="truncate font-medium text-slate-900 dark:text-white">' + TXTV.escape(r.name) + '</div><div class="text-xs text-slate-500">' + r.id + ' · ' + r.dept + '</div></div></div>'; }).join(''));
+          res(page * 10 < all.length);
+        }, 500);
+      });
+    }, { rootMargin: '50px' });
+  })();
+
+  // Phím tắt có mô tả (bấm ? để xem)
+  TXTV.hotkey('alt+d', function () { TXTV.theme.toggle(); }, { desc: 'Đổi giao diện Sáng / Tối' });
+  TXTV.hotkey('alt+t', function () { TXTV.scrollTo('intro'); }, { desc: 'Về đầu trang' });
+  TXTV.hotkey('ctrl+k', function () {}, { desc: 'Tìm chức năng (Command palette)' });
 
   /* ---------- Biểu đồ ---------- */
   function drawCharts() {

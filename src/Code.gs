@@ -21,8 +21,8 @@ var PAGES = {
 
 function doGet(e) {
   var page = (e && e.parameter && e.parameter.page) || 'Index';
-  if (!PAGES[page]) page = 'Index';
   TXTV.config.appName = 'TXTV';
+  if (!PAGES[page]) return TXTV.errorPage(404);
   return TXTV.render(page, { PAGE: page, PARAMS: (e && e.parameter) || {} }, PAGES[page]);
 }
 
