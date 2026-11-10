@@ -7,7 +7,7 @@
 (function (global) {
   'use strict';
 
-  var TXTV = { version: '1.3.0' };
+  var TXTV = { version: '1.4.0' };
 
   /* =====================================================================
    * TIỆN ÍCH CHUNG
@@ -2998,6 +2998,310 @@
     if (countObs) $$('[data-tv-countup]', root).forEach(function (el) { if (!el._cu) { el._cu = true; el.textContent = '0'; countObs.observe(el); } });
   }
 
+  /* #####################################################################
+   *                     MỞ RỘNG v1.4
+   * ##################################################################### */
+
+  /* =====================================================================
+   * THANH TIẾN TRÌNH ĐẦU TRANG – tự chạy khi TXTV.run() đang gọi server
+   *   TXTV.topbar.start() / .done();  tắt tự động: TXTV.config.autoTopbar = false
+   * ===================================================================== */
+  var topEl = null, topActive = 0, topTimer = null, topW = 0;
+  TXTV.config.autoTopbar = true;
+  TXTV.topbar = {
+    start: function () {
+      topActive++;
+      if (topActive > 1) return;
+      if (!topEl) { topEl = document.createElement('div'); topEl.className = 'tv-progress-top'; document.body.appendChild(topEl); }
+      topW = 8; topEl.style.opacity = '1'; topEl.style.width = topW + '%';
+      clearInterval(topTimer);
+      topTimer = setInterval(function () { topW += (90 - topW) * 0.08; topEl.style.width = topW + '%'; }, 200);
+    },
+    done: function (force) {
+      topActive = force ? 0 : Math.max(0, topActive - 1);
+      if (topActive || !topEl) return;
+      clearInterval(topTimer); topEl.style.width = '100%';
+      setTimeout(function () { if (!topActive && topEl) { topEl.style.opacity = '0'; setTimeout(function () { if (!topActive && topEl) topEl.style.width = '0'; }, 300); } }, 200);
+    }
+  };
+  (function () {
+    var run = TXTV.run;
+    TXTV.run = function () {
+      var auto = TXTV.config.autoTopbar && document.body;
+      if (auto) TXTV.topbar.start();
+      return run.apply(TXTV, arguments).finally(function () { if (auto) TXTV.topbar.done(); });
+    };
+  })();
+
+  /* =====================================================================
+   * CHỌN GIỜ:   <input class="form-control" data-tv-timepicker data-step="30" data-min="07:00" data-max="18:00">
+   * CHỌN THÁNG: <input class="form-control" data-tv-monthpicker>   – hiển thị MM/yyyy, serialize() trả 'yyyy-MM'
+   * ===================================================================== */
+  function pickerShell(input, icon) {
+    input.setAttribute('autocomplete', 'off');
+    var wrap = document.createElement('div'); wrap.className = 'input-icon input-icon-right relative';
+    input.parentNode.insertBefore(wrap, input); wrap.appendChild(input);
+    wrap.insertAdjacentHTML('beforeend', '<i class="fa-regular ' + icon + '"></i>');
+    var panel = document.createElement('div'); panel.className = 'datepicker hidden'; wrap.appendChild(panel);
+    var close = function () { panel.classList.add('hidden'); resetPanel(panel); };
+    var open = function (render) { if (input.disabled || input.readOnly) return; panel.classList.remove('hidden'); render(); floatPanel(input, panel, true); };
+    panel.addEventListener('mousedown', function (e) { e.preventDefault(); });
+    document.addEventListener('click', function (e) { if (!wrap.contains(e.target)) close(); });
+    input.addEventListener('keydown', function (e) { if (e.key === 'Escape' || e.key === 'Tab') close(); });
+    return { wrap: wrap, panel: panel, open: open, close: close };
+  }
+  function initTimepicker(input) {
+    if (input._tp) return input._tp;
+    var step = +input.dataset.step || 30, min = input.dataset.min || '00:00', max = input.dataset.max || '23:59';
+    if (!input.placeholder) input.placeholder = 'HH:mm';
+    var sh = pickerShell(input, 'fa-clock');
+    var toMin = function (s) { var m = String(s || '').match(/^(\d{1,2})[:hH.]?(\d{2})?$/); return m ? (+m[1]) * 60 + (+(m[2] || 0)) : null; };
+    var fmt = function (n) { return String(Math.floor(n / 60)).padStart(2, '0') + ':' + String(n % 60).padStart(2, '0'); };
+    var render = function () {
+      var cur = toMin(input.value), html = '';
+      for (var t = toMin(min); t <= toMin(max); t += step) html += '<div class="datepicker-day' + (t === cur ? ' selected' : '') + '" data-t="' + fmt(t) + '">' + fmt(t) + '</div>';
+      sh.panel.innerHTML = '<div class="timepicker-list">' + html + '</div>';
+      var sel = sh.panel.querySelector('.selected'); if (sel) sel.scrollIntoView({ block: 'center' });
+    };
+    sh.panel.addEventListener('click', function (e) {
+      e.stopPropagation(); var d = e.target.closest('[data-t]'); if (!d) return;
+      input.value = d.dataset.t; input.classList.remove('is-invalid'); input.dispatchEvent(new Event('change', { bubbles: true })); sh.close();
+    });
+    input.addEventListener('focus', function () { sh.open(render); });
+    input.addEventListener('click', function () { sh.open(render); });
+    input.addEventListener('blur', function () { var m = toMin(input.value); if (input.value && m !== null && m < 1440) input.value = fmt(m); });
+    input._tp = { open: function () { sh.open(render); }, close: sh.close };
+    return input._tp;
+  }
+  function initMonthpicker(input) {
+    if (input._mp) return input._mp;
+    if (!input.placeholder) input.placeholder = 'MM/yyyy';
+    var sh = pickerShell(input, 'fa-calendar'), val = null, viewY = new Date().getFullYear();
+    var parse = function (v) {
+      if (!v) return null; var s = String(v), m = s.match(/^(\d{4})-(\d{1,2})/) || null;
+      if (m) return { y: +m[1], m: +m[2] }; m = s.match(/^(\d{1,2})\/(\d{4})/); if (m) return { y: +m[2], m: +m[1] };
+      var d = v instanceof Date ? v : null; return d ? { y: d.getFullYear(), m: d.getMonth() + 1 } : null;
+    };
+    var show = function () { input.value = val ? String(val.m).padStart(2, '0') + '/' + val.y : ''; };
+    var render = function () {
+      var now = new Date();
+      sh.panel.innerHTML = '<div class="datepicker-head"><button type="button" class="btn btn-ghost btn-icon btn-xs" data-y="-1" aria-label="Năm trước"><i class="fa-solid fa-chevron-left"></i></button><div class="datepicker-title">Năm ' + viewY + '</div>' +
+        '<button type="button" class="btn btn-ghost btn-icon btn-xs" data-y="1" aria-label="Năm sau"><i class="fa-solid fa-chevron-right"></i></button></div><div class="monthpicker-grid">' +
+        Array.apply(null, Array(12)).map(function (_, i) {
+          var cls = (val && val.y === viewY && val.m === i + 1 ? 'selected' : '') + (now.getFullYear() === viewY && now.getMonth() === i ? ' current' : '');
+          return '<div class="' + cls + '" data-m="' + (i + 1) + '">Tháng ' + (i + 1) + '</div>';
+        }).join('') + '</div>';
+    };
+    sh.panel.addEventListener('click', function (e) {
+      e.stopPropagation();
+      var y = e.target.closest('[data-y]'); if (y) { viewY += +y.dataset.y; render(); return; }
+      var m = e.target.closest('[data-m]'); if (!m) return;
+      val = { y: viewY, m: +m.dataset.m }; show(); input.classList.remove('is-invalid'); input.dispatchEvent(new Event('change', { bubbles: true })); sh.close();
+    });
+    var open = function () { val = parse(input.value) || val; viewY = val ? val.y : new Date().getFullYear(); sh.open(render); };
+    input.addEventListener('focus', open); input.addEventListener('click', open);
+    input.addEventListener('blur', function () { var p = parse(input.value); if (p && p.m >= 1 && p.m <= 12) { val = p; show(); } });
+    var api = {
+      get: function () { return val ? val.y + '-' + String(val.m).padStart(2, '0') : ''; },
+      set: function (v) { val = parse(v); show(); },
+      range: function () { return val ? { from: TXTV.format.isoDate(new Date(val.y, val.m - 1, 1)), to: TXTV.format.isoDate(new Date(val.y, val.m, 0)) } : null; }
+    };
+    input._serialize = api.get; input._onFill = api.set; input._onReset = function () { val = null; show(); };
+    if (input.value || input.dataset.value) api.set(input.value || input.dataset.value);
+    input._mp = api; return api;
+  }
+  TXTV.timepicker = function (el) { return initTimepicker($(el)); };
+  TXTV.monthpicker = function (el) { return initMonthpicker($(el)); };
+
+  /* =====================================================================
+   * SỬA TRỰC TIẾP (click vào chữ để sửa)
+   *   <span data-tv-inline-edit data-field="ten" data-id="NV01">Nguyễn Văn A</span>
+   *   TXTV.inlineEdit(el, { type: 'text|number|select', options: [...], onSave: (value, el) => TXTV.run('capNhat', ...) })
+   *   Không có onSave: phát sự kiện 'tv:save' (detail: { value, old, field, id })
+   * ===================================================================== */
+  TXTV.inlineEdit = function (el, o) {
+    el = $(el); o = o || {}; el._ieOpts = o; el.classList.add('inline-edit'); el.tabIndex = 0;
+    if (!el.textContent.trim()) { el.classList.add('is-empty'); el.textContent = el.dataset.placeholder || 'Bấm để nhập'; }
+    return el;
+  };
+  function startInlineEdit(el) {
+    if (el._editing) return; el._editing = true;
+    var o = el._ieOpts || {}, type = o.type || el.dataset.type || 'text', old = el.classList.contains('is-empty') ? '' : el.textContent.trim();
+    var input;
+    if (type === 'select') {
+      input = document.createElement('select');
+      (o.options || (el.dataset.options || '').split(',')).forEach(function (op) { var x = document.createElement('option'); x.value = x.textContent = String(op).trim(); if (x.value === old) x.selected = true; input.appendChild(x); });
+    } else { input = document.createElement('input'); input.type = 'text'; input.value = old; if (type === 'number') input.inputMode = 'decimal'; }
+    input.className = 'inline-edit-input'; input.style.width = Math.max(120, el.offsetWidth + 40) + 'px';
+    el.style.display = 'none'; el.insertAdjacentElement('afterend', input); input.focus(); if (input.select) input.select();
+    var finish = function (save) {
+      if (!el._editing) return; el._editing = false;
+      var v = type === 'number' ? TXTV.mask.parse(input.value) : input.value.trim();
+      input.remove(); el.style.display = '';
+      if (!save || String(v) === String(old)) return;
+      var apply = function () { el.textContent = v === '' ? (el.dataset.placeholder || 'Bấm để nhập') : (type === 'number' ? TXTV.format.number(v) : v); el.classList.toggle('is-empty', v === ''); };
+      var detail = { value: v, old: old, field: el.dataset.field, id: el.dataset.id };
+      if (o.onSave) {
+        el.style.opacity = '.5';
+        Promise.resolve(o.onSave(v, el, detail)).then(function () { apply(); TXTV.toast('Đã cập nhật', { type: 'success', duration: 1200 }); })
+          .catch(function (e) { TXTV.toast.error(e.message || String(e), 'Không lưu được'); }).finally(function () { el.style.opacity = ''; });
+      } else { apply(); el.dispatchEvent(new CustomEvent('tv:save', { detail: detail, bubbles: true })); }
+    };
+    input.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); finish(true); } if (e.key === 'Escape') finish(false); });
+    input.addEventListener('blur', function () { finish(true); });
+    if (type === 'select') input.addEventListener('change', function () { finish(true); });
+  }
+  document.addEventListener('click', function (e) { var el = e.target.closest && e.target.closest('.inline-edit'); if (el) startInlineEdit(el); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target.classList && e.target.classList.contains('inline-edit')) { e.preventDefault(); startInlineEdit(e.target); } });
+
+  /* =====================================================================
+   * LỌC NHANH DANH SÁCH / BẢNG TĨNH (không dấu)
+   *   <input data-tv-filter="#danhSach" data-filter-items="tr|li|.card">  -> ẩn phần tử không khớp
+   * ===================================================================== */
+  function initLiveFilter(input) {
+    if (input._lf) return; input._lf = true;
+    var target = $(input.getAttribute('data-tv-filter')); if (!target) return;
+    var sel = input.dataset.filterItems || (target.tagName === 'TABLE' || target.querySelector('tbody') ? 'tbody tr' : ':scope > *');
+    var empty = null;
+    input.addEventListener('input', TXTV.debounce(function () {
+      var q = input.value, shown = 0;
+      $$(sel, target).forEach(function (it) { var ok = !q.trim() || TXTV.matchText(it.textContent, q); it.classList.toggle('tv-filtered-out', !ok); if (ok) shown++; });
+      if (!shown && !empty) { empty = TXTV.html('<div class="empty-state py-8"><div class="empty-state-text">Không có kết quả phù hợp</div></div>'); target.insertAdjacentElement('afterend', empty); }
+      if (shown && empty) { empty.remove(); empty = null; }
+      input.dispatchEvent(new CustomEvent('tv:filter', { detail: { shown: shown }, bubbles: true }));
+    }, 120));
+  }
+
+  /* =====================================================================
+   * SẮP XẾP BẢNG HTML TĨNH:  <table class="table" data-tv-sort>  (thêm data-nosort cho cột không sắp xếp,
+   *   data-sort-value="..." trên <td> để sắp theo giá trị khác chữ hiển thị)
+   * ===================================================================== */
+  function initTableSort(table) {
+    if (table._ts) return; table._ts = true;
+    $$('thead th', table).forEach(function (th, ci) {
+      if (th.hasAttribute('data-nosort') || !th.textContent.trim()) return;
+      th.insertAdjacentHTML('beforeend', '<i class="sort-icon fa-solid fa-sort"></i>');
+      th.addEventListener('click', function () {
+        var dir = th.dataset.dir === 'asc' ? 'desc' : 'asc';
+        $$('thead th', table).forEach(function (x) { x.classList.remove('sorted'); delete x.dataset.dir; var ic = x.querySelector('.sort-icon'); if (ic) ic.className = 'sort-icon fa-solid fa-sort'; });
+        th.dataset.dir = dir; th.classList.add('sorted'); th.querySelector('.sort-icon').className = 'sort-icon fa-solid ' + (dir === 'asc' ? 'fa-arrow-up' : 'fa-arrow-down');
+        var tb = table.tBodies[0], rows = Array.prototype.slice.call(tb.rows);
+        var val = function (r) {
+          var td = r.cells[ci]; if (!td) return '';
+          var v = td.dataset.sortValue !== undefined ? td.dataset.sortValue : td.textContent.trim();
+          if (/^\d{1,2}\/\d{1,2}\/\d{4}/.test(v)) return TXTV.format.parseDate(v).getTime();
+          // Số kiểu Việt Nam (1.250,5 · 12% · 85.000 ₫) -> so sánh dạng số; còn lại so sánh chữ
+          if (/^[-+]?[\d.,]+\s*(%|₫|đ|vnd)?$/i.test(v.replace(/\s+(?=[\d%₫đ])/g, ''))) return TXTV.mask.parse(v.replace(/[^\d.,-]/g, ''));
+          return v;
+        };
+        rows.sort(function (a, b) { var x = val(a), y = val(b); var r = typeof x === 'number' && typeof y === 'number' ? x - y : String(x).localeCompare(String(y), 'vi', { numeric: true }); return dir === 'asc' ? r : -r; });
+        rows.forEach(function (r) { tb.appendChild(r); });
+      });
+    });
+  }
+
+  /* Bảng dạng thẻ trên điện thoại: tự gán data-label cho từng ô từ tiêu đề cột */
+  function initTableStack(table) {
+    var heads = $$('thead th', table).map(function (th) { return th.textContent.trim(); });
+    $$('tbody tr', table).forEach(function (tr) { Array.prototype.forEach.call(tr.cells, function (td, i) { if (!td.hasAttribute('data-label')) td.setAttribute('data-label', heads[i] || ''); }); });
+  }
+  TXTV.tableStack = initTableStack;
+
+  /* =====================================================================
+   * HOVER CARD – thẻ thông tin khi rê chuột
+   *   <a data-tv-hovercard="#tplNguoiDung">Nguyễn Văn A</a>  (nội dung lấy từ <template id="tplNguoiDung">)
+   *   TXTV.hovercard(el, el => '<b>HTML</b>' | Promise<html>)
+   * ===================================================================== */
+  var hcEl = null, hcFor = null, hcShowT = null, hcHideT = null;
+  function hcHide() { clearTimeout(hcShowT); if (hcEl) { hcEl.remove(); hcEl = null; hcFor = null; } }
+  function hcShow(target) {
+    var src = target._hcFn || function () { var t = $(target.getAttribute('data-tv-hovercard')); return t ? (t.innerHTML || '') : ''; };
+    hcHide(); hcFor = target;
+    hcEl = document.createElement('div'); hcEl.className = 'hovercard'; hcEl.innerHTML = '<div class="flex justify-center py-3"><span class="spinner spinner-sm text-brand-700"></span></div>';
+    document.body.appendChild(hcEl);
+    var place = function () {
+      if (!hcEl) return; var r = target.getBoundingClientRect(), h = hcEl.offsetHeight, w = hcEl.offsetWidth;
+      var top = r.bottom + 8; if (top + h > global.innerHeight - 8) top = r.top - h - 8;
+      hcEl.style.left = Math.max(8, Math.min(r.left, global.innerWidth - w - 8)) + 'px'; hcEl.style.top = Math.max(8, top) + 'px';
+    };
+    place();
+    hcEl.addEventListener('mouseenter', function () { clearTimeout(hcHideT); });
+    hcEl.addEventListener('mouseleave', function () { hcHideT = setTimeout(hcHide, 150); });
+    Promise.resolve(src(target)).then(function (html) { if (hcEl && hcFor === target) { hcEl.innerHTML = html; place(); } });
+  }
+  TXTV.hovercard = function (el, fn) { el = $(el); el._hcFn = fn; el.setAttribute('data-tv-hovercard', el.getAttribute('data-tv-hovercard') || ''); return el; };
+  document.addEventListener('mouseover', function (e) {
+    var t = e.target.closest && e.target.closest('[data-tv-hovercard]');
+    if (t && t !== hcFor) { clearTimeout(hcShowT); clearTimeout(hcHideT); hcShowT = setTimeout(function () { hcShow(t); }, 350); }
+  });
+  document.addEventListener('mouseout', function (e) {
+    var t = e.target.closest && e.target.closest('[data-tv-hovercard]');
+    if (t && !t.contains(e.relatedTarget)) { clearTimeout(hcShowT); hcHideT = setTimeout(hcHide, 200); }
+  });
+  global.addEventListener('scroll', hcHide, true);
+
+  /* =====================================================================
+   * THANH THAO TÁC HÀNG LOẠT
+   *   var bar = TXTV.actionBar({ actions: [{ label: 'Xóa', icon: 'fa-trash', danger: true, onClick: fn }] });
+   *   bar.show(soLuong) / bar.hide()       (ví dụ gọi trong DataTable onSelect)
+   * ===================================================================== */
+  TXTV.actionBar = function (o) {
+    o = o || {};
+    var el = TXTV.html('<div class="action-bar hidden-bar" role="toolbar"><span class="mr-2 whitespace-nowrap"><b data-ab-count>0</b> ' + esc(o.label || 'mục đã chọn') + '</span></div>');
+    (o.actions || []).forEach(function (a) {
+      var b = TXTV.html('<button type="button" class="btn btn-sm ' + (a.danger ? 'btn-danger' : a.primary ? 'btn-accent' : 'btn-ghost') + '"><i class="fa-solid ' + (a.icon || 'fa-check') + '"></i><span class="hidden sm:inline"></span></button>');
+      b.querySelector('span').textContent = a.label; b.addEventListener('click', function () { a.onClick && a.onClick(); }); el.appendChild(b);
+    });
+    var x = TXTV.html('<button type="button" class="btn btn-ghost btn-icon btn-sm" aria-label="Bỏ chọn"><i class="fa-solid fa-xmark"></i></button>');
+    x.addEventListener('click', function () { api.hide(); if (o.onClear) o.onClear(); }); el.appendChild(x);
+    document.body.appendChild(el);
+    var api = {
+      show: function (n) { el.querySelector('[data-ab-count]').textContent = n; el.classList.toggle('hidden-bar', !n); },
+      hide: function () { el.classList.add('hidden-bar'); }, el: el
+    };
+    return api;
+  };
+
+  /* =====================================================================
+   * WATERMARK – chèn chữ mờ (tên, email, thời gian) lên trang báo cáo mật
+   *   TXTV.watermark('Nguyễn Văn A · 10/11/2026')  ;  TXTV.watermark(false) để gỡ
+   * ===================================================================== */
+  TXTV.watermark = function (text, o) {
+    var old = $('.tv-watermark'); if (old) old.remove();
+    if (text === false) return;
+    o = o || {};
+    var t = esc(text || TXTV.format.datetime(new Date()));
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="320" height="200"><text x="160" y="100" text-anchor="middle" transform="rotate(-25 160 100)" font-family="Inter,Arial" font-size="14" fill="' + (o.color || '#64748b') + '" fill-opacity="' + (o.opacity || 0.12) + '">' + t + '</text></svg>';
+    var el = document.createElement('div'); el.className = 'tv-watermark';
+    el.style.backgroundImage = 'url("data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg) + '")';
+    document.body.appendChild(el);
+  };
+
+  /* =====================================================================
+   * PHẢN HỒI NHANH bằng biểu tượng cảm xúc:
+   *   <div class="reactions" data-tv-reactions data-name="haiLong"></div>   serialize(): 1..5
+   * ===================================================================== */
+  function initReactions(box) {
+    if (box._rx) return; box._rx = true;
+    var faces = (box.dataset.faces || '😡,🙁,😐,🙂,😍').split(','), labels = (box.dataset.labels || 'Rất tệ,Chưa tốt,Bình thường,Tốt,Rất tốt').split(','), val = +box.dataset.value || 0;
+    box.innerHTML = faces.map(function (f, i) { return '<button type="button" data-v="' + (i + 1) + '" data-tv-tip="' + esc(labels[i] || '') + '" aria-label="' + esc(labels[i] || '') + '">' + f + '</button>'; }).join('') + '<input type="hidden" name="' + esc(box.dataset.name || '') + '">';
+    var hidden = box.querySelector('input'), set = function (v) { val = +v || 0; hidden.value = val || ''; $$('[data-v]', box).forEach(function (b) { b.classList.toggle('selected', +b.dataset.v === val); }); };
+    box.addEventListener('click', function (e) { var b = e.target.closest('[data-v]'); if (b) { set(b.dataset.v); box.dispatchEvent(new CustomEvent('tv:change', { detail: { value: val, label: labels[val - 1] }, bubbles: true })); } });
+    hidden._serialize = function () { return val || ''; }; hidden._onFill = set; hidden._onReset = function () { set(0); };
+    set(val);
+  }
+
+  /** Khởi tạo thành phần v1.4 (gọi trong TXTV.init) */
+  function initV14(root) {
+    $$('input[data-tv-timepicker]', root).forEach(initTimepicker);
+    $$('input[data-tv-monthpicker]', root).forEach(initMonthpicker);
+    $$('[data-tv-inline-edit]', root).forEach(function (el) { if (!el.classList.contains('inline-edit')) TXTV.inlineEdit(el); });
+    $$('[data-tv-filter]', root).forEach(initLiveFilter);
+    $$('table[data-tv-sort]', root).forEach(initTableSort);
+    $$('table.table-stack', root).forEach(initTableStack);
+    $$('[data-tv-reactions]', root).forEach(initReactions);
+  }
+
   /* =====================================================================
    * HIỆN CODE MẪU (dùng trong trang tài liệu) – <div data-tv-demo> ... </div>
    * ===================================================================== */
@@ -3026,6 +3330,7 @@
     initExtras(root);
     initV12(root);
     initV13(root);
+    initV14(root);
   };
 
   document.addEventListener('click', function (e) {

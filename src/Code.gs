@@ -8,6 +8,7 @@
  *               ?page=Crud    (mẫu quản lý danh mục: thêm/sửa/xóa, nhập/xuất Excel – lưu Google Sheet)
  *               ?page=Dashboard (mẫu báo cáo sản xuất: KPI, OEE, biểu đồ, pivot, Gantt)
  *               ?page=Mobile    (mẫu nhập sản lượng theo giờ cho tablet/điện thoại tại chuyền)
+ *               ?page=Settings  (mẫu trang cài đặt / hồ sơ cá nhân)
  */
 
 var PAGES = {
@@ -16,7 +17,8 @@ var PAGES = {
   Login:     'Đăng nhập',
   Crud:      'Quản lý vật tư',
   Dashboard: 'Báo cáo sản xuất',
-  Mobile:    'Nhập sản lượng'
+  Mobile:    'Nhập sản lượng',
+  Settings:  'Cài đặt'
 };
 
 function doGet(e) {

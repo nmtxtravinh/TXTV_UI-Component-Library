@@ -1,0 +1,38 @@
+# Tự động build trang demo (tools/build_preview.py --site) và đăng lên GitHub Pages (nhánh gh-pages)
+# mỗi khi có thay đổi trong src/ hoặc tools/. Có thể chạy tay ở tab Actions -> "Deploy demo" -> Run workflow.
+name: Deploy demo lên GitHub Pages
+
+on:
+  push:
+    branches: ['main', 'master', 'claude/appscript-ui-components-5gxobc']
+    paths: ['src/**', 'tools/**', '.github/workflows/pages.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Build site tĩnh
+        run: python3 tools/build_preview.py --site _site
+
+      - name: Đăng lên nhánh gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./_site
+          publish_branch: gh-pages
+          force_orphan: true
+          commit_message: 'Deploy demo từ ${{ github.sha }}'

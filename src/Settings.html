@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <?!= include('TXTV_Head'); ?>
+</head>
+<body>
+<!--
+  SETTINGS – Mẫu trang Cài đặt / Hồ sơ cá nhân: tabs dọc, ảnh đại diện, form có kiểm tra, công tắc, phiên đăng nhập.
+  Thay các hàm TXTV.run(...) bằng hàm server của dự án.
+-->
+<div class="app">
+  <aside class="app-sidebar">
+    <div class="sidebar-brand"><div class="sidebar-logo">TBS</div><div class="sidebar-brand-text"><div class="text-sm font-bold">Tên ứng dụng</div><div class="text-[11px] text-white/50">Nhà máy Túi xách Trà Vinh</div></div></div>
+    <nav class="sidebar-nav">
+      <a class="nav-link" href="<?= BASE_URL ?>" target="_top"><i class="fa-solid fa-book"></i><span class="nav-label">Thư viện UI</span></a>
+      <a class="nav-link active"><i class="fa-solid fa-gear"></i><span class="nav-label">Cài đặt</span></a>
+    </nav>
+  </aside>
+  <div class="app-backdrop"></div>
+  <div class="app-main">
+    <header class="app-topbar">
+      <button class="btn btn-ghost btn-icon" data-tv-toggle="sidebar" aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
+      <ol class="breadcrumb"><li>Tài khoản</li><li>Cài đặt</li></ol>
+      <div class="ml-auto"><button class="btn btn-ghost btn-icon" data-tv-toggle="theme" aria-label="Giao diện"><i data-tv-theme-icon class="fa-solid fa-moon"></i></button></div>
+    </header>
+    <main class="app-content">
+      <div class="page-header"><div><h1 class="page-title">Cài đặt</h1><p class="page-subtitle">Quản lý hồ sơ, bảo mật và thông báo</p></div></div>
+      <div class="card" data-tv-tabs>
+        <div class="flex flex-col gap-6 p-5 md:flex-row">
+          <div class="tabs tabs-vertical w-full shrink-0 md:w-52">
+            <button class="tab active" data-tab="profile"><i class="fa-regular fa-user"></i> Hồ sơ</button>
+            <button class="tab" data-tab="security"><i class="fa-solid fa-shield-halved"></i> Bảo mật</button>
+            <button class="tab" data-tab="notify"><i class="fa-regular fa-bell"></i> Thông báo</button>
+            <button class="tab" data-tab="display"><i class="fa-solid fa-palette"></i> Giao diện</button>
+          </div>
+          <div class="min-w-0 flex-1">
+            <!-- Hồ sơ -->
+            <form class="tab-panel active" data-tab-panel="profile" id="frmProfile" novalidate>
+              <div class="flex items-center gap-5"><div data-tv-avatar-upload data-name="anh" data-initials="<?= USER.initials ?>"></div><div><div class="font-semibold capitalize text-slate-900 dark:text-white"><?= USER.name ?></div><div class="text-sm text-slate-500"><?= USER.email ?></div></div></div>
+              <div class="divider-plain my-6"></div>
+              <div class="grid gap-4 sm:grid-cols-2">
+                <div class="form-group"><label class="form-label required">Họ và tên</label><input class="form-control" name="hoTen" required value="Nguyễn Văn A"></div>
+                <div class="form-group"><label class="form-label required">Số điện thoại</label><input class="form-control" name="sdt" data-tv-validate="phone" required value="0912345678"></div>
+                <div class="form-group"><label class="form-label">Ngày sinh</label><input class="form-control" name="ngaySinh" data-tv-datepicker data-max="2010-12-31"></div>
+                <div class="form-group"><label class="form-label">Bộ phận</label><select class="form-control" name="boPhan" data-tv-combo><option value="">-- Chọn --</option><option>Văn phòng</option><option>Kế hoạch</option><option>Kho</option><option>Kỹ thuật</option><option>QC</option></select></div>
+                <div class="form-group sm:col-span-2"><label class="form-label">Giới thiệu</label><textarea class="form-control" name="gioiThieu" maxlength="200" data-tv-counter data-tv-autosize rows="2"></textarea></div>
+              </div>
+              <div class="mt-6 flex justify-end gap-2"><button type="reset" class="btn btn-ghost">Hủy</button><button type="submit" class="btn btn-primary" id="btnProfile"><i class="fa-solid fa-floppy-disk"></i> Lưu thay đổi</button></div>
+            </form>
+            <!-- Bảo mật -->
+            <div class="tab-panel space-y-6" data-tab-panel="security">
+              <form id="frmPass" class="max-w-md space-y-4" novalidate>
+                <h3 class="heading-4">Đổi mật khẩu</h3>
+                <div class="form-group"><label class="form-label required">Mật khẩu hiện tại</label><input type="password" class="form-control" name="cu" required></div>
+                <div class="form-group"><label class="form-label required">Mật khẩu mới</label><input type="password" class="form-control" name="moi" id="pwNew" required minlength="8" data-tv-strength></div>
+                <div class="form-group"><label class="form-label required">Nhập lại mật khẩu mới</label><input type="password" class="form-control" name="nhapLai" required data-match="#pwNew" data-match-message="Mật khẩu nhập lại không khớp"></div>
+                <button type="submit" class="btn btn-primary">Cập nhật mật khẩu</button>
+              </form>
+              <div><h3 class="heading-4 mb-3">Phiên đăng nhập</h3>
+                <div class="list-group">
+                  <div class="list-item"><i class="fa-solid fa-desktop w-6 text-slate-400"></i><div class="flex-1"><div class="font-medium">Chrome · Windows <span class="badge badge-success ml-1">Hiện tại</span></div><div class="text-xs text-slate-500">Trà Vinh · vừa xong</div></div></div>
+                  <div class="list-item"><i class="fa-solid fa-mobile-screen w-6 text-slate-400"></i><div class="flex-1"><div class="font-medium">Safari · iPhone</div><div class="text-xs text-slate-500">2 ngày trước</div></div><button class="btn btn-soft-danger btn-xs" data-tv-confirm="Đăng xuất thiết bị này?" onclick="this.closest('.list-item').remove(); TXTV.toast.success('Đã đăng xuất thiết bị')">Đăng xuất</button></div>
+                </div></div>
+            </div>
+            <!-- Thông báo -->
+            <form class="tab-panel space-y-4" data-tab-panel="notify" id="frmNotify">
+              <h3 class="heading-4">Nhận thông báo qua</h3>
+              <label class="flex items-center justify-between gap-4 rounded-xl border border-slate-200 p-4 dark:border-slate-800"><div><div class="font-medium">Email</div><div class="text-xs text-slate-500">Khi có phiếu cần duyệt hoặc được duyệt</div></div><input type="checkbox" class="form-switch" name="email" checked></label>
+              <label class="flex items-center justify-between gap-4 rounded-xl border border-slate-200 p-4 dark:border-slate-800"><div><div class="font-medium">Google Chat</div><div class="text-xs text-slate-500">Tin nhắn vào nhóm của bộ phận</div></div><input type="checkbox" class="form-switch" name="chat"></label>
+              <div class="grid gap-4 sm:grid-cols-2"><div class="form-group"><label class="form-label">Không làm phiền từ</label><input class="form-control" name="tu" data-tv-timepicker value="21:00"></div><div class="form-group"><label class="form-label">Đến</label><input class="form-control" name="den" data-tv-timepicker value="06:30"></div></div>
+              <button type="submit" class="btn btn-primary">Lưu</button>
+            </form>
+            <!-- Giao diện -->
+            <div class="tab-panel space-y-4" data-tab-panel="display">
+              <h3 class="heading-4">Giao diện</h3>
+              <div class="segmented" id="themeSel"><label><input type="radio" name="th" value="light"><span><i class="fa-regular fa-sun"></i> Sáng</span></label><label><input type="radio" name="th" value="dark"><span><i class="fa-regular fa-moon"></i> Tối</span></label></div>
+              <p class="text-sm text-slate-500">Lựa chọn được lưu trên trình duyệt này.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<?!= include('TXTV_Scripts'); ?>
+<script>
+  TXTV.mocks.saveProfile = function (d) { return { ok: true }; };
+  document.getElementById('frmProfile').addEventListener('submit', function (e) {
+    e.preventDefault(); if (!TXTV.form.validate(this)) return;
+    TXTV.call('saveProfile', [TXTV.form.serialize(this)], { button: '#btnProfile', success: 'Đã lưu hồ sơ' }).catch(function () {});
+  });
+  document.getElementById('frmPass').addEventListener('submit', function (e) {
+    e.preventDefault(); if (!TXTV.form.validate(this)) return;
+    TXTV.toast.success('Đã đổi mật khẩu (demo)'); TXTV.form.reset(this);
+  });
+  document.getElementById('frmNotify').addEventListener('submit', function (e) { e.preventDefault(); TXTV.toast.success('Đã lưu: ' + JSON.stringify(TXTV.form.serialize(this))); });
+  TXTV.$('#themeSel input[value="' + TXTV.theme.get() + '"]').checked = true;
+  document.getElementById('themeSel').addEventListener('change', function (e) { TXTV.theme.set(e.target.value); });
+</script>
+</body>
+</html>

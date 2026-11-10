@@ -1,4 +1,6 @@
-# TXTV – UI Component Library cho Google Apps Script (v1.3)
+# TXTV – UI Component Library cho Google Apps Script (v1.4)
+
+🔗 **Trang demo:** https://nmtxtravinh.github.io/TXTV_UI-Component-Library/ (mọi component, có nút xem/copy code)
 
 Bộ giao diện dùng chung cho các **Web App nội bộ** của **Nhà máy Túi xách Trà Vinh** (Chi nhánh 7 – Công ty Cổ phần Đầu tư Thái Bình / TBS Group).
 
@@ -33,8 +35,10 @@ src/
 ├── Crud.html            # Mẫu quản lý danh mục hoàn chỉnh: thêm/sửa/xóa, lọc, nhập & xuất Excel, phím tắt (lưu Google Sheet)
 ├── Dashboard.html       # Mẫu báo cáo sản xuất: KPI + sparkline, OEE (gauge), biểu đồ, Gantt, Pivot, xuất Excel, tour hướng dẫn
 ├── Mobile.html          # Mẫu nhập sản lượng theo giờ cho tablet/điện thoại: bàn phím số lớn, bảng nhập, lưu nháp, bottom nav
+├── Settings.html        # Mẫu trang Cài đặt / Hồ sơ: tabs dọc, ảnh đại diện, đổi mật khẩu, thông báo, giao diện
 └── Error.html           # Trang lỗi / kết quả dùng chung (404, 403, 500, 503) – server: return TXTV.errorPage(404)
-tools/build_preview.py   # Tạo bản xem trước chạy ngoài Apps Script
+tools/build_preview.py   # Tạo bản xem trước chạy ngoài Apps Script (--site: xuất site cho GitHub Pages)
+.github/workflows/pages.yml  # Tự build & đăng trang demo lên GitHub Pages
 ```
 
 ## 2. Cài đặt vào một dự án Apps Script
@@ -130,6 +134,7 @@ function saveData(obj) {
 | **Mở rộng v1.1** | `segmented` · `otp` · `rating-input` · `signature-pad` · `lightbox` `thumb` · `kanban` `kanban-col` `kanban-head` `kanban-count` `kanban-list` `kanban-card` · `sortable-item` `drag-handle` · `tree` · `calendar` · `popover` `popover-title` · `banner` (`banner-warning` `banner-danger`) · `countdown` · `back-to-top` · `sparkline` · `context-menu` · `scanner-view` |
 | **Mở rộng v1.2** | `datepicker` · `combo-multi` · `autocomplete-panel` · `numpad` `numpad-display` · `editor` `editor-toolbar` `editor-content` · `transfer` · `grid-edit` · `gantt` · `gauge` · `pivot` · `wizard-step` · `tour-spot` `tour-pop` · `toast-actions` · `bottom-nav` `bottom-nav-item` `has-bottom-nav` · `comment-list` `comment` `comment-body` (`mine`) |
 | **Mở rộng v1.3** | `btn-check` (nút bật/tắt) · `indicator` `indicator-item` · `steps-vertical` `step-v` · `dropdown-sub` (menu con) · `nav-group` `nav-sub` (menu sidebar nhiều cấp) · `ticker` (chữ chạy) · `result` (trang kết quả/lỗi) · `code-block` · `card-media` `card-horizontal` `profile-card` · `filter-bar` · `carousel` · `range-dual` · `char-counter` · `strength` · `split` · `avatar-upload` · `notif-panel` · `swatches` · `tv-tip` · `popconfirm` |
+| **Mở rộng v1.4** | `tabs-vertical` · `table-stack` (bảng thành thẻ trên điện thoại) · `modal-sheet` (bottom sheet) · `action-bar` · `timeline-h` · `plan` (bảng gói) · `kpi-big` · `hovercard` · `inline-edit` · `reactions` · `tv-progress-top` · `tv-watermark` |
 | **Tiện ích** | `heading-1..4` `text-muted` `link` · `no-print` `print-only` · `scrollbar-none` |
 
 ## 5. Thuộc tính `data-tv-*` (không cần viết JS)
@@ -187,6 +192,14 @@ function saveData(obj) {
 | `data-tv-confirm="Xóa?" data-confirm-text data-confirm-ok` | Hỏi xác nhận tại chỗ trước khi chạy `onclick` |
 | `data-tv-scroll="idPhan"` | Cuộn tới phần trong trang (thay `href="#id"` – không dùng được trong Apps Script) |
 | `data-tv-toggle="fullscreen"` | Bật/tắt toàn màn hình |
+| `data-tv-timepicker data-step="30" data-min data-max` | Chọn giờ HH:mm |
+| `data-tv-monthpicker` | Chọn tháng MM/yyyy – `serialize()` trả `yyyy-MM` |
+| `data-tv-inline-edit data-type="text\|number\|select" data-options data-field data-id` | Bấm vào chữ để sửa trực tiếp (sự kiện `tv:save`) |
+| `data-tv-filter="#danhSach"` | Ô lọc nhanh (không dấu) cho danh sách / bảng tĩnh |
+| `table[data-tv-sort]` | Sắp xếp bảng HTML tĩnh khi bấm tiêu đề (hiểu số & ngày kiểu Việt Nam) |
+| `table.table-stack` | Bảng tự chuyển thành dạng thẻ trên điện thoại |
+| `data-tv-hovercard="#template"` | Thẻ thông tin khi rê chuột |
+| `data-tv-reactions data-name` | Đánh giá bằng biểu tượng cảm xúc (1–5) |
 
 Khi chèn HTML động có các thành phần trên, gọi `TXTV.init(container)`.
 
@@ -342,6 +355,18 @@ TXTV.hotkey('ctrl+s', luu, { desc: 'Lưu phiếu' });   // bấm ? để xem dan
 TXTV.validators.maNV = { test: v => /^NV\d{4}$/.test(v), message: 'Mã NV dạng NV0001' };  // <input data-tv-validate="maNV">
 ```
 
+### Mở rộng v1.4
+
+```js
+TXTV.inlineEdit('#ten', { onSave: (v, el, d) => TXTV.run('capNhat', d.id, d.field, v) });   // bấm để sửa, Enter lưu, Esc hủy
+TXTV.monthpicker('#thang').range();          // { from: '2026-11-01', to: '2026-11-30' }
+const bar = TXTV.actionBar({ actions: [{ label: 'Duyệt', icon: 'fa-check', primary: true, onClick: duyet }] });
+dt = new TXTV.DataTable('#tbl', { selectable: true, onSelect: rows => bar.show(rows.length) });
+TXTV.watermark('nguyen.van.a@tbsgroup.vn · 10/11/2026');   // chữ mờ chống chụp màn hình báo cáo
+TXTV.topbar.start(); TXTV.topbar.done();      // tự chạy khi TXTV.run(); tắt: TXTV.config.autoTopbar = false
+TXTV.hovercard('#nguoiPhuTrach', el => TXTV.run('layThongTin', el.dataset.id).then(u => '<b>' + TXTV.escape(u.ten) + '</b>'));
+```
+
 ## 7. Server: `TVDB` – dùng Google Sheet như bảng dữ liệu
 
 Dòng 1 của sheet là tiêu đề cột. Nếu có các cột `id`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` thì được điền tự động.
@@ -395,7 +420,12 @@ TXTV.formatNumber(1234567.5);              // '1.234.567,5'
 
 > `docFromTemplate` cần quyền Google Docs/Drive; `chatNotify` cần quyền gọi URL ngoài (UrlFetchApp) – Apps Script sẽ hỏi cấp quyền ở lần chạy đầu.
 
-## 8. Xem trước ngoài Apps Script
+## 8. Trang demo trên GitHub Pages
+
+Workflow `.github/workflows/pages.yml` tự build (`python3 tools/build_preview.py --site _site`) và đăng lên nhánh `gh-pages` mỗi khi `src/` hoặc `tools/` thay đổi.
+Nếu trang chưa hiện: vào **Settings → Pages → Build and deployment → Source: Deploy from a branch → Branch: `gh-pages` / `(root)`** rồi bấm Save.
+
+## 9. Xem trước ngoài Apps Script
 
 ```bash
 python3 tools/build_preview.py
@@ -403,7 +433,7 @@ python3 tools/build_preview.py
 
 Mở `preview/Index.html` bằng trình duyệt (cần Internet để tải Tailwind / Font / Icon). Các lời gọi server dùng dữ liệu giả trong `TXTV.mocks`.
 
-## 9. Ghi chú
+## 10. Ghi chú
 
 - Tailwind **Play CDN** biên dịch CSS ngay trên trình duyệt – phù hợp với Apps Script (không có bước build). Có thể dùng mọi class tiện ích của Tailwind kết hợp với class component của TXTV.
 - Muốn đổi màu thương hiệu: sửa `tailwind.config` trong `TXTV_Head.html` và `TXTV.palette` (màu biểu đồ) trong `TXTV_Scripts.html`.

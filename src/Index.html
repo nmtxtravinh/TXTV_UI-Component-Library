@@ -53,6 +53,9 @@
       <button class="nav-link" data-scroll="v13-forms"><i class="fa-solid fa-sliders"></i><span class="nav-label">Form phổ biến</span><span class="nav-badge">1.3</span></button>
       <button class="nav-link" data-scroll="v13-display"><i class="fa-solid fa-images"></i><span class="nav-label">Hiển thị phổ biến</span><span class="nav-badge">1.3</span></button>
       <button class="nav-link" data-scroll="v13-interact"><i class="fa-solid fa-hand-sparkles"></i><span class="nav-label">Tương tác phổ biến</span><span class="nav-badge">1.3</span></button>
+      <div class="nav-section-title">Mới v1.4</div>
+      <button class="nav-link" data-scroll="v14-inputs"><i class="fa-regular fa-clock"></i><span class="nav-label">Giờ, tháng, sửa nhanh</span><span class="nav-badge">1.4</span></button>
+      <button class="nav-link" data-scroll="v14-layout"><i class="fa-solid fa-table-cells-large"></i><span class="nav-label">Bố cục & hiển thị</span><span class="nav-badge">1.4</span></button>
       <div class="nav-section-title">Điều hướng</div>
       <button class="nav-link" data-scroll="navigation"><i class="fa-solid fa-compass"></i><span class="nav-label">Tabs, Breadcrumb...</span></button>
       <button class="nav-link" data-scroll="dropdowns"><i class="fa-solid fa-caret-down"></i><span class="nav-label">Dropdown</span></button>
@@ -66,6 +69,7 @@
       <a class="nav-link" href="<?= BASE_URL ?>?page=Crud" target="_top" data-page-link="Crud"><i class="fa-solid fa-table-list"></i><span class="nav-label">Mẫu CRUD (Sheet)</span></a>
       <a class="nav-link" href="<?= BASE_URL ?>?page=Dashboard" target="_top"><i class="fa-solid fa-chart-line"></i><span class="nav-label">Mẫu Dashboard</span></a>
       <a class="nav-link" href="<?= BASE_URL ?>?page=Mobile" target="_top"><i class="fa-solid fa-tablet-screen-button"></i><span class="nav-label">Mẫu nhập sản lượng</span></a>
+      <a class="nav-link" href="<?= BASE_URL ?>?page=Settings" target="_top"><i class="fa-solid fa-user-gear"></i><span class="nav-label">Mẫu trang Cài đặt</span></a>
       <a class="nav-link" href="<?= BASE_URL ?>?page=KhongTonTai" target="_top"><i class="fa-solid fa-triangle-exclamation"></i><span class="nav-label">Mẫu trang lỗi 404</span></a>
       <a class="nav-link" href="<?= BASE_URL ?>?page=Login" target="_top"><i class="fa-solid fa-right-to-bracket"></i><span class="nav-label">Trang đăng nhập</span></a>
     </nav>
@@ -92,7 +96,7 @@
       </ol>
       <div class="ml-auto flex items-center gap-1">
         <button class="btn btn-secondary btn-sm hidden text-slate-400 md:inline-flex" onclick="TXTV.commandPalette.open()"><i class="fa-solid fa-magnifying-glass"></i> Tìm... <span class="kbd">Ctrl K</span></button>
-        <span class="badge badge-accent badge-pill hidden sm:inline-flex">v1.3</span>
+        <span class="badge badge-accent badge-pill hidden sm:inline-flex">v1.4</span>
         <button class="btn btn-ghost btn-icon" data-tv-toggle="theme" data-tooltip="Sáng / Tối" data-tooltip-pos="bottom"><i data-tv-theme-icon class="fa-solid fa-moon"></i></button>
         <div class="dropdown">
           <button class="btn btn-ghost btn-icon relative" data-tv-toggle="dropdown" aria-label="Thông báo">
@@ -139,7 +143,7 @@
         </div>
 
         <div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <div class="stat"><div class="stat-icon"><i class="fa-solid fa-cubes"></i></div><div><div class="stat-label">Component</div><div class="stat-value">150+</div><div class="stat-meta">CSS class sẵn dùng</div></div></div>
+          <div class="stat"><div class="stat-icon"><i class="fa-solid fa-cubes"></i></div><div><div class="stat-label">Component</div><div class="stat-value">170+</div><div class="stat-meta">CSS class sẵn dùng</div></div></div>
           <div class="stat"><div class="stat-icon bg-accent-100 text-accent-700"><i class="fa-solid fa-code"></i></div><div><div class="stat-label">JS API</div><div class="stat-value">TXTV.*</div><div class="stat-meta">Không cần thư viện ngoài</div></div></div>
           <div class="stat"><div class="stat-icon bg-sky-50 text-sky-600"><i class="fa-solid fa-moon"></i></div><div><div class="stat-label">Dark mode</div><div class="stat-value">Có</div><div class="stat-meta">Tự lưu theo trình duyệt</div></div></div>
           <div class="stat"><div class="stat-icon bg-amber-50 text-amber-600"><i class="fa-solid fa-mobile-screen"></i></div><div><div class="stat-label">Responsive</div><div class="stat-value">100%</div><div class="stat-meta">Điện thoại → màn hình lớn</div></div></div>
@@ -1080,6 +1084,106 @@ TXTV.run('demo_getEmployees').then(rows => dt.setData(rows));</code></pre>
         </div>
       </section>
 
+      <!-- ===================== v1.4: NHẬP LIỆU ===================== -->
+      <section id="v14-inputs" class="space-y-4">
+        <div class="page-header mb-0"><div><h2 class="page-title">Chọn giờ, chọn tháng, sửa trực tiếp, lọc nhanh <span class="badge badge-warning badge-pill align-middle">v1.4</span></h2><p class="page-subtitle">data-tv-timepicker · data-tv-monthpicker · data-tv-inline-edit · data-tv-filter · data-tv-reactions</p></div></div>
+        <div data-demo="Chọn giờ · Chọn tháng · Phản hồi cảm xúc">
+          <form id="v14Form" class="grid gap-4 md:grid-cols-4">
+            <div class="form-group"><label class="form-label">Giờ bắt đầu</label><input class="form-control" name="gioBatDau" data-tv-timepicker data-step="30" data-min="06:00" data-max="22:00" value="07:30"></div>
+            <div class="form-group"><label class="form-label">Giờ kết thúc (bước 15 phút)</label><input class="form-control" name="gioKetThuc" data-tv-timepicker data-step="15"></div>
+            <div class="form-group"><label class="form-label">Tháng báo cáo</label><input class="form-control" name="thang" data-tv-monthpicker></div>
+            <div class="form-group"><label class="form-label">Mức độ hài lòng</label><div class="reactions" data-tv-reactions data-name="haiLong" data-value="4"></div></div>
+            <div class="md:col-span-4"><button type="button" class="btn btn-secondary btn-sm" onclick="TXTV.alert({ title: 'serialize()', html: true, type: 'info', text: '<pre class=&quot;text-left text-xs&quot;>' + TXTV.escape(JSON.stringify(TXTV.form.serialize('#v14Form'), null, 2)) + '</pre>' })"><i class="fa-solid fa-code"></i> Xem dữ liệu</button></div>
+          </form>
+        </div>
+        <div class="grid gap-4 lg:grid-cols-2">
+          <div data-demo="Sửa trực tiếp (bấm vào chữ có gạch chân)">
+            <dl class="desc-list">
+              <dt>Họ tên</dt><dd><span data-tv-inline-edit data-field="ten" data-id="NV0007">Kim Văn Bình</span></dd>
+              <dt>Bộ phận</dt><dd><span data-tv-inline-edit data-type="select" data-options="May,Cắt,QC,Kho" data-field="boPhan">May</span></dd>
+              <dt>Định mức / ngày</dt><dd><span data-tv-inline-edit data-type="number" data-field="dinhMuc">1.800</span></dd>
+              <dt>Ghi chú</dt><dd><span data-tv-inline-edit data-field="ghiChu" data-placeholder="Thêm ghi chú..."></span></dd>
+            </dl>
+          </div>
+          <div data-demo="Lọc nhanh danh sách (data-tv-filter)">
+            <div class="space-y-3">
+              <div class="input-icon"><i class="fa-solid fa-filter"></i><input class="form-control" data-tv-filter="#lfList" placeholder="Gõ để lọc (không dấu), vd: kho"></div>
+              <div class="list-group" id="lfList">
+                <div class="list-item"><i class="fa-solid fa-warehouse w-5 text-slate-400"></i> Phiếu nhập kho</div>
+                <div class="list-item"><i class="fa-solid fa-truck w-5 text-slate-400"></i> Phiếu xuất kho</div>
+                <div class="list-item"><i class="fa-solid fa-plane w-5 text-slate-400"></i> Đơn nghỉ phép</div>
+                <div class="list-item"><i class="fa-solid fa-clock w-5 text-slate-400"></i> Đăng ký tăng ca</div>
+                <div class="list-item"><i class="fa-solid fa-screwdriver-wrench w-5 text-slate-400"></i> Yêu cầu sửa chữa máy</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== v1.4: BỐ CỤC & HIỂN THỊ ===================== -->
+      <section id="v14-layout" class="space-y-4">
+        <div class="page-header mb-0"><div><h2 class="page-title">Bố cục & hiển thị <span class="badge badge-warning badge-pill align-middle">v1.4</span></h2><p class="page-subtitle">Tabs dọc, bảng tĩnh sắp xếp được + tự thành thẻ trên điện thoại, timeline ngang, bảng gói, KPI lớn, hover card, bottom sheet, thao tác hàng loạt, watermark, thanh tiến trình</p></div></div>
+        <div data-demo="Tabs dọc (.tabs-vertical)">
+          <div class="flex gap-6" data-tv-tabs>
+            <div class="tabs tabs-vertical w-44 shrink-0">
+              <button class="tab active" data-tab="tk"><i class="fa-regular fa-user"></i> Tài khoản</button>
+              <button class="tab" data-tab="bm"><i class="fa-solid fa-shield-halved"></i> Bảo mật</button>
+              <button class="tab" data-tab="tb"><i class="fa-regular fa-bell"></i> Thông báo</button>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="tab-panel active" data-tab-panel="tk"><h4 class="heading-4">Thông tin tài khoản</h4><p class="mt-1 text-sm text-slate-500">Họ tên, email, bộ phận...</p></div>
+              <div class="tab-panel" data-tab-panel="bm"><h4 class="heading-4">Bảo mật</h4><p class="mt-1 text-sm text-slate-500">Đổi mật khẩu, phiên đăng nhập.</p></div>
+              <div class="tab-panel" data-tab-panel="tb"><h4 class="heading-4">Thông báo</h4><label class="form-check mt-2"><input type="checkbox" class="form-switch" checked> Nhận email khi có phiếu cần duyệt</label></div>
+            </div>
+          </div>
+        </div>
+        <div data-demo="Bảng tĩnh sắp xếp được + tự thành thẻ trên điện thoại (data-tv-sort + .table-stack)">
+          <div class="table-wrapper">
+            <table class="table table-hover table-stack" data-tv-sort>
+              <thead><tr><th>Mã</th><th>Sản phẩm</th><th class="text-right">Số lượng</th><th class="text-right">Đơn giá</th><th>Ngày giao</th><th data-nosort></th></tr></thead>
+              <tbody>
+                <tr><td>PO-2611</td><td>Túi tote canvas</td><td class="text-right">5.000</td><td class="text-right">85.000 ₫</td><td>15/12/2026</td><td><span class="badge badge-success">Đang SX</span></td></tr>
+                <tr><td>PO-2598</td><td>Ví da cầm tay</td><td class="text-right">2.000</td><td class="text-right">120.000 ₫</td><td>20/11/2026</td><td><span class="badge badge-brand">Xong</span></td></tr>
+                <tr><td>PO-2615</td><td>Balo laptop PU</td><td class="text-right">12.500</td><td class="text-right">210.000 ₫</td><td>05/01/2027</td><td><span class="badge badge-gray">Chờ</span></td></tr>
+                <tr><td>PO-2620</td><td>Túi du lịch</td><td class="text-right">800</td><td class="text-right">350.000 ₫</td><td>28/12/2026</td><td><span class="badge badge-gray">Chờ</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div data-demo="Timeline ngang">
+          <div class="timeline-h">
+            <div class="timeline-h-item done"><span class="timeline-h-dot"><i class="fa-solid fa-check"></i></span><div class="timeline-h-title">Nhận đơn</div><div class="timeline-h-time">01/11</div></div>
+            <div class="timeline-h-item done"><span class="timeline-h-dot"><i class="fa-solid fa-check"></i></span><div class="timeline-h-title">Chuẩn bị NPL</div><div class="timeline-h-time">05/11</div></div>
+            <div class="timeline-h-item active"><span class="timeline-h-dot">3</span><div class="timeline-h-title">Sản xuất</div><div class="timeline-h-time">Đang thực hiện</div></div>
+            <div class="timeline-h-item"><span class="timeline-h-dot">4</span><div class="timeline-h-title">Kiểm hàng</div><div class="timeline-h-time">Dự kiến 10/12</div></div>
+            <div class="timeline-h-item"><span class="timeline-h-dot">5</span><div class="timeline-h-title">Giao hàng</div><div class="timeline-h-time">15/12</div></div>
+          </div>
+        </div>
+        <div class="grid gap-4 lg:grid-cols-2">
+          <div data-demo="Bảng gói / lựa chọn (.plan)">
+            <div class="grid gap-4 pt-3 sm:grid-cols-2">
+              <div class="plan"><div class="plan-name">Cơ bản</div><div class="plan-price">0 ₫ <small>/ tháng</small></div><ul class="plan-features"><li>5 người dùng</li><li>Báo cáo ngày</li><li class="off">Xuất Excel</li></ul><button class="btn btn-secondary btn-block">Chọn</button></div>
+              <div class="plan featured"><span class="plan-badge">Đề xuất</span><div class="plan-name">Nâng cao</div><div class="plan-price">Liên hệ</div><ul class="plan-features"><li>Không giới hạn</li><li>Báo cáo realtime</li><li>Xuất Excel / PDF</li></ul><button class="btn btn-primary btn-block">Chọn</button></div>
+            </div>
+          </div>
+          <div data-demo="KPI cỡ lớn (màn hình TV) · Hover card">
+            <div class="space-y-4">
+              <div class="grid grid-cols-2 gap-3"><div class="kpi-big"><div class="kpi-big-value" data-tv-countup="14820">0</div><div class="kpi-big-label">Sản lượng tuần</div></div><div class="kpi-big from-accent-600 to-brand-800"><div class="kpi-big-value" data-tv-countup="0.929" data-format="percent">0</div><div class="kpi-big-label">Đạt kế hoạch</div></div></div>
+              <p class="text-sm">Phụ trách đơn hàng: <a class="link" data-tv-hovercard="#tplUser">Kim Thị Mai</a> · rê chuột để xem thẻ thông tin.</p>
+              <template id="tplUser"><div class="flex items-center gap-3"><span class="avatar avatar-lg" style="background:#ede9fe;color:#5b21b6">KM</span><div><div class="font-semibold text-slate-900 dark:text-white">Kim Thị Mai</div><div class="text-xs text-slate-500">Tổ trưởng · Chuyền May 2</div></div></div><div class="mt-3 grid grid-cols-2 gap-2 text-xs"><div><span class="text-slate-400">Điện thoại</span><br>0912 345 678</div><div><span class="text-slate-400">Nhân sự</span><br>38 người</div></div></template>
+            </div>
+          </div>
+        </div>
+        <div data-demo="Bottom sheet · Thao tác hàng loạt · Watermark · Thanh tiến trình đầu trang">
+          <div class="flex flex-wrap gap-2">
+            <button class="btn btn-secondary" data-tv-toggle="modal" data-tv-target="#sheetDemo"><i class="fa-solid fa-mobile-screen"></i> Bottom sheet (thu nhỏ cửa sổ để thấy)</button>
+            <button class="btn btn-secondary" onclick="demoBar.show(3)"><i class="fa-solid fa-list-check"></i> Hiện thanh thao tác hàng loạt</button>
+            <button class="btn btn-secondary" onclick="demoWatermark()"><i class="fa-solid fa-stamp"></i> Bật / tắt watermark</button>
+            <button class="btn btn-secondary" onclick="TXTV.run('demo_getEmployees').then(function (r) { TXTV.toast('Đã tải ' + r.length + ' dòng – xem thanh xanh trên cùng'); })"><i class="fa-solid fa-bars-progress"></i> Gọi server (thanh tiến trình)</button>
+          </div>
+        </div>
+      </section>
+
       <!-- ===================== NAVIGATION ===================== -->
       <section id="navigation" class="space-y-4">
         <div class="page-header mb-0"><div><h2 class="page-title">Điều hướng</h2><p class="page-subtitle">Breadcrumb, Tabs, Pills, Pagination, Steps, Navbar</p></div></div>
@@ -1328,6 +1432,9 @@ data-tv-range · data-tv-counter · data-tv-autosize · data-tv-strength · data
 data-tv-carousel · data-tv-ticker · data-tv-countup · data-tv-avatar="Tên" · pre[data-tv-code] · data-tv-split
 data-tv-tip · data-tv-confirm · await TXTV.popconfirm(btn, { title }) · TXTV.toast.promise(p, { loading, success, error })
 TXTV.notifications(menu, { items, countEl }) · TXTV.infinite(sentinel, loadFn) · TXTV.skeleton(el, 'table')
+data-tv-timepicker · data-tv-monthpicker · data-tv-inline-edit · TXTV.inlineEdit(el, { onSave }) · data-tv-filter="#list"
+table[data-tv-sort] · table.table-stack · data-tv-hovercard="#tpl" · data-tv-reactions · TXTV.actionBar({ actions })
+TXTV.watermark(text) · TXTV.topbar.start()/done() (tự chạy khi TXTV.run) · .tabs-vertical · .timeline-h · .plan · .kpi-big · .modal-sheet
 TXTV.scrollTo(id) · data-tv-scroll="id" · TXTV.scrollspy(nav) · TXTV.hotkey(k, fn, { desc }) · TXTV.shortcuts()
 new TXTV.DataTable(el, { filters, columnToggle, expandRow, totals, stateKey }) · TXTV.errorPage(404) (server)</code></pre>
           </div>
@@ -1335,7 +1442,7 @@ new TXTV.DataTable(el, { filters, columnToggle, expandRow, totals, stateKey }) �
       </section>
     </main>
 
-    <footer class="app-footer">© 2026 Nhà máy Túi xách Trà Vinh – Chi nhánh 7, Công ty Cổ phần Đầu tư Thái Bình (TBS Group) · TXTV v1.3</footer>
+    <footer class="app-footer">© 2026 Nhà máy Túi xách Trà Vinh – Chi nhánh 7, Công ty Cổ phần Đầu tư Thái Bình (TBS Group) · TXTV v1.4</footer>
     <button class="no-print" data-tv-backtop aria-label="Lên đầu trang"><i class="fa-solid fa-arrow-up"></i></button>
   </div>
 </div>
@@ -1397,6 +1504,16 @@ new TXTV.DataTable(el, { filters, columnToggle, expandRow, totals, stateKey }) �
       <a class="dropdown-item"><i class="fa-solid fa-industry"></i> Sản xuất</a>
       <a class="dropdown-item"><i class="fa-solid fa-warehouse"></i> Kho</a>
     </div>
+  </div>
+</div>
+
+<div class="modal modal-sheet" id="sheetDemo" role="dialog" aria-modal="true">
+  <div class="modal-backdrop"></div>
+  <div class="modal-dialog">
+    <div class="modal-header"><h3 class="modal-title">Bộ lọc nhanh</h3><button class="modal-close" data-tv-dismiss="modal"><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="modal-body space-y-3"><p class="text-sm text-slate-500">Trên điện thoại (màn hình &lt; 640px) modal <span class="code">.modal-sheet</span> trượt lên từ cạnh dưới như ứng dụng di động.</p>
+      <div class="segmented"><label><input type="radio" name="sh" checked><span>Hôm nay</span></label><label><input type="radio" name="sh"><span>Tuần</span></label><label><input type="radio" name="sh"><span>Tháng</span></label></div></div>
+    <div class="modal-footer"><button class="btn btn-primary btn-block" data-tv-dismiss="modal">Áp dụng</button></div>
   </div>
 </div>
 
@@ -1835,6 +1952,21 @@ new TXTV.DataTable(el, { filters, columnToggle, expandRow, totals, stateKey }) �
   TXTV.hotkey('alt+d', function () { TXTV.theme.toggle(); }, { desc: 'Đổi giao diện Sáng / Tối' });
   TXTV.hotkey('alt+t', function () { TXTV.scrollTo('intro'); }, { desc: 'Về đầu trang' });
   TXTV.hotkey('ctrl+k', function () {}, { desc: 'Tìm chức năng (Command palette)' });
+
+
+  /* =====================  DEMO v1.4  ===================== */
+  // Sửa trực tiếp: giả lập lưu server
+  TXTV.$$('[data-tv-inline-edit]').forEach(function (el) {
+    TXTV.inlineEdit(el, { type: el.dataset.type, onSave: function (v, _el, d) { return new Promise(function (res) { setTimeout(res, 400); }); /* thực tế: TXTV.run('capNhatNhanVien', d.id, d.field, v) */ } });
+  });
+  // Thanh thao tác hàng loạt
+  var demoBar = TXTV.actionBar({ actions: [
+    { label: 'Duyệt', icon: 'fa-check', primary: true, onClick: function () { TXTV.toast.success('Đã duyệt 3 phiếu'); demoBar.hide(); } },
+    { label: 'Xuất Excel', icon: 'fa-file-excel', onClick: function () { TXTV.toast('Xuất Excel (demo)'); } },
+    { label: 'Xóa', icon: 'fa-trash', danger: true, onClick: function () { TXTV.toast.error('Đã xóa (demo)'); demoBar.hide(); } }
+  ] });
+  var wmOn = false;
+  function demoWatermark() { wmOn = !wmOn; TXTV.watermark(wmOn ? 'nguyen.van.a@tbsgroup.vn · ' + TXTV.format.datetime(new Date()) : false); }
 
   /* ---------- Biểu đồ ---------- */
   function drawCharts() {
