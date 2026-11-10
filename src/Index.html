@@ -131,7 +131,6 @@
       <section id="intro">
         <div class="card card-brand overflow-hidden">
           <div class="relative p-6 sm:p-8">
-            <div class="absolute -right-10 -top-10 h-48 w-48 rounded-full bg-accent-400/20 blur-2xl"></div>
             <span class="badge badge-pill bg-white/10 text-accent-300 ring-white/20"><i class="fa-solid fa-leaf"></i> TBS Group · Chi nhánh 7</span>
             <h1 class="mt-3 text-2xl font-bold text-white sm:text-3xl">TXTV – Bộ UI Component cho Google Apps Script</h1>
             <p class="mt-2 max-w-2xl text-white/70">Thư viện giao diện dùng chung cho các Web App nội bộ của Nhà máy Túi xách Trà Vinh. Xây dựng trên Tailwind CSS, font Inter, icon Font Awesome 6 – chỉ cần chèn 2 dòng là dùng được.</p>
@@ -951,16 +950,16 @@ TXTV.run('demo_getEmployees').then(rows => dt.setData(rows));</code></pre>
         <div data-demo="Chữ chạy (ticker)">
           <div class="ticker" data-tv-ticker>
             <div class="ticker-label"><i class="fa-solid fa-bullhorn"></i> Tin mới</div>
-            <div class="ticker-track"><span>📢 Lịch nghỉ Tết Nguyên đán 2027 từ 03/02 đến 13/02</span><span>🏆 Chuyền May 4 đạt 112% kế hoạch tháng 10</span><span>🩺 Khám sức khỏe định kỳ ngày 20/11 tại nhà ăn</span></div>
+            <div class="ticker-track"><span><i class="fa-regular fa-calendar mr-1.5 text-accent-400"></i>Lịch nghỉ Tết Nguyên đán 2027 từ 03/02 đến 13/02</span><span><i class="fa-solid fa-trophy mr-1.5 text-accent-400"></i>Chuyền May 4 đạt 112% kế hoạch tháng 10</span><span><i class="fa-solid fa-stethoscope mr-1.5 text-accent-400"></i>Khám sức khỏe định kỳ ngày 20/11 tại nhà ăn</span></div>
           </div>
         </div>
         <div class="grid gap-4 lg:grid-cols-2">
           <div data-demo="Carousel (tự chạy, vuốt được)">
             <div class="carousel aspect-[16/7]" data-tv-carousel data-autoplay="4000">
               <div class="carousel-track h-full">
-                <div class="grid h-full place-items-center bg-gradient-to-br from-brand-800 to-brand-950 text-white"><div class="text-center"><i class="fa-solid fa-leaf text-3xl text-accent-400"></i><div class="mt-2 text-xl font-bold">Chào mừng đến TBS Group</div></div></div>
-                <div class="grid h-full place-items-center bg-gradient-to-br from-accent-500 to-brand-700 text-white"><div class="text-center"><i class="fa-solid fa-shield-halved text-3xl"></i><div class="mt-2 text-xl font-bold">An toàn là trên hết</div></div></div>
-                <div class="grid h-full place-items-center bg-gradient-to-br from-sky-600 to-brand-800 text-white"><div class="text-center"><i class="fa-solid fa-medal text-3xl"></i><div class="mt-2 text-xl font-bold">Chất lượng tạo nên thương hiệu</div></div></div>
+                <div class="grid h-full place-items-center bg-brand-900 text-white"><div class="text-center"><i class="fa-solid fa-leaf text-3xl text-accent-400"></i><div class="mt-2 text-xl font-bold">Chào mừng đến TBS Group</div></div></div>
+                <div class="grid h-full place-items-center bg-brand-700 text-white"><div class="text-center"><i class="fa-solid fa-shield-halved text-3xl"></i><div class="mt-2 text-xl font-bold">An toàn là trên hết</div></div></div>
+                <div class="grid h-full place-items-center bg-slate-800 text-white"><div class="text-center"><i class="fa-solid fa-medal text-3xl"></i><div class="mt-2 text-xl font-bold">Chất lượng tạo nên thương hiệu</div></div></div>
               </div>
             </div>
           </div>
@@ -982,8 +981,8 @@ TXTV.run('demo_getEmployees').then(rows => dt.setData(rows));</code></pre>
         </div>
         <div data-demo="Card ảnh · Card ngang · Card hồ sơ">
           <div class="grid gap-4 md:grid-cols-3">
-            <div class="card card-media card-hover"><div class="card-cover bg-gradient-to-br from-brand-700 to-accent-400"></div><div class="card-body"><span class="badge badge-brand">Tin tức</span><h3 class="mt-2 font-semibold text-slate-900 dark:text-white">Khánh thành chuyền may tự động</h3><p class="mt-1 text-sm text-slate-500">Nâng năng suất thêm 15%…</p></div></div>
-            <div class="card card-horizontal"><div class="card-cover bg-gradient-to-b from-sky-500 to-brand-700"></div><div class="card-body"><h3 class="font-semibold text-slate-900 dark:text-white">Đào tạo an toàn</h3><p class="mt-1 text-sm text-slate-500">Thứ 6, 14:00 – Hội trường A</p><button class="btn btn-soft btn-xs mt-3">Đăng ký</button></div></div>
+            <div class="card card-media card-hover"><div class="card-cover grid place-items-center bg-slate-200 text-3xl text-slate-400 dark:bg-slate-800"><i class="fa-regular fa-image"></i></div><div class="card-body"><span class="badge badge-brand">Tin tức</span><h3 class="mt-2 font-semibold text-slate-900 dark:text-white">Khánh thành chuyền may tự động</h3><p class="mt-1 text-sm text-slate-500">Nâng năng suất thêm 15%…</p></div></div>
+            <div class="card card-horizontal"><div class="card-cover grid place-items-center bg-slate-200 text-2xl text-slate-400 dark:bg-slate-800"><i class="fa-regular fa-image"></i></div><div class="card-body"><h3 class="font-semibold text-slate-900 dark:text-white">Đào tạo an toàn</h3><p class="mt-1 text-sm text-slate-500">Thứ 6, 14:00 – Hội trường A</p><button class="btn btn-soft btn-xs mt-3">Đăng ký</button></div></div>
             <div class="card profile-card"><div class="profile-cover"></div><span class="avatar avatar-xl" data-tv-avatar="Kim Thị Mai"></span><div class="p-5 pt-3"><div class="font-semibold text-slate-900 dark:text-white">Kim Thị Mai</div><div class="text-xs text-slate-500">Tổ trưởng · Chuyền May 2</div><div class="mt-4 flex justify-center gap-2"><button class="btn btn-primary btn-sm"><i class="fa-regular fa-message"></i> Nhắn tin</button><button class="btn btn-secondary btn-sm">Hồ sơ</button></div></div></div>
           </div>
         </div>
@@ -1168,7 +1167,7 @@ TXTV.run('demo_getEmployees').then(rows => dt.setData(rows));</code></pre>
           </div>
           <div data-demo="KPI cỡ lớn (màn hình TV) · Hover card">
             <div class="space-y-4">
-              <div class="grid grid-cols-2 gap-3"><div class="kpi-big"><div class="kpi-big-value" data-tv-countup="14820">0</div><div class="kpi-big-label">Sản lượng tuần</div></div><div class="kpi-big from-accent-600 to-brand-800"><div class="kpi-big-value" data-tv-countup="0.929" data-format="percent">0</div><div class="kpi-big-label">Đạt kế hoạch</div></div></div>
+              <div class="grid grid-cols-2 gap-3"><div class="kpi-big"><div class="kpi-big-value" data-tv-countup="14820">0</div><div class="kpi-big-label">Sản lượng tuần</div></div><div class="kpi-big bg-brand-700"><div class="kpi-big-value" data-tv-countup="0.929" data-format="percent">0</div><div class="kpi-big-label">Đạt kế hoạch</div></div></div>
               <p class="text-sm">Phụ trách đơn hàng: <a class="link" data-tv-hovercard="#tplUser">Kim Thị Mai</a> · rê chuột để xem thẻ thông tin.</p>
               <template id="tplUser"><div class="flex items-center gap-3"><span class="avatar avatar-lg" style="background:#ede9fe;color:#5b21b6">KM</span><div><div class="font-semibold text-slate-900 dark:text-white">Kim Thị Mai</div><div class="text-xs text-slate-500">Tổ trưởng · Chuyền May 2</div></div></div><div class="mt-3 grid grid-cols-2 gap-2 text-xs"><div><span class="text-slate-400">Điện thoại</span><br>0912 345 678</div><div><span class="text-slate-400">Nhân sự</span><br>38 người</div></div></template>
             </div>
@@ -1299,8 +1298,8 @@ TXTV.run('demo_getEmployees').then(rows => dt.setData(rows));</code></pre>
         </div>
         <div data-demo="Dialog (Promise)">
           <div class="flex flex-wrap gap-2">
-            <button class="btn btn-soft-info" onclick="TXTV.alert({ title: 'Thông báo', text: 'Đây là hộp thoại thông báo.', type: 'info' })">Alert</button>
-            <button class="btn btn-soft-success" onclick="TXTV.alert({ title: 'Thành công', text: 'Đã lưu phiếu PX-001.', type: 'success' })">Alert thành công</button>
+            <button class="btn btn-soft-info" onclick="TXTV.alert({ title: 'Bảo trì hệ thống', text: 'Hệ thống tạm dừng từ 22:00 đến 23:00 tối nay.', type: 'info' })">Alert</button>
+            <button class="btn btn-soft-success" onclick="TXTV.alert({ title: 'Đã lưu phiếu PX-001', text: 'Phiếu đã chuyển sang trạng thái chờ duyệt.', type: 'success' })">Alert thành công</button>
             <button class="btn btn-soft" onclick="demoConfirm()">Confirm</button>
             <button class="btn btn-soft-danger" onclick="demoConfirmDelete()">Confirm xóa</button>
             <button class="btn btn-soft-warning" onclick="demoPrompt()">Prompt</button>
@@ -1313,11 +1312,11 @@ TXTV.run('demo_getEmployees').then(rows => dt.setData(rows));</code></pre>
         <div class="page-header mb-0"><div><h2 class="page-title">Toast & Loading</h2><p class="page-subtitle">TXTV.toast() · TXTV.loading.show/hide() · TXTV.btnLoading() · TXTV.call()</p></div></div>
         <div data-demo="Toast">
           <div class="flex flex-wrap gap-2">
-            <button class="btn btn-soft-success" onclick="TXTV.toast.success('Đã lưu dữ liệu thành công', 'Thành công')">Success</button>
-            <button class="btn btn-soft-danger" onclick="TXTV.toast.error('Không thể kết nối máy chủ', 'Lỗi')">Error</button>
+            <button class="btn btn-soft-success" onclick="TXTV.toast.success('Đã lưu phiếu PX-001')">Success</button>
+            <button class="btn btn-soft-danger" onclick="TXTV.toast.error('Không kết nối được máy chủ. Thử lại sau ít phút.')">Error</button>
             <button class="btn btn-soft-warning" onclick="TXTV.toast.warning('Phiếu sắp hết hạn duyệt')">Warning</button>
             <button class="btn btn-soft-info" onclick="TXTV.toast.info('Có 3 phiếu mới cần duyệt')">Info</button>
-            <button class="btn btn-secondary" onclick="TXTV.toast('Toast hiển thị phía dưới', { position: 'bottom' })">Phía dưới</button>
+            <button class="btn btn-secondary" onclick="TXTV.toast('Đã sao chép đường dẫn', { position: 'bottom' })">Phía dưới</button>
           </div>
         </div>
         <div data-demo="Loading & gọi server">
@@ -1674,7 +1673,7 @@ new TXTV.DataTable(el, { filters, columnToggle, expandRow, totals, stateKey }) �
   // Kanban: lưu trạng thái khi kéo thả
   document.getElementById('demoKanban').addEventListener('tv:sort', function (e) {
     var d = e.detail;
-    if (d.from !== d.to) TXTV.toast(d.id + ' → ' + d.to.closest('.kanban-col').querySelector('.kanban-head').textContent.trim().replace(/\d+$/, ''), { type: 'info', title: 'Đã chuyển trạng thái', duration: 2000 });
+    if (d.from !== d.to) TXTV.toast(d.id + ' chuyển sang ' + d.to.closest('.kanban-col').querySelector('.kanban-head').textContent.trim().replace(/\d+$/, ''), { type: 'success', duration: 2000 });
     // Thực tế: TXTV.run('capNhatTrangThai', d.id, d.to.dataset.status)
   });
 

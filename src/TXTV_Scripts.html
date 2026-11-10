@@ -160,7 +160,7 @@
         return res;
       })
       .catch(function (err) {
-        if (opts.error !== false) TXTV.toast(err.message || String(err), { type: 'error', title: 'Có lỗi xảy ra', duration: 6000 });
+        if (opts.error !== false) TXTV.toast(err.message || String(err), { type: 'error', title: typeof opts.error === 'string' ? opts.error : undefined, duration: 6000 });
         throw err;
       })
       .finally(function () {
@@ -173,7 +173,7 @@
    * TOAST
    *   TXTV.toast('Nội dung', { type: 'success|error|warning|info', title, duration, position: 'top|bottom' })
    * ===================================================================== */
-  var TOAST_ICON = { success: 'fa-circle-check', error: 'fa-circle-xmark', warning: 'fa-triangle-exclamation', info: 'fa-circle-info' };
+  var TOAST_ICON = { success: 'fa-check', error: 'fa-circle-exclamation', warning: 'fa-triangle-exclamation', info: 'fa-circle-info' };
   TXTV.toast = function (message, opts) {
     if (typeof opts === 'string') opts = { type: opts };
     opts = opts || {};
@@ -186,11 +186,11 @@
     var el = TXTV.html(
       '<div class="toast toast-' + type + '" role="status">' +
         '<i class="toast-icon fa-solid ' + (opts.icon || TOAST_ICON[type] || TOAST_ICON.info) + '"></i>' +
-        '<div class="min-w-0 flex-1">' +
+        '<div class="toast-body">' +
           (opts.title ? '<div class="toast-title">' + esc(opts.title) + '</div>' : '') +
           '<div class="toast-text">' + (opts.html ? message : esc(message)) + '</div>' +
-          (opts.actions ? '<div class="toast-actions"></div>' : '') +
         '</div>' +
+        (opts.actions ? '<div class="toast-actions"></div>' : '') +
         '<button type="button" class="toast-close" aria-label="Đóng"><i class="fa-solid fa-xmark"></i></button>' +
       '</div>');
     var close = function () {
@@ -200,7 +200,7 @@
     el.querySelector('.toast-close').addEventListener('click', close);
     (opts.actions || []).forEach(function (a, i) {
       var b = document.createElement('button'); b.type = 'button';
-      b.className = 'btn btn-xs ' + (a.primary || i === 0 ? 'btn-primary' : 'btn-secondary'); b.textContent = a.label;
+      b.className = 'toast-action'; b.textContent = a.label; void i;
       b.addEventListener('click', function () { close(); if (a.onClick) a.onClick(); });
       el.querySelector('.toast-actions').appendChild(b);
     });
@@ -214,7 +214,11 @@
     return { el: el, close: close };
   };
   ['success', 'error', 'warning', 'info'].forEach(function (t) {
-    TXTV.toast[t] = function (msg, title, opts) { return TXTV.toast(msg, Object.assign({ type: t, title: title }, opts || {})); };
+    // TXTV.toast.success(msg) | (msg, 'Tiêu đề') | (msg, { duration... }) | (msg, 'Tiêu đề', { ... })
+    TXTV.toast[t] = function (msg, title, opts) {
+      if (title && typeof title === 'object') { opts = title; title = undefined; }
+      return TXTV.toast(msg, Object.assign({ type: t }, title ? { title: title } : {}, opts || {}));
+    };
   });
 
   /* =====================================================================
@@ -284,14 +288,14 @@
    *   if (await TXTV.confirm({ title: 'Xóa?', text: '...', type: 'danger', confirmText: 'Xóa' })) {...}
    *   var v = await TXTV.prompt({ title: 'Nhập lý do', required: true })
    * ===================================================================== */
-  var DIALOG_ICON = { info: 'fa-circle-info', success: 'fa-check', warning: 'fa-triangle-exclamation', danger: 'fa-trash-can', error: 'fa-xmark', question: 'fa-question' };
+  var DIALOG_ICON = { info: 'fa-circle-info', success: 'fa-circle-check', warning: 'fa-triangle-exclamation', danger: 'fa-circle-exclamation', error: 'fa-circle-exclamation', question: 'fa-circle-question' };
   function dialog(o) {
     return new Promise(function (resolve) {
       var type = o.type === 'error' ? 'danger' : (o.type || 'question');
       var btnClass = { danger: 'btn-danger', warning: 'btn-warning', success: 'btn-success', info: 'btn-info' }[type] || 'btn-primary';
       var inputHtml = '';
       if (o.mode === 'prompt') {
-        inputHtml = '<div class="mt-4 text-left">' +
+        inputHtml = '<div class="mt-3">' +
           (o.label ? '<label class="form-label mb-1.5' + (o.required ? ' required' : '') + '">' + esc(o.label) + '</label>' : '') +
           (o.multiline
             ? '<textarea class="form-control" data-dialog-input rows="3" placeholder="' + esc(o.placeholder || '') + '">' + esc(o.value || '') + '</textarea>'
@@ -299,18 +303,20 @@
           '<p class="form-error mt-1.5 hidden" data-dialog-error><i class="fa-solid fa-circle-exclamation"></i> Vui lòng nhập thông tin</p></div>';
       }
       var el = TXTV.html(
-        '<div class="modal modal-sm" role="alertdialog" aria-modal="true"' + (o.static ? ' data-static="true"' : '') + '>' +
+        '<div class="modal" role="alertdialog" aria-modal="true"' + (o.static ? ' data-static="true"' : '') + '>' +
           '<div class="modal-backdrop"></div>' +
-          '<div class="modal-dialog">' +
-            '<div class="modal-body pt-7 text-center">' +
-              (o.icon === false ? '' : '<div class="dialog-icon ' + type + '"><i class="fa-solid ' + (o.icon || DIALOG_ICON[o.type] || DIALOG_ICON[type]) + '"></i></div>') +
-              (o.title ? '<h3 class="text-lg font-semibold text-slate-900 dark:text-white">' + esc(o.title) + '</h3>' : '') +
-              (o.text ? '<div class="mt-2 text-sm text-slate-500 dark:text-slate-400">' + (o.html ? o.text : esc(o.text)) + '</div>' : '') +
-              inputHtml +
+          '<div class="modal-dialog dialog">' +
+            '<div class="flex gap-3 px-5 pb-4 pt-5">' +
+              (o.icon === false ? '' : '<i class="dialog-icon ' + type + ' fa-solid ' + (o.icon || DIALOG_ICON[o.type] || DIALOG_ICON[type]) + '"></i>') +
+              '<div class="min-w-0 flex-1">' +
+                (o.title ? '<h3 class="dialog-title">' + esc(o.title) + '</h3>' : '') +
+                (o.text ? '<div class="dialog-text">' + (o.html ? o.text : esc(o.text)) + '</div>' : '') +
+                inputHtml +
+              '</div>' +
             '</div>' +
-            '<div class="flex gap-2 px-6 pb-6">' +
-              (o.mode !== 'alert' ? '<button type="button" class="btn btn-secondary flex-1" data-dialog="cancel">' + esc(o.cancelText || 'Hủy') + '</button>' : '') +
-              '<button type="button" class="btn ' + btnClass + ' flex-1" data-dialog="ok">' + esc(o.confirmText || (o.mode === 'alert' ? 'Đóng' : 'Xác nhận')) + '</button>' +
+            '<div class="flex justify-end gap-2 px-5 pb-5">' +
+              (o.mode !== 'alert' ? '<button type="button" class="btn btn-secondary" data-dialog="cancel">' + esc(o.cancelText || 'Hủy') + '</button>' : '') +
+              '<button type="button" class="btn ' + btnClass + '" data-dialog="ok">' + esc(o.confirmText || (o.mode === 'alert' ? 'Đóng' : 'Xác nhận')) + '</button>' +
             '</div>' +
           '</div>' +
         '</div>');
@@ -335,7 +341,7 @@
       if (cancel) cancel.addEventListener('click', function () { finish(o.mode === 'prompt' ? null : false); });
       if (input) input.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !o.multiline) el.querySelector('[data-dialog="ok"]').click(); });
       TXTV.modal.open(el);
-      if (!input) setTimeout(function () { el.querySelector('[data-dialog="ok"]').focus(); }, 60);
+      if (!input) setTimeout(function () { (type === 'danger' && cancel ? cancel : el.querySelector('[data-dialog="ok"]')).focus(); }, 60);
     });
   }
   function normalize(a, b) { return typeof a === 'string' ? Object.assign({ text: a }, b || {}) : (a || {}); }
@@ -1171,7 +1177,7 @@
   };
 
   /* Thông báo mất / có kết nối mạng */
-  global.addEventListener('offline', function () { TXTV.toast('Mất kết nối Internet. Dữ liệu có thể chưa được lưu.', { type: 'warning', title: 'Offline', duration: 0 }); });
+  global.addEventListener('offline', function () { TXTV.toast('Mất kết nối Internet – thay đổi lúc này có thể chưa được lưu.', { type: 'warning', duration: 0 }); });
   global.addEventListener('online', function () { TXTV.toast('Đã kết nối lại Internet', { type: 'success', duration: 2500 }); });
 
   /* =====================================================================
