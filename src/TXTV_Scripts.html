@@ -173,7 +173,13 @@
    * TOAST
    *   TXTV.toast('Nội dung', { type: 'success|error|warning|info', title, duration, position: 'top|bottom' })
    * ===================================================================== */
-  var TOAST_ICON = { success: 'fa-check', error: 'fa-circle-exclamation', warning: 'fa-triangle-exclamation', info: 'fa-circle-info' };
+  var TOAST_ICON = { success: 'fa-check', error: 'fa-exclamation', warning: 'fa-exclamation', info: 'fa-info', loading: '' };
+  /*
+   *   TXTV.toast('Nội dung', { type: 'success|error|warning|info|loading', title, duration, position: 'top|bottom', actions: [{ label, onClick }] })
+   *   - Thanh đếm ngược ở đáy; rê chuột để dừng.   - Thông báo trùng được gộp (×2, ×3).
+   *   - Có actions -> dạng snackbar nền tối.        - Điện thoại: vuốt ngang để tắt.
+   *   Trả về { el, close, update(type, text, title) }
+   */
   TXTV.toast = function (message, opts) {
     if (typeof opts === 'string') opts = { type: opts };
     opts = opts || {};
@@ -183,35 +189,77 @@
       var c = document.createElement('div'); c.className = 'toast-container ' + pos;
       c.setAttribute('aria-live', 'polite'); document.body.appendChild(c); return c;
     })();
+    var duration = opts.duration === undefined ? (type === 'error' ? 6000 : type === 'loading' ? 0 : 4000) : opts.duration;
+    var snack = !!(opts.actions && opts.actions.length);
+
+    // Gộp thông báo giống hệt đang hiển thị
+    var key = type + '|' + (opts.title || '') + '|' + message;
+    var dup = !snack && type !== 'loading' && $$('.toast', container).filter(function (t) { return t._key === key && !t._closing; })[0];
+    if (dup) {
+      dup._count = (dup._count || 1) + 1;
+      var cEl = dup.querySelector('.toast-count'); cEl.textContent = '×' + dup._count; cEl.classList.remove('hidden');
+      dup._restart(); dup.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.03)' }, { transform: 'scale(1)' }], { duration: 220 });
+      return dup._api;
+    }
+
+    var iconHtml = function (t, custom) { return t === 'loading' ? '<span class="spinner spinner-sm"></span>' : '<i class="fa-solid ' + (custom || TOAST_ICON[t] || TOAST_ICON.info) + '"></i>'; };
     var el = TXTV.html(
-      '<div class="toast toast-' + type + '" role="status">' +
-        '<i class="toast-icon fa-solid ' + (opts.icon || TOAST_ICON[type] || TOAST_ICON.info) + '"></i>' +
+      '<div class="toast toast-' + type + (snack ? ' toast-snack' : '') + '" role="' + (type === 'error' ? 'alert' : 'status') + '">' +
+        (snack && !opts.icon ? '' : '<span class="toast-icon">' + iconHtml(type, opts.icon) + '</span>') +
         '<div class="toast-body">' +
           (opts.title ? '<div class="toast-title">' + esc(opts.title) + '</div>' : '') +
           '<div class="toast-text">' + (opts.html ? message : esc(message)) + '</div>' +
         '</div>' +
-        (opts.actions ? '<div class="toast-actions"></div>' : '') +
+        '<span class="toast-count hidden"></span>' +
+        (snack ? '<div class="toast-actions"></div>' : '') +
         '<button type="button" class="toast-close" aria-label="Đóng"><i class="fa-solid fa-xmark"></i></button>' +
+        '<span class="toast-progress"></span>' +
       '</div>');
+    el._key = key;
+    var bar = el.querySelector('.toast-progress');
     var close = function () {
       if (el._closing) return; el._closing = true;
-      el.classList.add('is-leaving'); setTimeout(function () { el.remove(); }, 300);
+      el.classList.add('is-leaving'); setTimeout(function () { el.remove(); }, 250);
     };
+    el._restart = function () {
+      if (duration <= 0) { bar.style.display = 'none'; return; }
+      bar.style.display = ''; bar.style.animation = 'none'; void bar.offsetWidth;
+      bar.style.animation = ''; bar.style.animationDuration = duration + 'ms';
+    };
+    bar.addEventListener('animationend', close);
     el.querySelector('.toast-close').addEventListener('click', close);
-    (opts.actions || []).forEach(function (a, i) {
-      var b = document.createElement('button'); b.type = 'button';
-      b.className = 'toast-action'; b.textContent = a.label; void i;
+    (opts.actions || []).forEach(function (a) {
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'toast-action'; b.textContent = a.label;
       b.addEventListener('click', function () { close(); if (a.onClick) a.onClick(); });
       el.querySelector('.toast-actions').appendChild(b);
     });
+    // Vuốt ngang để tắt (cảm ứng)
+    var sx = null;
+    el.addEventListener('pointerdown', function (e) { if (e.pointerType !== 'mouse' && !e.target.closest('button')) { sx = e.clientX; el.style.transition = 'none'; } });
+    el.addEventListener('pointermove', function (e) { if (sx === null) return; var dx = e.clientX - sx; el.style.transform = 'translateX(' + dx + 'px)'; el.style.opacity = String(Math.max(0, 1 - Math.abs(dx) / 200)); });
+    var endSwipe = function (e) {
+      if (sx === null) return; var dx = e.clientX - sx; sx = null; el.style.transition = '';
+      if (Math.abs(dx) > 70) { el.style.transform = 'translateX(' + (dx > 0 ? 120 : -120) + '%)'; el.style.opacity = '0'; el._closing = true; setTimeout(function () { el.remove(); }, 200); }
+      else { el.style.transform = ''; el.style.opacity = ''; }
+    };
+    el.addEventListener('pointerup', endSwipe); el.addEventListener('pointercancel', endSwipe);
+
     container.appendChild(el);
-    var duration = opts.duration === undefined ? 3500 : opts.duration;
-    if (duration > 0) {
-      var timer = setTimeout(close, duration);
-      el.addEventListener('mouseenter', function () { clearTimeout(timer); });
-      el.addEventListener('mouseleave', function () { timer = setTimeout(close, 1500); });
-    }
-    return { el: el, close: close };
+    el._restart();
+    var api = {
+      el: el, close: close,
+      update: function (t, text, title) {
+        type = t; duration = t === 'error' ? 6000 : t === 'loading' ? 0 : 3500;
+        el.className = 'toast toast-' + t + (snack ? ' toast-snack' : '');
+        if (el.querySelector('.toast-icon')) el.querySelector('.toast-icon').innerHTML = iconHtml(t);
+        if (text !== undefined) el.querySelector('.toast-text').textContent = text;
+        var ti = el.querySelector('.toast-title');
+        if (title !== undefined) { if (!ti) { ti = document.createElement('div'); ti.className = 'toast-title'; el.querySelector('.toast-body').prepend(ti); } ti.textContent = title; }
+        el._restart(); return api;
+      }
+    };
+    el._api = api;
+    return api;
   };
   ['success', 'error', 'warning', 'info'].forEach(function (t) {
     // TXTV.toast.success(msg) | (msg, 'Tiêu đề') | (msg, { duration... }) | (msg, 'Tiêu đề', { ... })
@@ -288,40 +336,50 @@
    *   if (await TXTV.confirm({ title: 'Xóa?', text: '...', type: 'danger', confirmText: 'Xóa' })) {...}
    *   var v = await TXTV.prompt({ title: 'Nhập lý do', required: true })
    * ===================================================================== */
-  var DIALOG_ICON = { info: 'fa-circle-info', success: 'fa-circle-check', warning: 'fa-triangle-exclamation', danger: 'fa-circle-exclamation', error: 'fa-circle-exclamation', question: 'fa-circle-question' };
+  var DIALOG_ICON = { info: 'fa-info', success: 'fa-check', warning: 'fa-exclamation', danger: 'fa-triangle-exclamation', error: 'fa-exclamation', question: 'fa-question' };
   function dialog(o) {
     return new Promise(function (resolve) {
       var type = o.type === 'error' ? 'danger' : (o.type || 'question');
-      var btnClass = { danger: 'btn-danger', warning: 'btn-warning', success: 'btn-success', info: 'btn-info' }[type] || 'btn-primary';
-      var inputHtml = '';
+      var btnClass = { danger: 'btn-danger', warning: 'btn-warning', success: 'btn-success', info: 'btn-primary' }[type] || 'btn-primary';
+      var extra = '';
+      // Chi tiết: { 'Mã phiếu': 'PX-001', 'Số dòng': 12 }  hoặc  [['Mã phiếu', 'PX-001'], ...]
+      if (o.details) {
+        var rows = Array.isArray(o.details) ? o.details : Object.keys(o.details).map(function (k) { return [k, o.details[k]]; });
+        extra += '<dl class="dialog-details">' + rows.map(function (r) { return '<dt>' + esc(r[0]) + '</dt><dd>' + esc(r[1]) + '</dd>'; }).join('') + '</dl>';
+      }
       if (o.mode === 'prompt') {
-        inputHtml = '<div class="mt-3">' +
+        extra += '<div class="mt-3">' +
           (o.label ? '<label class="form-label mb-1.5' + (o.required ? ' required' : '') + '">' + esc(o.label) + '</label>' : '') +
           (o.multiline
             ? '<textarea class="form-control" data-dialog-input rows="3" placeholder="' + esc(o.placeholder || '') + '">' + esc(o.value || '') + '</textarea>'
             : '<input class="form-control" data-dialog-input type="' + (o.inputType || 'text') + '" placeholder="' + esc(o.placeholder || '') + '" value="' + esc(o.value || '') + '">') +
           '<p class="form-error mt-1.5 hidden" data-dialog-error><i class="fa-solid fa-circle-exclamation"></i> Vui lòng nhập thông tin</p></div>';
       }
+      // Gõ chữ để xác nhận thao tác nguy hiểm: requireText: 'XÓA'
+      if (o.requireText) {
+        extra += '<label class="mt-4 block text-xs text-slate-500">Gõ <b class="font-semibold text-slate-800 dark:text-slate-200">' + esc(o.requireText) + '</b> để xác nhận</label>' +
+          '<input class="form-control mt-1.5" data-dialog-confirm autocomplete="off" spellcheck="false">';
+      }
       var el = TXTV.html(
         '<div class="modal" role="alertdialog" aria-modal="true"' + (o.static ? ' data-static="true"' : '') + '>' +
           '<div class="modal-backdrop"></div>' +
-          '<div class="modal-dialog dialog">' +
-            '<div class="flex gap-3 px-5 pb-4 pt-5">' +
-              (o.icon === false ? '' : '<i class="dialog-icon ' + type + ' fa-solid ' + (o.icon || DIALOG_ICON[o.type] || DIALOG_ICON[type]) + '"></i>') +
-              '<div class="min-w-0 flex-1">' +
+          '<div class="modal-dialog dialog' + (o.icon === false ? ' no-icon' : '') + '">' +
+            '<div class="dialog-head">' +
+              (o.icon === false ? '' : '<span class="dialog-icon ' + type + '"><i class="fa-solid ' + (o.icon || DIALOG_ICON[o.type] || DIALOG_ICON[type]) + '"></i></span>') +
+              '<div class="dialog-main">' +
                 (o.title ? '<h3 class="dialog-title">' + esc(o.title) + '</h3>' : '') +
                 (o.text ? '<div class="dialog-text">' + (o.html ? o.text : esc(o.text)) + '</div>' : '') +
-                inputHtml +
+                extra +
               '</div>' +
             '</div>' +
-            '<div class="flex justify-end gap-2 px-5 pb-5">' +
+            '<div class="dialog-footer">' +
               (o.mode !== 'alert' ? '<button type="button" class="btn btn-secondary" data-dialog="cancel">' + esc(o.cancelText || 'Hủy') + '</button>' : '') +
-              '<button type="button" class="btn ' + btnClass + '" data-dialog="ok">' + esc(o.confirmText || (o.mode === 'alert' ? 'Đóng' : 'Xác nhận')) + '</button>' +
+              '<button type="button" class="btn ' + btnClass + '" data-dialog="ok">' + esc(o.confirmText || (o.mode === 'alert' ? 'Đã hiểu' : 'Xác nhận')) + '</button>' +
             '</div>' +
           '</div>' +
         '</div>');
       document.body.appendChild(el);
-      var input = el.querySelector('[data-dialog-input]');
+      var input = el.querySelector('[data-dialog-input]'), guard = el.querySelector('[data-dialog-confirm]'), ok = el.querySelector('[data-dialog="ok"]');
       var result;
       var finish = function (val) { result = val; TXTV.modal.close(el); };
       el.addEventListener('tv:close', function () {
@@ -329,7 +387,13 @@
         if (result === undefined) result = o.mode === 'prompt' ? null : (o.mode === 'alert' ? true : false);
         resolve(result);
       });
-      el.querySelector('[data-dialog="ok"]').addEventListener('click', function () {
+      if (guard) {
+        var norm = function (v) { return String(v).trim().toUpperCase(); };
+        ok.disabled = true;
+        guard.addEventListener('input', function () { ok.disabled = norm(guard.value) !== norm(o.requireText); });
+        guard.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !ok.disabled) ok.click(); });
+      }
+      ok.addEventListener('click', function () {
         if (o.mode === 'prompt') {
           var v = input.value.trim();
           if (o.required && !v) { input.classList.add('is-invalid'); el.querySelector('[data-dialog-error]').classList.remove('hidden'); input.focus(); return; }
@@ -339,9 +403,9 @@
       });
       var cancel = el.querySelector('[data-dialog="cancel"]');
       if (cancel) cancel.addEventListener('click', function () { finish(o.mode === 'prompt' ? null : false); });
-      if (input) input.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !o.multiline) el.querySelector('[data-dialog="ok"]').click(); });
+      if (input) input.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !o.multiline) ok.click(); });
       TXTV.modal.open(el);
-      if (!input) setTimeout(function () { (type === 'danger' && cancel ? cancel : el.querySelector('[data-dialog="ok"]')).focus(); }, 60);
+      setTimeout(function () { (guard || input || (type === 'danger' && cancel ? cancel : ok)).focus(); }, 60);
     });
   }
   function normalize(a, b) { return typeof a === 'string' ? Object.assign({ text: a }, b || {}) : (a || {}); }
@@ -2632,15 +2696,9 @@
    * ===================================================================== */
   TXTV.toast.promise = function (promise, msg) {
     msg = msg || {};
-    var t = TXTV.toast('<span class="spinner spinner-sm mr-1.5 align-[-2px] text-brand-700"></span>' + esc(msg.loading || 'Đang xử lý...'), { type: 'info', duration: 0, html: true });
-    var swap = function (type, text) {
-      t.el.className = 'toast toast-' + type;
-      t.el.querySelector('.toast-icon').className = 'toast-icon fa-solid ' + TOAST_ICON[type];
-      t.el.querySelector('.toast-text').textContent = text;
-      setTimeout(t.close, type === 'error' ? 6000 : 3000);
-    };
-    return Promise.resolve(promise).then(function (r) { swap('success', typeof msg.success === 'function' ? msg.success(r) : (msg.success || 'Hoàn tất')); return r; },
-      function (e) { swap('error', typeof msg.error === 'function' ? msg.error(e) : (msg.error || (e && e.message) || String(e))); throw e; });
+    var t = TXTV.toast(msg.loading || 'Đang xử lý...', { type: 'loading', title: msg.title });
+    return Promise.resolve(promise).then(function (r) { t.update('success', typeof msg.success === 'function' ? msg.success(r) : (msg.success || 'Hoàn tất')); return r; },
+      function (e) { t.update('error', typeof msg.error === 'function' ? msg.error(e) : (msg.error || (e && e.message) || String(e))); throw e; });
   };
 
   /* =====================================================================

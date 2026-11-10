@@ -1585,7 +1585,8 @@ new TXTV.DataTable(el, { filters, columnToggle, expandRow, totals, stateKey }) �
     TXTV.toast(ok ? 'Đã duyệt' : 'Đã hủy', { type: ok ? 'success' : 'info' });
   }
   async function demoConfirmDelete() {
-    if (await TXTV.confirm({ title: 'Xóa bản ghi?', text: 'Dữ liệu đã xóa không thể khôi phục.', type: 'danger', confirmText: 'Xóa' })) TXTV.toast.success('Đã xóa');
+    if (await TXTV.confirm({ title: 'Xóa phiếu xuất kho?', text: 'Phiếu và toàn bộ dòng chi tiết sẽ bị xóa vĩnh viễn, không thể khôi phục.', type: 'danger', confirmText: 'Xóa phiếu',
+      details: { 'Mã phiếu': 'PX2611-0012', 'Người lập': 'Nguyễn Văn An', 'Số dòng': '12 vật tư' }, requireText: 'XÓA' })) TXTV.toast.success('Đã xóa phiếu PX2611-0012');
   }
   async function demoPrompt() {
     var reason = await TXTV.prompt({ title: 'Từ chối phiếu', label: 'Lý do từ chối', placeholder: 'Nhập lý do...', required: true, multiline: true, confirmText: 'Gửi' });

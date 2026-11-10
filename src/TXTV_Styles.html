@@ -378,15 +378,23 @@
     .modal-close { @apply -mr-2 grid h-8 w-8 place-items-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800; }
 
     /* Dialog (alert / confirm / prompt) */
-    .dialog { @apply max-w-[26rem] rounded-xl; }
-    .dialog-icon { @apply mt-0.5 w-5 shrink-0 text-center text-lg text-slate-400; }
-    .dialog-icon.info    { @apply text-slate-500; }
-    .dialog-icon.success { @apply text-emerald-600 dark:text-emerald-400; }
-    .dialog-icon.warning { @apply text-amber-500; }
-    .dialog-icon.danger  { @apply text-red-600 dark:text-red-400; }
-    .dialog-icon.question{ @apply text-brand-700 dark:text-accent-400; }
-    .dialog-title { @apply text-base font-semibold text-slate-900 dark:text-white; }
-    .dialog-text { @apply mt-1 text-sm leading-relaxed text-slate-600 dark:text-slate-400; }
+    .dialog { @apply max-w-[28rem] overflow-hidden rounded-xl; }
+    .dialog-head { @apply flex gap-4 px-6 pb-5 pt-6; }
+    .dialog-main { @apply min-w-0 flex-1 pt-1.5; }
+    .dialog.no-icon .dialog-main { @apply pt-0; }
+    .dialog-icon { @apply grid h-10 w-10 shrink-0 place-items-center rounded-full text-[15px] ring-[6px]; }
+    .dialog-icon.info     { @apply bg-sky-100 text-sky-700 ring-sky-50 dark:bg-sky-950 dark:text-sky-300 dark:ring-sky-950/40; }
+    .dialog-icon.success  { @apply bg-emerald-100 text-emerald-700 ring-emerald-50 dark:bg-emerald-950 dark:text-emerald-300 dark:ring-emerald-950/40; }
+    .dialog-icon.warning  { @apply bg-amber-100 text-amber-700 ring-amber-50 dark:bg-amber-950 dark:text-amber-300 dark:ring-amber-950/40; }
+    .dialog-icon.danger   { @apply bg-red-100 text-red-600 ring-red-50 dark:bg-red-950 dark:text-red-300 dark:ring-red-950/40; }
+    .dialog-icon.question { @apply bg-brand-100 text-brand-700 ring-brand-50 dark:bg-brand-900 dark:text-brand-100 dark:ring-brand-900/40; }
+    .dialog-title { @apply text-[17px] font-semibold leading-6 text-slate-900 dark:text-white; }
+    .dialog-text { @apply mt-1.5 text-sm leading-relaxed text-slate-600 dark:text-slate-400; }
+    .dialog-details { @apply mt-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-3 text-[13px] dark:border-slate-700 dark:bg-slate-800/60; }
+    .dialog-details dt { @apply text-slate-500; }
+    .dialog-details dd { @apply truncate text-right font-medium text-slate-900 dark:text-slate-100; }
+    .dialog-footer { @apply flex flex-col-reverse gap-2 border-t border-slate-200 bg-slate-50 px-6 py-3.5 sm:flex-row sm:justify-end dark:border-slate-800 dark:bg-slate-900/60; }
+    .dialog-footer .btn { @apply w-full sm:w-auto; }
 
     .drawer { @apply fixed inset-0 z-[100] hidden; }
     .drawer.open { @apply block; }
@@ -400,21 +408,38 @@
     /* =====================================================================
      * TOAST / LOADING / SPINNER / PROGRESS / SKELETON
      * ===================================================================== */
-    .toast-container { @apply pointer-events-none fixed right-4 top-4 z-[200] flex w-[calc(100%-2rem)] max-w-[22rem] flex-col gap-2; }
+    .toast-container { @apply pointer-events-none fixed right-4 top-4 z-[200] flex w-[calc(100%-2rem)] max-w-[23rem] flex-col gap-2.5; }
     .toast-container.bottom { @apply bottom-4 top-auto flex-col-reverse; }
-    .toast { @apply pointer-events-auto flex animate-toast-in items-start gap-2.5 rounded-lg border border-slate-200 bg-white py-2.5 pl-3 pr-1.5 text-sm leading-5 shadow-[0_6px_16px_-6px_rgba(15,23,42,.18)] transition duration-200 dark:border-slate-700 dark:bg-slate-800; }
-    .toast.is-leaving { @apply scale-[.98] opacity-0; }
-    .toast-icon { @apply mt-[3px] w-4 shrink-0 text-center text-[13px] text-slate-400; }
-    .toast-body { @apply min-w-0 flex-1 py-px; }
-    .toast-title { @apply font-medium text-slate-900 dark:text-white; }
-    .toast-text { @apply text-slate-600 dark:text-slate-300; }
-    .toast-body > .toast-text:first-child { @apply text-slate-800 dark:text-slate-100; }
-    .toast-close { @apply grid h-6 w-6 shrink-0 place-items-center rounded text-[11px] text-slate-400 opacity-0 transition hover:bg-slate-100 hover:text-slate-700 focus:opacity-100 dark:hover:bg-slate-700; }
+    .toast { @apply pointer-events-auto relative flex animate-toast-in touch-pan-y select-none items-start gap-3 overflow-hidden rounded-xl border border-slate-200/80 bg-white py-3 pl-3 pr-2 text-sm leading-5 shadow-[0_12px_32px_-12px_rgba(15,23,42,.28),0_2px_6px_-2px_rgba(15,23,42,.08)] transition duration-200 dark:border-slate-700 dark:bg-slate-800; }
+    .toast.is-leaving { @apply scale-95 opacity-0; }
+    .toast-icon { @apply grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-slate-100 text-[12px] text-slate-600 ring-1 ring-inset ring-slate-900/5 dark:bg-slate-700 dark:text-slate-200; }
+    .toast-success .toast-icon { @apply bg-emerald-50 text-emerald-600 ring-emerald-600/15 dark:bg-emerald-950 dark:text-emerald-400; }
+    .toast-error   .toast-icon { @apply bg-red-50 text-red-600 ring-red-600/15 dark:bg-red-950 dark:text-red-400; }
+    .toast-warning .toast-icon { @apply bg-amber-50 text-amber-600 ring-amber-600/20 dark:bg-amber-950 dark:text-amber-400; }
+    .toast-info    .toast-icon { @apply bg-sky-50 text-sky-600 ring-sky-600/15 dark:bg-sky-950 dark:text-sky-400; }
+    .toast-loading .toast-icon { @apply bg-brand-50 text-brand-700 ring-brand-700/15 dark:bg-brand-900/60 dark:text-accent-400; }
+    .toast-body { @apply min-w-0 flex-1 pt-1; }
+    .toast-title { @apply font-semibold text-slate-900 dark:text-white; }
+    .toast-text { @apply text-[13px] text-slate-600 dark:text-slate-300; }
+    .toast-body > .toast-text:first-child { @apply text-sm font-medium text-slate-800 dark:text-slate-100; }
+    .toast-count { @apply mt-1 shrink-0 rounded-full bg-slate-100 px-1.5 text-[11px] font-semibold tabular-nums leading-5 text-slate-600 dark:bg-slate-700 dark:text-slate-200; }
+    .toast-close { @apply mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-md text-[11px] text-slate-400 opacity-0 transition hover:bg-slate-100 hover:text-slate-700 focus:opacity-100 dark:hover:bg-slate-700; }
     .toast:hover .toast-close { @apply opacity-100; }
     @media (hover: none) { .toast-close { @apply opacity-100; } }
-    .toast-success .toast-icon { @apply text-emerald-600 dark:text-emerald-400; }
-    .toast-error .toast-icon   { @apply text-red-600 dark:text-red-400; }
-    .toast-warning .toast-icon { @apply text-amber-500; }
+    .toast-progress { @apply absolute bottom-0 left-0 h-[2px] w-full origin-left bg-slate-300 dark:bg-slate-600; animation: tv-toast-timer linear forwards; }
+    .toast-success .toast-progress { @apply bg-emerald-500/70; }
+    .toast-error   .toast-progress { @apply bg-red-500/70; }
+    .toast-warning .toast-progress { @apply bg-amber-500/70; }
+    .toast-info    .toast-progress { @apply bg-sky-500/60; }
+    .toast:hover .toast-progress, .toast:focus-within .toast-progress { animation-play-state: paused; }
+    /* Snackbar (toast có nút thao tác) – nền tối */
+    .toast-snack { @apply items-center border-slate-900 bg-slate-900 pl-4 text-white dark:border-slate-600 dark:bg-slate-700; }
+    .toast-snack .toast-icon { @apply bg-white/10 text-white ring-white/10; }
+    .toast-snack .toast-body { @apply pt-0; }
+    .toast-snack .toast-body > .toast-text:first-child, .toast-snack .toast-title { @apply text-white; }
+    .toast-snack .toast-text { @apply text-white/70; }
+    .toast-snack .toast-close { @apply mt-0 text-white/50 hover:bg-white/10 hover:text-white; }
+    .toast-snack .toast-progress { @apply bg-accent-400/80; }
 
     .loading-overlay { @apply fixed inset-0 z-[300] flex animate-fade-in flex-col items-center justify-center gap-3 bg-white/70 backdrop-blur-sm dark:bg-slate-950/70; }
     .loading-box { @apply flex flex-col items-center gap-3 rounded-2xl bg-white px-8 py-6 shadow-xl ring-1 ring-black/5 dark:bg-slate-800; }
@@ -718,8 +743,8 @@
     .tour-text { @apply text-sm text-slate-600 dark:text-slate-300; }
 
     /* Toast có nút thao tác */
-    .toast-actions { @apply flex shrink-0 items-center self-center; }
-    .toast-action { @apply rounded px-2 py-1 text-[13px] font-semibold text-brand-700 hover:bg-brand-50 dark:text-accent-400 dark:hover:bg-white/5; }
+    .toast-actions { @apply flex shrink-0 items-center gap-1; }
+    .toast-action { @apply rounded-md px-2.5 py-1 text-[13px] font-semibold text-accent-300 hover:bg-white/10; }
 
     /* Bottom navigation (điện thoại) */
     .bottom-nav { @apply fixed inset-x-0 bottom-0 z-30 grid border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur dark:border-slate-800 dark:bg-slate-900/95; grid-auto-flow: column; grid-auto-columns: 1fr; }
@@ -1006,6 +1031,7 @@
 
   @keyframes tv-ticker { from { transform: translateX(0); } to { transform: translateX(-100%); } }
 
+  @keyframes tv-toast-timer { from { transform: scaleX(1); } to { transform: scaleX(0); } }
   @keyframes tv-sheet-in { from { transform: translateY(100%); } to { transform: none; } }
 
   /* Khóa cuộn khi mở modal/drawer */

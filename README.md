@@ -211,12 +211,17 @@ const rows = await TXTV.run('getData', thamSo);
 TXTV.call('saveData', [obj], { loading: 'Đang lưu...', success: 'Đã lưu!', button: btnEl });
 
 // Thông báo
-TXTV.toast('Nội dung', { type: 'success|error|warning|info', title, duration, position: 'top|bottom' });
-TXTV.toast.success('Đã lưu', 'Thành công');
+TXTV.toast('Nội dung', { type: 'success|error|warning|info|loading', title, duration, position: 'top|bottom' });
+TXTV.toast.success('Đã lưu phiếu PX-001');            // hoặc (msg, 'Tiêu đề') / (msg, { duration: 8000 })
+TXTV.toast('Đã xóa 3 dòng', { actions: [{ label: 'Hoàn tác', onClick: undo }] });   // snackbar nền tối
+//  - Vạch đếm ngược ở đáy, rê chuột để dừng · thông báo trùng gộp ×2, ×3 · vuốt ngang để tắt (điện thoại)
+//  - const t = TXTV.toast('Đang đồng bộ...', { type: 'loading' }); ... t.update('success', 'Đã đồng bộ');
 
 // Hộp thoại (Promise)
 await TXTV.alert({ title: 'Xong', text: '...', type: 'success' });
-if (await TXTV.confirm({ title: 'Xóa?', text: '...', type: 'danger', confirmText: 'Xóa' })) { ... }
+if (await TXTV.confirm({ title: 'Xóa phiếu?', text: '...', type: 'danger', confirmText: 'Xóa',
+      details: { 'Mã phiếu': 'PX-001', 'Số dòng': 12 },   // khối thông tin đối tượng sắp bị tác động
+      requireText: 'XÓA' })) { ... }                       // phải gõ đúng chữ mới bấm được nút xác nhận
 const reason = await TXTV.prompt({ title: 'Lý do', required: true, multiline: true }); // null nếu hủy
 
 // Modal / Drawer / Loading
