@@ -1,4 +1,4 @@
-# TXTV – UI Component Library cho Google Apps Script (v1.4)
+# TXTV – UI Component Library cho Google Apps Script (v1.5)
 
 🔗 **Trang demo:** https://nmtxtravinh.github.io/TXTV_UI-Component-Library/ (mọi component, có nút xem/copy code)
 
@@ -135,6 +135,8 @@ function saveData(obj) {
 | **Mở rộng v1.2** | `datepicker` · `combo-multi` · `autocomplete-panel` · `numpad` `numpad-display` · `editor` `editor-toolbar` `editor-content` · `transfer` · `grid-edit` · `gantt` · `gauge` · `pivot` · `wizard-step` · `tour-spot` `tour-pop` · `toast-actions` · `bottom-nav` `bottom-nav-item` `has-bottom-nav` · `comment-list` `comment` `comment-body` (`mine`) |
 | **Mở rộng v1.3** | `btn-check` (nút bật/tắt) · `indicator` `indicator-item` · `steps-vertical` `step-v` · `dropdown-sub` (menu con) · `nav-group` `nav-sub` (menu sidebar nhiều cấp) · `ticker` (chữ chạy) · `result` (trang kết quả/lỗi) · `code-block` · `card-media` `card-horizontal` `profile-card` · `filter-bar` · `carousel` · `range-dual` · `char-counter` · `strength` · `split` · `avatar-upload` · `notif-panel` · `swatches` · `tv-tip` · `popconfirm` |
 | **Mở rộng v1.4** | `tabs-vertical` · `table-stack` (bảng thành thẻ trên điện thoại) · `modal-sheet` (bottom sheet) · `action-bar` · `timeline-h` · `plan` (bảng gói) · `kpi-big` · `hovercard` · `inline-edit` · `reactions` · `tv-progress-top` · `tv-watermark` |
+| **Form v1.5** | `field` `field-desc` `field-horizontal` `field-content` `field-separator` · `fieldset` `fieldset-legend` `fieldset-desc` · `input-box` `input-addon` `input-box-col` `input-box-footer` · `check-item` `check-item-title` `check-item-desc` · `form-actions` · `form-label .optional` |
+| **Mở rộng v1.5** | `menubar` `dropdown-shortcut` `dropdown-item.checked` · `nav-menu` `nav-menu-grid` `nav-menu-link` `nav-menu-feature` · `scroll-area` · `item` (`item-outline` `item-muted` `item-hover` `item-media` `item-content` `item-title` `item-desc` `item-actions` `item-group`) · `page-heading` · `action-panel` · `steps-panels` `step-panel` · `prose-tv` · `alert-actions` · `kbd-group` |
 | **Tiện ích** | `heading-1..4` `text-muted` `link` · `no-print` `print-only` · `scrollbar-none` |
 
 ## 5. Thuộc tính `data-tv-*` (không cần viết JS)
@@ -200,6 +202,7 @@ function saveData(obj) {
 | `table.table-stack` | Bảng tự chuyển thành dạng thẻ trên điện thoại |
 | `data-tv-hovercard="#template"` | Thẻ thông tin khi rê chuột |
 | `data-tv-reactions data-name` | Đánh giá bằng biểu tượng cảm xúc (1–5) |
+| `data-tv-check-all="[name=quyen]"` | Checkbox "chọn tất cả" có trạng thái lưng chừng |
 
 Khi chèn HTML động có các thành phần trên, gọi `TXTV.init(container)`.
 
@@ -221,7 +224,8 @@ TXTV.toast('Đã xóa 3 dòng', { actions: [{ label: 'Hoàn tác', onClick: undo
 await TXTV.alert({ title: 'Xong', text: '...', type: 'success' });
 if (await TXTV.confirm({ title: 'Xóa phiếu?', text: '...', type: 'danger', confirmText: 'Xóa',
       details: { 'Mã phiếu': 'PX-001', 'Số dòng': 12 },   // khối thông tin đối tượng sắp bị tác động
-      requireText: 'XÓA' })) { ... }                       // phải gõ đúng chữ mới bấm được nút xác nhận
+    })) { ... }
+// Mặc định KHÔNG cần gõ chữ. Chỉ khi thật sự cần (xóa hàng loạt, xóa vĩnh viễn) mới thêm: requireText: 'XÓA'
 const reason = await TXTV.prompt({ title: 'Lý do', required: true, multiline: true }); // null nếu hủy
 
 // Modal / Drawer / Loading
@@ -371,6 +375,29 @@ TXTV.watermark('nguyen.van.a@tbsgroup.vn · 10/11/2026');   // chữ mờ chốn
 TXTV.topbar.start(); TXTV.topbar.done();      // tự chạy khi TXTV.run(); tắt: TXTV.config.autoTopbar = false
 TXTV.hovercard('#nguoiPhuTrach', el => TXTV.run('layThongTin', el.dataset.id).then(u => '<b>' + TXTV.escape(u.ten) + '</b>'));
 ```
+
+### Form v1.5 (theo shadcn/ui)
+
+```html
+<div class="fieldset">
+  <div class="fieldset-legend">Thông tin cá nhân</div>
+  <p class="fieldset-desc">Dùng để liên hệ.</p>
+  <div class="field">
+    <label class="form-label required" for="ten">Họ và tên</label>
+    <input class="form-control" id="ten" name="hoTen" required>
+    <p class="field-desc">Ghi đầy đủ, có dấu.</p>
+  </div>
+  <!-- Ô nhập có icon / chữ / nút bên trong cùng 1 khung -->
+  <div class="input-box"><span class="input-addon"><i class="fa-regular fa-envelope"></i></span><input name="email"><span class="input-addon">@tbsgroup.vn</span></div>
+  <!-- Nhãn + mô tả bên trái, ô nhập bên phải (trang cài đặt) -->
+  <div class="field field-horizontal"><div class="field-content"><label class="form-label">Nhận email</label><p class="field-desc">Khi có phiếu cần duyệt.</p></div><input type="checkbox" class="form-switch" name="email"></div>
+  <!-- Checkbox kèm mô tả -->
+  <label class="check-item"><input type="checkbox" class="form-check-input" name="quyen" value="kho"><div><div class="check-item-title">Kho vật tư</div><div class="check-item-desc">Nhập, xuất, kiểm kê</div></div></label>
+</div>
+<div class="form-actions"><button class="btn btn-ghost">Hủy</button><button class="btn btn-primary">Lưu</button></div>
+```
+
+Checkbox / radio được vẽ lại (đồng nhất trên mọi trình duyệt), ô nhập có vòng focus mềm, lỗi hiện đúng dưới ô nhập kể cả khi dùng `input-box`.
 
 ## 7. Server: `TVDB` – dùng Google Sheet như bảng dữ liệu
 

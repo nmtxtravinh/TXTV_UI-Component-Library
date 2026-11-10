@@ -7,7 +7,7 @@
 (function (global) {
   'use strict';
 
-  var TXTV = { version: '1.4.0' };
+  var TXTV = { version: '1.5.0' };
 
   /* =====================================================================
    * TIỆN ÍCH CHUNG
@@ -686,7 +686,7 @@
         if (opts.showValid) target.classList.toggle('is-valid', !msg);
         if (msg) {
           if (!firstInvalid) firstInvalid = el;
-          var group = el.closest('.form-group') || el.parentElement;
+          var group = el.closest('.form-group, .field') || (el.closest('.input-box, .input-group, .input-icon, .number-input, .combo') || el).parentElement;
           if (!group.querySelector('.form-error[data-auto]')) {
             var err = TXTV.html('<p class="form-error" data-auto><i class="fa-solid fa-circle-exclamation"></i><span></span></p>');
             err.querySelector('span').textContent = msg; group.appendChild(err);
@@ -3366,6 +3366,63 @@
     $$('[data-tv-reactions]', root).forEach(initReactions);
   }
 
+  /* #####################################################################
+   *                     MỞ RỘNG v1.5
+   * ##################################################################### */
+
+  /* Menubar / Navigation menu: khi đã mở 1 menu, rê chuột sang mục khác sẽ chuyển menu (giống ứng dụng desktop).
+     Navigation menu trên máy có chuột: rê chuột là mở. */
+  document.addEventListener('mouseover', function (e) {
+    var t = e.target.closest && e.target.closest('.menubar > .dropdown > [data-tv-toggle="dropdown"], .nav-menu > .dropdown > [data-tv-toggle="dropdown"]');
+    if (!t) return;
+    var bar = t.closest('.menubar, .nav-menu'), dd = t.parentElement;
+    var hoverOpen = bar.classList.contains('nav-menu') && global.matchMedia && matchMedia('(hover: hover)').matches;
+    if ((bar.querySelector(':scope > .dropdown.open') || hoverOpen) && !dd.classList.contains('open')) TXTV.dropdown.toggle(t);
+  });
+  // Rời khỏi navigation menu thì đóng (chỉ với chuột)
+  document.addEventListener('mouseout', function (e) {
+    var nav = e.target.closest && e.target.closest('.nav-menu');
+    if (!nav || nav.contains(e.relatedTarget) || !(global.matchMedia && matchMedia('(hover: hover)').matches)) return;
+    clearTimeout(nav._t); nav._t = setTimeout(function () { if (!nav.matches(':hover')) $$(':scope > .dropdown.open', nav).forEach(function (d) { d.classList.remove('open'); }); }, 250);
+  });
+  document.addEventListener('keydown', function (e) {
+    var t = e.target.closest && e.target.closest('.menubar > .dropdown > [data-tv-toggle="dropdown"]');
+    if (!t || (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft')) return;
+    var items = $$(':scope > .dropdown > [data-tv-toggle="dropdown"]', t.closest('.menubar')), i = items.indexOf(t);
+    var next = items[(i + (e.key === 'ArrowRight' ? 1 : -1) + items.length) % items.length];
+    var wasOpen = t.parentElement.classList.contains('open'); next.focus(); if (wasOpen) TXTV.dropdown.toggle(next);
+  });
+
+  /* Scroll area: tự hiện bóng mờ ở mép trên / dưới khi còn nội dung để cuộn */
+  function initScrollArea(el) {
+    if (el._sa) return; el._sa = true;
+    var up = function () {
+      el.classList.toggle('shadow-top', el.scrollTop > 2);
+      el.classList.toggle('shadow-bottom', el.scrollTop + el.clientHeight < el.scrollHeight - 2);
+    };
+    el.addEventListener('scroll', TXTV.throttle(up, 50)); global.addEventListener('resize', TXTV.debounce(up, 150));
+    if ('ResizeObserver' in global) new ResizeObserver(up).observe(el);
+    up();
+  }
+  TXTV.scrollArea = initScrollArea;
+
+  /* Checkbox "chọn tất cả" có trạng thái lưng chừng:
+     <input type="checkbox" class="form-check-input" data-tv-check-all="[name=quyen]">  (phạm vi: form / .card / [data-tv-check-scope] gần nhất) */
+  function initCheckAll(master) {
+    if (master._ca) return; master._ca = true;
+    var sel = master.getAttribute('data-tv-check-all'), scope = master.closest('form, .card, [data-tv-check-scope]') || document;
+    var items = function () { return $$(sel, scope).filter(function (x) { return x !== master; }); };
+    var sync = function () { var it = items(), n = it.filter(function (x) { return x.checked; }).length; master.checked = n === it.length && n > 0; master.indeterminate = n > 0 && n < it.length; };
+    master.addEventListener('change', function () { items().forEach(function (x) { x.checked = master.checked; }); master.indeterminate = false; });
+    scope.addEventListener('change', function (e) { if (e.target !== master && e.target.matches(sel)) sync(); });
+    sync();
+  }
+
+  function initV15(root) {
+    $$('.scroll-area', root).forEach(initScrollArea);
+    $$('[data-tv-check-all]', root).forEach(initCheckAll);
+  }
+
   /* =====================================================================
    * HIỆN CODE MẪU (dùng trong trang tài liệu) – <div data-tv-demo> ... </div>
    * ===================================================================== */
@@ -3395,6 +3452,7 @@
     initV12(root);
     initV13(root);
     initV14(root);
+    initV15(root);
   };
 
   document.addEventListener('click', function (e) {
@@ -3452,7 +3510,7 @@
     var el = e.target;
     if (el.classList && el.classList.contains('is-invalid')) {
       el.classList.remove('is-invalid');
-      var g = el.closest('.form-group') || el.parentElement; var err = g && g.querySelector('.form-error[data-auto]'); if (err) err.remove();
+      var g = el.closest('.form-group, .field') || (el.closest('.input-box, .input-group, .input-icon, .number-input, .combo') || el).parentElement; var err = g && g.querySelector('.form-error[data-auto]'); if (err) err.remove();
     }
   });
 

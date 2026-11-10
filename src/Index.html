@@ -56,6 +56,9 @@
       <div class="nav-section-title">Mới v1.4</div>
       <button class="nav-link" data-scroll="v14-inputs"><i class="fa-regular fa-clock"></i><span class="nav-label">Giờ, tháng, sửa nhanh</span><span class="nav-badge">1.4</span></button>
       <button class="nav-link" data-scroll="v14-layout"><i class="fa-solid fa-table-cells-large"></i><span class="nav-label">Bố cục & hiển thị</span><span class="nav-badge">1.4</span></button>
+      <div class="nav-section-title">Mới v1.5</div>
+      <button class="nav-link" data-scroll="v15-form"><i class="fa-solid fa-pen-ruler"></i><span class="nav-label">Form: Field, Input box</span><span class="nav-badge">1.5</span></button>
+      <button class="nav-link" data-scroll="v15-components"><i class="fa-solid fa-layer-group"></i><span class="nav-label">Menubar, Item, Heading…</span><span class="nav-badge">1.5</span></button>
       <div class="nav-section-title">Điều hướng</div>
       <button class="nav-link" data-scroll="navigation"><i class="fa-solid fa-compass"></i><span class="nav-label">Tabs, Breadcrumb...</span></button>
       <button class="nav-link" data-scroll="dropdowns"><i class="fa-solid fa-caret-down"></i><span class="nav-label">Dropdown</span></button>
@@ -96,7 +99,7 @@
       </ol>
       <div class="ml-auto flex items-center gap-1">
         <button class="btn btn-secondary btn-sm hidden text-slate-400 md:inline-flex" onclick="TXTV.commandPalette.open()"><i class="fa-solid fa-magnifying-glass"></i> Tìm... <span class="kbd">Ctrl K</span></button>
-        <span class="badge badge-accent badge-pill hidden sm:inline-flex">v1.4</span>
+        <span class="badge badge-accent badge-pill hidden sm:inline-flex">v1.5</span>
         <button class="btn btn-ghost btn-icon" data-tv-toggle="theme" data-tooltip="Sáng / Tối" data-tooltip-pos="bottom"><i data-tv-theme-icon class="fa-solid fa-moon"></i></button>
         <div class="dropdown">
           <button class="btn btn-ghost btn-icon relative" data-tv-toggle="dropdown" aria-label="Thông báo">
@@ -142,7 +145,7 @@
         </div>
 
         <div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <div class="stat"><div class="stat-icon"><i class="fa-solid fa-cubes"></i></div><div><div class="stat-label">Component</div><div class="stat-value">170+</div><div class="stat-meta">CSS class sẵn dùng</div></div></div>
+          <div class="stat"><div class="stat-icon"><i class="fa-solid fa-cubes"></i></div><div><div class="stat-label">Component</div><div class="stat-value">190+</div><div class="stat-meta">CSS class sẵn dùng</div></div></div>
           <div class="stat"><div class="stat-icon bg-accent-100 text-accent-700"><i class="fa-solid fa-code"></i></div><div><div class="stat-label">JS API</div><div class="stat-value">TXTV.*</div><div class="stat-meta">Không cần thư viện ngoài</div></div></div>
           <div class="stat"><div class="stat-icon bg-sky-50 text-sky-600"><i class="fa-solid fa-moon"></i></div><div><div class="stat-label">Dark mode</div><div class="stat-value">Có</div><div class="stat-meta">Tự lưu theo trình duyệt</div></div></div>
           <div class="stat"><div class="stat-icon bg-amber-50 text-amber-600"><i class="fa-solid fa-mobile-screen"></i></div><div><div class="stat-label">Responsive</div><div class="stat-value">100%</div><div class="stat-meta">Điện thoại → màn hình lớn</div></div></div>
@@ -1183,6 +1186,155 @@ TXTV.run('demo_getEmployees').then(rows => dt.setData(rows));</code></pre>
         </div>
       </section>
 
+      <!-- ===================== v1.5: FORM MỚI ===================== -->
+      <section id="v15-form" class="space-y-4">
+        <div class="page-header mb-0"><div><h2 class="page-title">Form – Field, Fieldset, Input box <span class="badge badge-brand badge-pill align-middle">v1.5</span></h2><p class="page-subtitle">Bố cục form theo shadcn/ui: nhãn – ô nhập – mô tả rõ ràng, checkbox/radio tự vẽ, ô nhập chứa icon/nút bên trong</p></div></div>
+        <div data-demo="Fieldset + Field (form đăng ký tài khoản)">
+          <form class="max-w-2xl" id="v15Form" novalidate>
+            <div class="fieldset">
+              <div class="fieldset-legend">Thông tin cá nhân</div>
+              <p class="fieldset-desc">Dùng để liên hệ và hiển thị trên phiếu.</p>
+              <div class="grid gap-5 sm:grid-cols-2">
+                <div class="field"><label class="form-label required" for="f15ten">Họ và tên</label><input class="form-control" id="f15ten" name="hoTen" required placeholder="Nguyễn Văn A"></div>
+                <div class="field"><label class="form-label" for="f15sdt">Số điện thoại <span class="optional">(không bắt buộc)</span></label><input class="form-control" id="f15sdt" name="sdt" data-tv-validate="phone" placeholder="0912 345 678"></div>
+                <div class="field sm:col-span-2"><label class="form-label required" for="f15email">Email công ty</label>
+                  <div class="input-box"><span class="input-addon"><i class="fa-regular fa-envelope"></i></span><input id="f15email" name="email" required placeholder="ten" pattern="[A-Za-z0-9._-]+" title="Chỉ phần tên trước @"><span class="input-addon">@tbsgroup.vn</span></div>
+                  <p class="field-desc">Chỉ nhập phần trước dấu @.</p></div>
+              </div>
+            </div>
+            <div class="fieldset">
+              <div class="fieldset-legend">Quyền truy cập</div>
+              <p class="fieldset-desc">Chọn các phân hệ người dùng được phép sử dụng.</p>
+              <label class="check-item"><input type="checkbox" class="form-check-input" data-tv-check-all="[name=quyen]"><div><div class="check-item-title">Chọn tất cả</div></div></label>
+              <div class="grid gap-4 border-l border-slate-200 pl-6 sm:grid-cols-2 dark:border-slate-800">
+                <label class="check-item"><input type="checkbox" class="form-check-input" name="quyen" value="kho" checked><div><div class="check-item-title">Kho vật tư</div><div class="check-item-desc">Nhập, xuất, kiểm kê vật tư</div></div></label>
+                <label class="check-item"><input type="checkbox" class="form-check-input" name="quyen" value="sx"><div><div class="check-item-title">Sản xuất</div><div class="check-item-desc">Kế hoạch, sản lượng, tiến độ</div></div></label>
+                <label class="check-item"><input type="checkbox" class="form-check-input" name="quyen" value="ns"><div><div class="check-item-title">Nhân sự</div><div class="check-item-desc">Chấm công, nghỉ phép</div></div></label>
+                <label class="check-item"><input type="checkbox" class="form-check-input" name="quyen" value="bc"><div><div class="check-item-title">Báo cáo</div><div class="check-item-desc">Xem và xuất báo cáo</div></div></label>
+              </div>
+            </div>
+            <div class="fieldset">
+              <div class="fieldset-legend">Tùy chọn</div>
+              <div class="field field-horizontal"><div class="field-content"><label class="form-label" for="f15mail">Nhận email thông báo</label><p class="field-desc">Khi có phiếu cần bạn duyệt.</p></div><input type="checkbox" class="form-switch" id="f15mail" name="nhanEmail" checked></div>
+              <div class="field-separator"></div>
+              <div class="field field-horizontal"><div class="field-content"><label class="form-label">Vai trò</label><p class="field-desc">Quyết định các thao tác được phép.</p></div>
+                <select class="form-control" name="vaiTro"><option>Nhân viên</option><option>Tổ trưởng</option><option>Quản lý</option></select></div>
+              <div class="field-separator"></div>
+              <div class="field field-horizontal"><div class="field-content"><label class="form-label">Ca làm việc</label></div>
+                <div class="flex flex-wrap gap-4"><label class="form-check"><input type="radio" class="form-check-input" name="ca" value="1" checked> Ca 1</label><label class="form-check"><input type="radio" class="form-check-input" name="ca" value="2"> Ca 2</label><label class="form-check"><input type="radio" class="form-check-input" name="ca" value="3" disabled> Ca 3 (khóa)</label></div></div>
+            </div>
+            <div class="form-actions mt-6"><button type="button" class="btn btn-ghost" onclick="TXTV.form.reset('#v15Form')">Hủy</button><button type="submit" class="btn btn-primary">Tạo tài khoản</button></div>
+          </form>
+        </div>
+        <div data-demo="Input box – icon, chữ, nút, phím tắt nằm trong cùng 1 khung">
+          <div class="grid gap-4 md:grid-cols-2">
+            <div class="input-box"><span class="input-addon"><i class="fa-solid fa-magnifying-glass"></i></span><input placeholder="Tìm phiếu, vật tư..."><span class="kbd-group"><span class="kbd">Ctrl</span><span class="kbd">K</span></span></div>
+            <div class="input-box"><span class="input-addon">https://</span><input placeholder="tbsgroup.vn"><span class="input-addon"><i class="fa-solid fa-circle-info" data-tv-tip="Địa chỉ website"></i></span></div>
+            <div class="input-box"><input placeholder="Mã giảm giá" value="TBS2026"><button type="button" class="btn btn-secondary">Áp dụng</button></div>
+            <div class="input-box"><span class="input-addon"><i class="fa-solid fa-link"></i></span><input value="https://script.google.com/macros/s/AKfy.../exec" readonly id="ibCopy"><button type="button" class="btn btn-ghost btn-icon" data-tv-copy="#ibCopy" data-tv-tip="Sao chép"><i class="fa-regular fa-copy"></i></button></div>
+            <div class="input-box"><input placeholder="0" class="text-right" data-tv-mask="number"><span class="input-addon">₫ / tháng</span></div>
+            <div class="input-box"><span class="input-addon"><span class="spinner spinner-sm text-brand-700"></span></span><input value="Đang kiểm tra mã..." disabled></div>
+            <div class="input-box input-box-col md:col-span-2">
+              <textarea placeholder="Viết ghi chú cho phiếu... (nhấn Ctrl+Enter để gửi)"></textarea>
+              <div class="input-box-footer"><button type="button" class="btn btn-ghost btn-icon btn-sm" data-tv-tip="Đính kèm"><i class="fa-solid fa-paperclip"></i></button><button type="button" class="btn btn-ghost btn-icon btn-sm" data-tv-tip="Nhắc tên"><i class="fa-solid fa-at"></i></button><span class="ml-auto text-xs text-slate-400">Markdown được hỗ trợ</span><button type="button" class="btn btn-primary btn-sm">Gửi</button></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== v1.5: COMPONENT ===================== -->
+      <section id="v15-components" class="space-y-4">
+        <div class="page-header mb-0"><div><h2 class="page-title">Menubar, Navigation menu, Item, Page heading… <span class="badge badge-brand badge-pill align-middle">v1.5</span></h2><p class="page-subtitle">Các component còn thiếu so với shadcn/ui & Tailwind UI</p></div></div>
+        <div data-demo="Page heading (tiêu đề trang có thông tin phụ)">
+          <div class="page-heading mb-0">
+            <div class="min-w-0">
+              <ol class="breadcrumb mb-2 text-xs"><li>Kho vật tư</li><li>Phiếu xuất</li></ol>
+              <h3 class="page-heading-title">PX2611-0012</h3>
+              <div class="page-heading-meta"><span><i class="fa-regular fa-user"></i> Nguyễn Văn An</span><span><i class="fa-regular fa-calendar"></i> 10/11/2026</span><span><i class="fa-solid fa-warehouse"></i> Kho A</span><span class="badge badge-warning">Chờ duyệt</span></div>
+            </div>
+            <div class="page-heading-actions"><button class="btn btn-secondary"><i class="fa-solid fa-print"></i> In</button><button class="btn btn-secondary"><i class="fa-solid fa-pen"></i> Sửa</button><button class="btn btn-primary"><i class="fa-solid fa-check"></i> Duyệt</button></div>
+          </div>
+        </div>
+        <div class="grid gap-4 lg:grid-cols-2">
+          <div data-demo="Menubar (rê chuột chuyển menu, phím ← →)">
+            <div class="menubar">
+              <div class="dropdown"><button type="button" data-tv-toggle="dropdown">Tệp</button>
+                <div class="dropdown-menu"><a class="dropdown-item">Phiếu mới <span class="dropdown-shortcut">Alt N</span></a><a class="dropdown-item">Mở… <span class="dropdown-shortcut">Ctrl O</span></a><div class="dropdown-divider"></div><a class="dropdown-item">In <span class="dropdown-shortcut">Ctrl P</span></a></div></div>
+              <div class="dropdown"><button type="button" data-tv-toggle="dropdown">Sửa</button>
+                <div class="dropdown-menu"><a class="dropdown-item">Hoàn tác <span class="dropdown-shortcut">Ctrl Z</span></a><a class="dropdown-item">Làm lại <span class="dropdown-shortcut">Ctrl Y</span></a><div class="dropdown-divider"></div><a class="dropdown-item">Tìm <span class="dropdown-shortcut">Ctrl F</span></a></div></div>
+              <div class="dropdown"><button type="button" data-tv-toggle="dropdown">Hiển thị</button>
+                <div class="dropdown-menu"><a class="dropdown-item checked">Thanh bên</a><a class="dropdown-item checked">Cột tổng</a><a class="dropdown-item">Chế độ gọn</a></div></div>
+              <div class="dropdown"><button type="button" data-tv-toggle="dropdown">Trợ giúp</button>
+                <div class="dropdown-menu"><a class="dropdown-item">Hướng dẫn</a><a class="dropdown-item">Phím tắt <span class="dropdown-shortcut">?</span></a></div></div>
+            </div>
+          </div>
+          <div data-demo="Navigation menu (menu lớn có mô tả)">
+            <nav class="nav-menu">
+              <div class="dropdown"><button type="button" data-tv-toggle="dropdown">Phân hệ</button>
+                <div class="dropdown-menu"><div class="nav-menu-grid">
+                  <a class="nav-menu-feature"><i class="fa-solid fa-leaf mb-3 text-xl text-accent-400"></i><div class="font-semibold">TXTV Apps</div><div class="mt-1 text-[13px] text-white/70">Bộ ứng dụng nội bộ Nhà máy Túi xách Trà Vinh.</div></a>
+                  <a class="nav-menu-link"><i class="fa-solid fa-warehouse"></i><div><div class="nav-menu-title">Kho vật tư</div><div class="nav-menu-desc">Nhập, xuất, tồn kho theo thời gian thực.</div></div></a>
+                  <a class="nav-menu-link"><i class="fa-solid fa-industry"></i><div><div class="nav-menu-title">Sản xuất</div><div class="nav-menu-desc">Kế hoạch chuyền, sản lượng theo giờ.</div></div></a>
+                  <a class="nav-menu-link"><i class="fa-solid fa-users"></i><div><div class="nav-menu-title">Nhân sự</div><div class="nav-menu-desc">Chấm công, nghỉ phép, tăng ca.</div></div></a>
+                </div></div></div>
+              <div class="dropdown"><button type="button" data-tv-toggle="dropdown">Báo cáo</button>
+                <div class="dropdown-menu"><div class="nav-menu-grid sm:grid-cols-1 sm:w-80">
+                  <a class="nav-menu-link"><i class="fa-solid fa-chart-line"></i><div><div class="nav-menu-title">Sản lượng</div><div class="nav-menu-desc">Theo ngày, chuyền, đơn hàng.</div></div></a>
+                  <a class="nav-menu-link"><i class="fa-solid fa-gauge-high"></i><div><div class="nav-menu-title">OEE</div><div class="nav-menu-desc">Khả dụng, hiệu suất, chất lượng.</div></div></a>
+                </div></div></div>
+              <a>Tài liệu</a>
+            </nav>
+          </div>
+        </div>
+        <div class="grid gap-4 lg:grid-cols-2">
+          <div data-demo="Item – danh sách có ảnh / nội dung / thao tác">
+            <div class="space-y-3">
+              <div class="item item-outline"><div class="item-media"><i class="fa-solid fa-file-pdf text-red-500"></i></div><div class="item-content"><div class="item-title">Quy trình kiểm hàng v3.pdf</div><div class="item-desc">2,4 MB · cập nhật 3 ngày trước</div></div><div class="item-actions"><button class="btn btn-secondary btn-sm">Tải về</button></div></div>
+              <div class="item-group">
+                <div class="item item-hover"><span class="avatar" data-tv-avatar="Kim Thị Mai"></span><div class="item-content"><div class="item-title">Kim Thị Mai</div><div class="item-desc">Tổ trưởng · Chuyền May 2</div></div><div class="item-actions"><span class="badge badge-success">Online</span><i class="fa-solid fa-chevron-right text-xs text-slate-300"></i></div></div>
+                <div class="item item-hover"><span class="avatar" data-tv-avatar="Lê Minh Đức"></span><div class="item-content"><div class="item-title">Lê Minh Đức</div><div class="item-desc">Kỹ thuật · Bảo trì máy</div></div><div class="item-actions"><i class="fa-solid fa-chevron-right text-xs text-slate-300"></i></div></div>
+              </div>
+              <div class="item item-muted"><div class="item-media border-0 bg-amber-100 text-amber-600"><i class="fa-solid fa-triangle-exclamation"></i></div><div class="item-content"><div class="item-title">Chưa xác thực 2 lớp</div><div class="item-desc">Bật để tăng bảo mật tài khoản.</div></div><div class="item-actions"><button class="btn btn-primary btn-sm">Bật</button></div></div>
+            </div>
+          </div>
+          <div data-demo="Scroll area (bóng mờ báo còn nội dung)">
+            <div class="scroll-area h-56 rounded-lg border border-slate-200 dark:border-slate-800">
+              <div class="p-4"><div class="mb-3 text-sm font-semibold">Nhật ký thao tác</div>
+                <div class="space-y-2 text-sm text-slate-600 dark:text-slate-400" id="saLog"></div></div>
+            </div>
+          </div>
+        </div>
+        <div data-demo="Action panel">
+          <div class="space-y-3">
+            <div class="action-panel"><div><div class="action-panel-title">Xuất dữ liệu tháng 11/2026</div><p class="action-panel-text">Tải toàn bộ phiếu nhập – xuất của tháng dưới dạng Excel để đối chiếu với kế toán.</p></div><button class="btn btn-secondary shrink-0"><i class="fa-solid fa-file-excel text-emerald-600"></i> Xuất Excel</button></div>
+            <div class="action-panel danger"><div><div class="action-panel-title text-red-600 dark:text-red-400">Xóa kho dữ liệu thử nghiệm</div><p class="action-panel-text">Toàn bộ dữ liệu demo sẽ bị xóa vĩnh viễn.</p></div><button class="btn btn-outline-danger shrink-0" onclick="demoConfirmDelete()">Xóa dữ liệu</button></div>
+          </div>
+        </div>
+        <div data-demo="Steps dạng panel">
+          <div class="steps-panels">
+            <div class="step-panel done"><span class="step-index"><i class="fa-solid fa-check"></i></span><div><div class="step-panel-title">Thông tin phiếu</div><div class="step-panel-text">Đã hoàn tất</div></div></div>
+            <div class="step-panel active"><span class="step-index">2</span><div><div class="step-panel-title">Chi tiết vật tư</div><div class="step-panel-text">Đang nhập 12 dòng</div></div></div>
+            <div class="step-panel"><span class="step-index">3</span><div><div class="step-panel-title">Duyệt</div><div class="step-panel-text">Trưởng kho</div></div></div>
+          </div>
+        </div>
+        <div class="grid gap-4 lg:grid-cols-2">
+          <div data-demo="Alert có nút thao tác">
+            <div class="space-y-3">
+              <div class="alert alert-warning"><i class="fa-solid fa-triangle-exclamation"></i><div><div class="alert-title">Phiếu sắp quá hạn duyệt</div>3 phiếu xuất kho chưa được duyệt sau 48 giờ.<div class="alert-actions"><button class="btn btn-warning">Xem phiếu</button><button class="btn btn-ghost">Để sau</button></div></div></div>
+              <div class="alert alert-brand"><i class="fa-solid fa-circle-info"></i><div><div class="alert-title">Có phiên bản mới</div>TXTV v1.5 đã sẵn sàng.<div class="alert-actions"><button class="btn btn-primary">Cập nhật</button></div></div></div>
+            </div>
+          </div>
+          <div data-demo="Prose – định dạng nội dung văn bản (.prose-tv)">
+            <article class="prose-tv">
+              <h3>Quy định ra vào nhà máy</h3>
+              <p>Áp dụng từ <strong>01/12/2026</strong> cho toàn bộ cán bộ công nhân viên và khách.</p>
+              <ul><li>Đeo thẻ nhân viên trong suốt ca làm việc.</li><li>Khách phải đăng ký tại <a>phòng bảo vệ</a>.</li></ul>
+              <blockquote>An toàn là trách nhiệm của mỗi người.</blockquote>
+            </article>
+          </div>
+        </div>
+      </section>
+
       <!-- ===================== NAVIGATION ===================== -->
       <section id="navigation" class="space-y-4">
         <div class="page-header mb-0"><div><h2 class="page-title">Điều hướng</h2><p class="page-subtitle">Breadcrumb, Tabs, Pills, Pagination, Steps, Navbar</p></div></div>
@@ -1441,7 +1593,7 @@ new TXTV.DataTable(el, { filters, columnToggle, expandRow, totals, stateKey }) �
       </section>
     </main>
 
-    <footer class="app-footer">© 2026 Nhà máy Túi xách Trà Vinh – Chi nhánh 7, Công ty Cổ phần Đầu tư Thái Bình (TBS Group) · TXTV v1.4</footer>
+    <footer class="app-footer">© 2026 Nhà máy Túi xách Trà Vinh – Chi nhánh 7, Công ty Cổ phần Đầu tư Thái Bình (TBS Group) · TXTV v1.5</footer>
     <button class="no-print" data-tv-backtop aria-label="Lên đầu trang"><i class="fa-solid fa-arrow-up"></i></button>
   </div>
 </div>
@@ -1586,7 +1738,7 @@ new TXTV.DataTable(el, { filters, columnToggle, expandRow, totals, stateKey }) �
   }
   async function demoConfirmDelete() {
     if (await TXTV.confirm({ title: 'Xóa phiếu xuất kho?', text: 'Phiếu và toàn bộ dòng chi tiết sẽ bị xóa vĩnh viễn, không thể khôi phục.', type: 'danger', confirmText: 'Xóa phiếu',
-      details: { 'Mã phiếu': 'PX2611-0012', 'Người lập': 'Nguyễn Văn An', 'Số dòng': '12 vật tư' }, requireText: 'XÓA' })) TXTV.toast.success('Đã xóa phiếu PX2611-0012');
+      details: { 'Mã phiếu': 'PX2611-0012', 'Người lập': 'Nguyễn Văn An', 'Số dòng': '12 vật tư' } })) TXTV.toast.success('Đã xóa phiếu PX2611-0012');
   }
   async function demoPrompt() {
     var reason = await TXTV.prompt({ title: 'Từ chối phiếu', label: 'Lý do từ chối', placeholder: 'Nhập lý do...', required: true, multiline: true, confirmText: 'Gửi' });
@@ -1967,6 +2119,16 @@ new TXTV.DataTable(el, { filters, columnToggle, expandRow, totals, stateKey }) �
   ] });
   var wmOn = false;
   function demoWatermark() { wmOn = !wmOn; TXTV.watermark(wmOn ? 'nguyen.van.a@tbsgroup.vn · ' + TXTV.format.datetime(new Date()) : false); }
+
+  /* =====================  DEMO v1.5  ===================== */
+  TXTV.$('#v15Form').addEventListener('submit', function (e) {
+    e.preventDefault(); if (!TXTV.form.validate(this)) return;
+    TXTV.toast.success('Đã tạo tài khoản ' + TXTV.form.serialize(this).hoTen);
+  });
+  TXTV.$('#saLog').innerHTML = Array.apply(null, Array(24)).map(function (_, i) {
+    var acts = ['duyệt phiếu PX2611-00', 'nhập kho lô PO-26', 'sửa định mức TX-0', 'xuất Excel báo cáo tuần '];
+    return '<div class="flex gap-3"><span class="w-12 shrink-0 tabular-nums text-slate-400">' + String(7 + Math.floor(i / 3)).padStart(2, '0') + ':' + String((i * 17) % 60).padStart(2, '0') + '</span><span>' + ['An', 'Mai', 'Đức', 'Sương'][i % 4] + ' ' + acts[i % 4] + (10 + i) + '</span></div>';
+  }).join('');
 
   /* ---------- Biểu đồ ---------- */
   function drawCharts() {
