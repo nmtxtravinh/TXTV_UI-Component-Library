@@ -41,6 +41,11 @@ tools/build_preview.py   # Tạo bản xem trước chạy ngoài Apps Script (-
 .github/workflows/pages.yml  # Tự build & đăng trang demo lên GitHub Pages
 ```
 
+## Dùng với AI viết code (Codex, Claude Code…)
+
+Chép **`AGENTS.md`** và **`CLAUDE.md`** vào thư mục gốc dự án mới. Agent sẽ tự đọc quy tắc dùng thư viện TXTV (khung trang, cách gọi server, chọn component, những điều cấm…), nên chỉ cần ra lệnh về nghiệp vụ.
+Với ChatGPT/Claude trên web (không đọc được file trong máy): dán nội dung `AGENTS.md` vào đầu cuộc trò chuyện hoặc vào phần *Hướng dẫn tùy chỉnh / Project instructions*.
+
 ## 2. Cài đặt vào một dự án Apps Script
 
 **Cách 1 – Thủ công (copy/paste trong trình soạn thảo Apps Script)**
