@@ -1,4 +1,4 @@
-# TXTV – UI Component Library cho Google Apps Script (v1.5)
+# TXTV – UI Component Library cho Google Apps Script (v1.6)
 
 🔗 **Trang demo:** https://nmtxtravinh.github.io/TXTV_UI-Component-Library/ (mọi component, có nút xem/copy code)
 
@@ -381,6 +381,59 @@ TXTV.topbar.start(); TXTV.topbar.done();      // tự chạy khi TXTV.run(); t�
 TXTV.hovercard('#nguoiPhuTrach', el => TXTV.run('layThongTin', el.dataset.id).then(u => '<b>' + TXTV.escape(u.ten) + '</b>'));
 ```
 
+### v1.6 – Năng suất: CRUD 1 lệnh, Form builder, dữ liệu lớn
+
+**CRUD 1 lệnh** – bảng + tìm kiếm + lọc + thêm/sửa/xóa + xuất Excel, không cần viết hàm server:
+
+```js
+// Trang HTML
+TXTV.crud('#ds', {
+  sheet: 'NhaCungCap', title: 'nhà cung cấp', filters: [{ key: 'loai', label: 'Loại' }],
+  fields: [
+    { name: 'maNCC', label: 'Mã', required: true, list: true },
+    { name: 'tenNCC', label: 'Tên', required: true, list: true },
+    { name: 'loai', label: 'Loại', type: 'select', options: ['Vải', 'Phụ liệu'], list: true },
+    { name: 'hanMuc', label: 'Hạn mức', type: 'money', list: true },
+    { name: 'ghiChu', label: 'Ghi chú', type: 'textarea', span: 'full' }
+  ]
+  // serverSide: true  -> sheet lớn: chỉ tải từng trang
+});
+```
+
+```js
+// Code.gs – BIẾN TOÀN CỤC (không viết TXTV.xxx = ... ngoài hàm: Code.gs có thể được nạp trước thư viện)
+var CRUD_CONFIG = {
+  NhaCungCap: {
+    headers: ['id', 'maNCC', 'tenNCC', 'loai', 'hanMuc', 'ghiChu', 'createdAt', 'createdBy', 'updatedAt', 'updatedBy'],
+    prefix: 'NCC', required: ['maNCC', 'tenNCC'], unique: ['maNCC'],
+    roles: { read: ['*'], write: ['admin', 'quanly'], delete: ['admin'] }   // theo sheet PhanQuyen
+  }
+};
+```
+Hàm dùng chung `txtv_crud` (có sẵn trong `TXTV_Server.gs`) chỉ cho phép sheet đã khai báo, kiểm tra quyền, chỉ nhận các cột của sheet và bỏ qua `createdBy/updatedBy…` do client gửi.
+
+**Form builder** – form từ JSON, có trường ẩn/hiện theo điều kiện:
+```js
+const f = TXTV.formBuilder('#el', { columns: 2, fields: [
+  { section: 'Đề nghị' },
+  { name: 'loai', label: 'Loại', type: 'segmented', options: ['Nghỉ phép', 'Tăng ca'] },
+  { name: 'thoiGian', label: 'Thời gian', type: 'daterange', required: true, showIf: d => d.loai === 'Nghỉ phép' },
+  { name: 'soGio', label: 'Số giờ', type: 'number', suffix: 'giờ', min: 1, max: 4, showIf: d => d.loai === 'Tăng ca' }
+], onSubmit: data => TXTV.run('guiDeNghi', data) });
+```
+Kiểu trường: `text email tel url password number money textarea editor select combo multiselect date daterange time month checkbox switch radio checkboxes segmented tags rating color hidden`.
+
+**Khác:**
+```js
+new TXTV.DataTable('#t', { columns, serverSide: TXTV.serverSource('SanLuong'), filters: [{ key: 'chuyen', options: [...] }] });
+TXTV.kanban('#kb', { columns: [{ key: 'Mới', color: 'slate' }, ...], items, groupBy: 'trangThai',
+  card: it => '...', onMove: (it, to) => TXTV.run('doiTrangThai', it.id, to) });   // server lỗi -> thẻ tự quay về
+TXTV.mention('#binhLuan', { source: [{ value: 'mai@tbs.vn', label: 'Kim Thị Mai' }] });   // gõ @
+TXTV.density.set('compact');                    // chế độ gọn cho màn hình nhập liệu
+```
+`<option data-desc="..." data-icon="fa-box" data-avatar="Tên">` – combobox hiện mô tả / icon / avatar; `<select data-tv-combo data-creatable>` cho phép thêm mới (sự kiện `tv:create`).
+Bàn phím: Tab không thoát khỏi modal đang mở; dropdown dùng ↓ ↑ Home End Enter Esc.
+
 ### Form v1.5 (theo shadcn/ui)
 
 ```html
@@ -409,7 +462,7 @@ Checkbox / radio được vẽ lại (đồng nhất trên mọi trình duyệt)
 Dòng 1 của sheet là tiêu đề cột. Nếu có các cột `id`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` thì được điền tự động.
 
 ```js
-TVDB.SPREADSHEET_ID = '...';                      // bỏ trống nếu script gắn với Sheet
+// Code.gs (ngoài hàm): var SPREADSHEET_ID = '...';   // bỏ qua nếu script gắn với Sheet
 TVDB.ensureSheet('NhanVien', ['id', 'ten', 'boPhan', 'createdAt', 'createdBy']);
 TVDB.getAll('NhanVien');                          // [{ id, ten, ... }]
 TVDB.find('NhanVien', r => r.boPhan === 'May');

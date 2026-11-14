@@ -183,3 +183,37 @@ function output_save(payload) {
   TXTV.audit('NHAP_SAN_LUONG', { chuyen: payload.line, ngay: payload.date, soDong: n });
   return { saved: n, at: TXTV.formatDate(new Date(), 'HH:mm') };
 }
+
+/* ---------------------------------------------------------------------------
+ * DEMO v1.6 – cấu hình cho TXTV.crud / DataTable serverSide trên trang Index
+ * (biến toàn cục: an toàn với thứ tự nạp file của Apps Script)
+ * ------------------------------------------------------------------------- */
+var CRUD_CONFIG = {
+  NhaCungCap: {
+    headers: ['id', 'maNCC', 'tenNCC', 'loai', 'sdt', 'mst', 'hanMuc', 'dangHopTac', 'ghiChu', 'createdAt', 'createdBy', 'updatedAt', 'updatedBy'],
+    prefix: 'NCC', required: ['maNCC', 'tenNCC'], unique: ['maNCC'],
+    beforeSave: function (d) { d.maNCC = String(d.maNCC).toUpperCase().trim(); return d; },
+    setup: function () { crudInit_(); }
+  },
+  SanLuong: {
+    headers: ['id', 'ma', 'ngay', 'chuyen', 'sanPham', 'soLuong', 'loi'],
+    roles: { read: ['*'], write: ['admin'] },
+    setup: function () {
+      crudInit_();
+      var sh = TVDB.ensureSheet('SanLuong', CRUD_CONFIG.SanLuong.headers);
+      if (sh.getLastRow() > 1) return;
+      var lines = ['May 1', 'May 2', 'May 3', 'May 4', 'May 5', 'Cắt', 'Hoàn thiện'], prods = ['Túi tote', 'Balo PU', 'Ví da', 'Túi du lịch', 'Túi xách tay'], rows = [];
+      for (var i = 1; i <= 500; i++) {
+        rows.push({ id: 'SL' + i, ma: 'SL' + ('0000' + i).slice(-5), ngay: Utilities.formatDate(new Date(2026, 0, 1 + (i % 300)), 'Asia/Ho_Chi_Minh', 'yyyy-MM-dd'),
+          chuyen: lines[i % 7], sanPham: prods[(i * 3) % 5], soLuong: 150 + (i * 37) % 300, loi: (i * 7) % 12 });
+      }
+      TVDB.insertMany('SanLuong', rows);
+    }
+  }
+};
+
+/** Demo Kanban: đổi trạng thái (từ chối chuyển sang "Hủy" để minh họa thẻ tự quay về) */
+function doiTrangThai(id, trangThai) {
+  if (trangThai === 'Hủy') throw new Error('Bạn không có quyền hủy công việc');
+  return true;
+}

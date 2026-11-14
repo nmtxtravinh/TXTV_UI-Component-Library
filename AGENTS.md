@@ -70,7 +70,8 @@ function luuVatTu(o) {
 1. Gọi server **chỉ** bằng `TXTV.run('tenHam', ...)` (Promise) hoặc `TXTV.call('tenHam', [args], { button, loading, success })` – không dùng `fetch`, không gọi `google.script.run` trực tiếp.
 2. Không dùng `href="#id"` (Apps Script đặt `<base target="_top">`, sẽ tải lại trang). Cuộn trong trang: `data-tv-scroll="id"`. Chuyển trang: `<a href="<?= BASE_URL ?>?page=VatTu" target="_top">`.
 3. Không viết thẻ scriptlet `<? ?>` trong comment HTML (HtmlService vẫn chạy chúng).
-4. Dữ liệu trên Google Sheet qua `TVDB` (dòng 1 là tiêu đề; nên có cột `id`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` – được điền tự động). Script không gắn Sheet thì đặt `TVDB.SPREADSHEET_ID`.
+4. Dữ liệu trên Google Sheet qua `TVDB` (dòng 1 là tiêu đề; nên có cột `id`, `createdAt`, `createdBy`, `updatedAt`, `updatedBy` – được điền tự động). Script không gắn Sheet thì khai báo `var SPREADSHEET_ID = '...';` ở đầu `Code.gs`.
+   **Không** viết `TXTV.xxx = ...` / `TVDB.xxx = ...` ở ngoài hàm trong `Code.gs`: Apps Script có thể nạp `Code.gs` trước `TXTV_Server.gs` → lỗi `TXTV is not defined`. Cấu hình đặt trong biến toàn cục thuần (`var CRUD_CONFIG = {...}`) hoặc bên trong hàm.
 5. Thêm mock trong trang để xem trước ngoài Apps Script: `TXTV.mocks.layVatTu = function () { return [...]; };` (không ảnh hưởng khi chạy thật).
 
 **Giao diện**
@@ -87,6 +88,9 @@ function luuVatTu(o) {
 
 | Cần | Dùng |
 |---|---|
+| **Màn hình danh mục (CRUD)** | **`TXTV.crud(el, { sheet, title, fields, filters })` + `var CRUD_CONFIG = {...}` trong Code.gs – ưu tiên dùng, không tự viết lại** |
+| **Form nhiều trường** | **`TXTV.formBuilder(el, { fields, columns, onSubmit })`** (có `showIf` để ẩn/hiện trường) |
+| Sheet lớn (> vài nghìn dòng) | `DataTable` với `serverSide: TXTV.serverSource('TenSheet')` (hoặc `crud({ serverSide: true })`) |
 | Khung trang có menu | `.app` > `.app-sidebar` + `.app-main` > `.app-topbar` + `.app-content` (mẫu: `Starter.html`) |
 | Tiêu đề trang | `.page-header` / `.page-heading` (có meta + nút) · `.breadcrumb` |
 | Nút | `.btn` + `.btn-primary / -secondary / -ghost / -danger / -soft…`, `.btn-sm`, `.btn-icon` |
@@ -108,7 +112,7 @@ function luuVatTu(o) {
 | Tab / bước | `[data-tv-tabs]` + `.tabs`/`.tabs-pills`/`.tabs-vertical` · `.steps`, `.steps-panels`, `data-tv-wizard` |
 | Menu | `.dropdown` · `.menubar` · `.nav-menu` · `TXTV.contextMenu` · `TXTV.commandPalette` |
 | Xuất / in | `TXTV.exportExcel` · `dt.exportExcel()` · `TXTV.print(el)` · server `TXTV.htmlToPdf` / `TXTV.docFromTemplate` |
-| Khác | `new TXTV.Calendar(el, { events })` · `TXTV.tree` · `.kanban` + `data-tv-sortable` · `TXTV.scan` (mã vạch/QR) · `TXTV.qrcode` · `TXTV.signature` |
+| Khác | `TXTV.kanban(el, { columns, items, groupBy, onMove })` · `TXTV.mention(textarea, { source })` · `TXTV.density.set("compact")` · `new TXTV.Calendar(el, { events })` · `TXTV.tree` · `.kanban` + `data-tv-sortable` · `TXTV.scan` (mã vạch/QR) · `TXTV.qrcode` · `TXTV.signature` |
 
 Định dạng: `TXTV.format.number / currency / percent / date / datetime / relative`. Tìm không dấu: `TXTV.matchText`.
 

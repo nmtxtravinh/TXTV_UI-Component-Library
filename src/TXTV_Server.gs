@@ -118,7 +118,9 @@ var TVDB = {
   SPREADSHEET_ID: '',
 
   ss: function () {
-    return TVDB.SPREADSHEET_ID ? SpreadsheetApp.openById(TVDB.SPREADSHEET_ID) : SpreadsheetApp.getActiveSpreadsheet();
+    // Ưu tiên TVDB.SPREADSHEET_ID (gán trong hàm), sau đó biến toàn cục SPREADSHEET_ID khai báo ở Code.gs
+    var id = TVDB.SPREADSHEET_ID || (typeof SPREADSHEET_ID !== 'undefined' ? SPREADSHEET_ID : '');
+    return id ? SpreadsheetApp.openById(id) : SpreadsheetApp.getActiveSpreadsheet();
   },
 
   sheet: function (name) {
@@ -516,3 +518,75 @@ TXTV.errorPage = function (code, title, message) {
   var d = D[code] || ['Thông báo', ''];
   return TXTV.render('Error', { CODE: String(code), TITLE: title || d[0], MESSAGE: message || d[1] }, title || d[0]);
 };
+
+/**
+ * ============================================================================
+ * MỞ RỘNG v1.6 – CRUD dùng chung cho TXTV.crud() và DataTable serverSide (TXTV.serverSource)
+ *
+ *   // Code.gs – khai báo các sheet được phép (sheet không khai báo sẽ bị từ chối).
+ *   // Dùng BIẾN TOÀN CỤC (var CRUD_CONFIG), không viết TXTV.crudConfig.X = ... ở ngoài hàm trong Code.gs:
+ *   // Apps Script có thể chạy Code.gs trước TXTV_Server.gs nên lúc đó TXTV chưa tồn tại.
+ *   var CRUD_CONFIG = { VatTu: {
+ *     headers: ['id', 'maVT', 'tenVT', 'nhom', 'donGia', 'createdAt', 'createdBy', 'updatedAt', 'updatedBy'],  // tự tạo sheet
+ *     prefix: 'VT',                       // tiền tố id
+ *     required: ['maVT', 'tenVT'],        // bắt buộc
+ *     unique: ['maVT'],                   // không trùng
+ *     roles: { read: ['*'], write: ['admin', 'quanly'], delete: ['admin'] },   // theo sheet PhanQuyen; '*' = mọi người
+ *     beforeSave: function (data, isNew) { data.maVT = String(data.maVT).toUpperCase(); return data; },
+ *     setup: function (action) { ... }    // (tùy chọn) chạy trước mỗi thao tác, vd: chọn file Sheet, tạo dữ liệu mẫu
+ *   } };
+ * ============================================================================
+ */
+TXTV.crudConfig = TXTV.crudConfig || {};
+var TXTV_SYSTEM_FIELDS_ = ['createdAt', 'createdBy', 'updatedAt', 'updatedBy'];
+
+function txtv_crud(action, sheet, payload) {
+  var all = Object.assign({}, typeof CRUD_CONFIG !== 'undefined' ? CRUD_CONFIG : {}, TXTV.crudConfig);
+  var cfg = all[sheet];
+  if (!cfg) throw new Error('Sheet "' + sheet + '" chưa được khai báo trong CRUD_CONFIG (Code.gs)');
+  if (typeof cfg.setup === 'function') cfg.setup(action);
+  var roles = cfg.roles || {};
+  var need = (action === 'list' || action === 'query') ? 'read' : (action === 'delete' ? 'delete' : 'write');
+  var allowed = roles[need] || (need === 'delete' ? roles.write : null);
+  if (allowed && allowed.indexOf('*') === -1) TXTV.requireRole(allowed);
+  if (cfg.headers) TVDB.ensureSheet(sheet, cfg.headers);
+  var idField = cfg.idField || 'id';
+
+  switch (action) {
+    case 'list':
+      return TXTV.toClient(cfg.filter ? TVDB.find(sheet, cfg.filter) : TVDB.getAll(sheet));
+    case 'query':
+      return TVDB.query(sheet, payload || {});
+    case 'save': {
+      payload = payload || {};
+      var isNew = !payload[idField];
+      var fields = (cfg.fields || TVDB.headers(sheet)).filter(function (f) { return f && TXTV_SYSTEM_FIELDS_.indexOf(f) === -1 && f !== idField; });
+      var data = {};
+      fields.forEach(function (f) { if (payload[f] !== undefined) data[f] = Array.isArray(payload[f]) ? payload[f].join(',') : payload[f]; });
+      if (!isNew) data[idField] = payload[idField];
+      (cfg.required || []).forEach(function (f) {
+        if (data[f] === undefined || data[f] === null || String(data[f]).trim() === '') throw new Error('Thiếu thông tin: ' + f);
+      });
+      if (cfg.beforeSave) data = cfg.beforeSave(data, isNew) || data;
+      if (cfg.unique && cfg.unique.length) {
+        var all = TVDB.getAll(sheet);
+        cfg.unique.forEach(function (f) {
+          var v = String(data[f] || '').trim().toLowerCase(); if (!v) return;
+          var dup = all.some(function (r) { return String(r[f]).trim().toLowerCase() === v && String(r[idField]) !== String(data[idField] || ''); });
+          if (dup) throw new Error('"' + data[f] + '" đã tồn tại');
+        });
+      }
+      var saved = isNew ? TVDB.insert(sheet, data, { prefix: cfg.prefix }) : TVDB.update(sheet, data[idField], data, idField);
+      TXTV.audit((isNew ? 'THEM_' : 'SUA_') + sheet.toUpperCase(), { id: saved[idField] });
+      return TXTV.toClient(saved);
+    }
+    case 'delete': {
+      if (cfg.beforeDelete) cfg.beforeDelete(payload);
+      var ok = TVDB.remove(sheet, payload, idField);
+      if (ok) TXTV.audit('XOA_' + sheet.toUpperCase(), { id: payload });
+      return ok;
+    }
+    default:
+      throw new Error('Thao tác không hợp lệ: ' + action);
+  }
+}

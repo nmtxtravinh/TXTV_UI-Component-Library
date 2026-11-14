@@ -149,7 +149,7 @@
     /* =====================================================================
      * FORM  (v1.5 – tham khảo shadcn/ui)
      * ===================================================================== */
-    .form-group { @apply flex flex-col gap-2; }
+    .form-group { @apply flex min-w-0 flex-col gap-2; }
     .form-label { @apply block text-sm font-medium leading-none text-slate-900 dark:text-slate-100; }
     .form-label.required::after { content: ' *'; @apply font-normal text-red-500; }
     .form-label .optional { @apply ml-1 font-normal text-slate-400; }
@@ -193,7 +193,7 @@
 
     /* Input box: 1 khung, bên trong chứa icon / chữ / nút / phím tắt (shadcn InputGroup)
        <div class="input-box"><span class="input-addon"><i class="fa-solid fa-magnifying-glass"></i></span><input placeholder="Tìm..."><span class="kbd">Ctrl K</span></div> */
-    .input-box { @apply flex min-h-9 w-full items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm shadow-[0_1px_2px_rgba(15,23,42,.05)] transition-[border-color,box-shadow] duration-150 hover:border-slate-300 focus-within:border-brand-600 focus-within:shadow-none focus-within:ring-[3px] focus-within:ring-brand-600/15 dark:border-slate-700 dark:bg-slate-900 dark:focus-within:border-brand-400 dark:focus-within:ring-brand-400/20; }
+    .input-box { @apply flex min-h-9 w-full min-w-0 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-sm shadow-[0_1px_2px_rgba(15,23,42,.05)] transition-[border-color,box-shadow] duration-150 hover:border-slate-300 focus-within:border-brand-600 focus-within:shadow-none focus-within:ring-[3px] focus-within:ring-brand-600/15 dark:border-slate-700 dark:bg-slate-900 dark:focus-within:border-brand-400 dark:focus-within:ring-brand-400/20; }
     .input-box > input, .input-box > textarea, .input-box > select { @apply h-9 min-w-0 flex-1 border-0 bg-transparent p-0 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:ring-0 dark:text-slate-100; }
     .input-box > textarea { @apply h-auto min-h-[72px] resize-none py-2.5 leading-relaxed; }
     .input-addon { @apply inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-sm text-slate-400; }
@@ -240,7 +240,7 @@
     }
 
     /* Field / Fieldset – bố cục form (shadcn Field) */
-    .field { @apply flex flex-col gap-2; }
+    .field { @apply flex min-w-0 flex-col gap-2; }
     .field-desc { @apply text-[13px] leading-snug text-slate-500 dark:text-slate-400; }
     .field-horizontal { @apply flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6; }
     .field-horizontal > .field-content { @apply flex min-w-0 flex-1 flex-col gap-1.5; }
@@ -1141,6 +1141,24 @@
 
     /* Kbd nhóm */
     .kbd-group { @apply inline-flex items-center gap-1; }
+
+    /* =====================================================================
+     * MỞ RỘNG (v1.6)
+     * ===================================================================== */
+    /* Chế độ hiển thị gọn: <html class="density-compact"> hoặc TXTV.density.set('compact') */
+    .density-compact .form-control, .density-compact .combo-toggle, .density-compact .input-box, .density-compact .number-input { @apply h-8 min-h-8 text-[13px]; }
+    .density-compact textarea.form-control { @apply h-auto; }
+    .density-compact .input-box > input { @apply h-8; }
+    .density-compact .btn { @apply h-8 px-3 text-[13px]; }
+    .density-compact .btn-icon { @apply w-8 px-0; }
+    .density-compact .btn-sm { @apply h-7 px-2.5; }
+    .density-compact .table thead th { @apply py-2; }
+    .density-compact .table tbody td { @apply py-1.5; }
+    .density-compact .field, .density-compact .form-group { @apply gap-1.5; }
+    .density-compact .card-body { @apply p-4; }
+    .density-compact .card-header { @apply py-3; }
+    .density-compact .app-content { @apply p-3 lg:p-4; }
+    .fb-section + .grid { @apply -mt-2; }
 
   }
 

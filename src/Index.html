@@ -59,6 +59,9 @@
       <div class="nav-section-title">Mới v1.5</div>
       <button class="nav-link" data-scroll="v15-form"><i class="fa-solid fa-pen-ruler"></i><span class="nav-label">Form: Field, Input box</span><span class="nav-badge">1.5</span></button>
       <button class="nav-link" data-scroll="v15-components"><i class="fa-solid fa-layer-group"></i><span class="nav-label">Menubar, Item, Heading…</span><span class="nav-badge">1.5</span></button>
+      <div class="nav-section-title">Mới v1.6</div>
+      <button class="nav-link" data-scroll="v16-crud"><i class="fa-solid fa-wand-magic-sparkles"></i><span class="nav-label">CRUD 1 lệnh, Form builder</span><span class="nav-badge">1.6</span></button>
+      <button class="nav-link" data-scroll="v16-data"><i class="fa-solid fa-server"></i><span class="nav-label">Dữ liệu lớn, Kanban…</span><span class="nav-badge">1.6</span></button>
       <div class="nav-section-title">Điều hướng</div>
       <button class="nav-link" data-scroll="navigation"><i class="fa-solid fa-compass"></i><span class="nav-label">Tabs, Breadcrumb...</span></button>
       <button class="nav-link" data-scroll="dropdowns"><i class="fa-solid fa-caret-down"></i><span class="nav-label">Dropdown</span></button>
@@ -99,7 +102,7 @@
       </ol>
       <div class="ml-auto flex items-center gap-1">
         <button class="btn btn-secondary btn-sm hidden text-slate-400 md:inline-flex" onclick="TXTV.commandPalette.open()"><i class="fa-solid fa-magnifying-glass"></i> Tìm... <span class="kbd">Ctrl K</span></button>
-        <span class="badge badge-accent badge-pill hidden sm:inline-flex">v1.5</span>
+        <span class="badge badge-accent badge-pill hidden sm:inline-flex">v1.6</span>
         <button class="btn btn-ghost btn-icon" data-tv-toggle="theme" data-tooltip="Sáng / Tối" data-tooltip-pos="bottom"><i data-tv-theme-icon class="fa-solid fa-moon"></i></button>
         <div class="dropdown">
           <button class="btn btn-ghost btn-icon relative" data-tv-toggle="dropdown" aria-label="Thông báo">
@@ -145,7 +148,7 @@
         </div>
 
         <div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <div class="stat"><div class="stat-icon"><i class="fa-solid fa-cubes"></i></div><div><div class="stat-label">Component</div><div class="stat-value">190+</div><div class="stat-meta">CSS class sẵn dùng</div></div></div>
+          <div class="stat"><div class="stat-icon"><i class="fa-solid fa-cubes"></i></div><div><div class="stat-label">Component</div><div class="stat-value">200+</div><div class="stat-meta">CSS class sẵn dùng</div></div></div>
           <div class="stat"><div class="stat-icon bg-accent-100 text-accent-700"><i class="fa-solid fa-code"></i></div><div><div class="stat-label">JS API</div><div class="stat-value">TXTV.*</div><div class="stat-meta">Không cần thư viện ngoài</div></div></div>
           <div class="stat"><div class="stat-icon bg-sky-50 text-sky-600"><i class="fa-solid fa-moon"></i></div><div><div class="stat-label">Dark mode</div><div class="stat-value">Có</div><div class="stat-meta">Tự lưu theo trình duyệt</div></div></div>
           <div class="stat"><div class="stat-icon bg-amber-50 text-amber-600"><i class="fa-solid fa-mobile-screen"></i></div><div><div class="stat-label">Responsive</div><div class="stat-value">100%</div><div class="stat-meta">Điện thoại → màn hình lớn</div></div></div>
@@ -1335,6 +1338,92 @@ TXTV.run('demo_getEmployees').then(rows => dt.setData(rows));</code></pre>
         </div>
       </section>
 
+      <!-- ===================== v1.6: NĂNG SUẤT ===================== -->
+      <section id="v16-crud" class="space-y-4">
+        <div class="page-header mb-0"><div><h2 class="page-title">CRUD 1 lệnh & Form builder <span class="badge badge-success badge-pill align-middle">v1.6</span></h2><p class="page-subtitle">Khai báo danh sách trường bằng JSON – thư viện tự dựng bảng, form, kiểm tra lỗi, lưu Google Sheet</p></div></div>
+        <div class="card">
+          <div class="card-header"><div><h3 class="card-title">TXTV.crud – danh mục nhà cung cấp</h3><p class="card-subtitle">Toàn bộ màn hình này được tạo bằng 1 lệnh (xem code bên dưới). Thử Thêm / Sửa / Xóa, trùng mã sẽ bị báo lỗi.</p></div></div>
+          <div class="card-body"><div id="crudDemo"></div></div>
+        </div>
+        <div class="grid gap-4 lg:grid-cols-2">
+          <div class="min-w-0"><pre data-tv-code data-title="Trang HTML">TXTV.crud('#ds', {
+  sheet: 'NhaCungCap', title: 'nhà cung cấp',
+  filters: [{ key: 'loai', label: 'Loại' }],
+  fields: [
+    { name: 'maNCC', label: 'Mã', required: true, list: true },
+    { name: 'tenNCC', label: 'Tên', required: true, list: true },
+    { name: 'loai', label: 'Loại', type: 'select', list: true,
+      options: ['Vải', 'Phụ liệu', 'Bao bì'] },
+    { name: 'sdt', label: 'Điện thoại', validate: 'phone', list: true },
+    { name: 'mst', label: 'Mã số thuế', validate: 'mst' },
+    { name: 'hanMuc', label: 'Hạn mức nợ', type: 'money', list: true },
+    { name: 'dangHopTac', label: 'Đang hợp tác', type: 'switch', list: true },
+    { name: 'ghiChu', label: 'Ghi chú', type: 'textarea', span: 'full' }
+  ]
+});</pre></div>
+          <div class="min-w-0"><pre data-tv-code data-title="Code.gs">var CRUD_CONFIG = { NhaCungCap: {
+  headers: ['id', 'maNCC', 'tenNCC', 'loai', 'sdt', 'mst',
+            'hanMuc', 'dangHopTac', 'ghiChu',
+            'createdAt', 'createdBy', 'updatedAt', 'updatedBy'],
+  prefix: 'NCC',
+  required: ['maNCC', 'tenNCC'],
+  unique: ['maNCC'],
+  roles: { read: ['*'], write: ['admin', 'quanly'] }
+} };
+// Không cần viết thêm hàm server nào:
+// TXTV.crud gọi hàm dùng chung txtv_crud có sẵn trong TXTV_Server.gs</pre></div>
+        </div>
+        <div data-demo="TXTV.formBuilder – form từ JSON, trường ẩn/hiện theo điều kiện (showIf)">
+          <div class="max-w-3xl" id="fbDemo"></div>
+        </div>
+      </section>
+
+      <section id="v16-data" class="space-y-4">
+        <div class="page-header mb-0"><div><h2 class="page-title">Dữ liệu lớn, Kanban, Combobox, Nhắc tên <span class="badge badge-success badge-pill align-middle">v1.6</span></h2><p class="page-subtitle">DataTable phân trang phía server · Kanban từ dữ liệu · tùy chọn có mô tả & thêm mới · @nhắc tên · chế độ gọn · bàn phím</p></div></div>
+        <div class="card">
+          <div class="card-header"><div><h3 class="card-title">DataTable phân trang phía server – 5.000 dòng</h3><p class="card-subtitle">serverSide: TXTV.serverSource('SanLuong') – chỉ tải 10 dòng mỗi trang; tìm kiếm, sắp xếp, lọc, xuất Excel đều chạy ở server</p></div></div>
+          <div class="card-body"><div id="ssTable"></div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div><h3 class="card-title">TXTV.kanban – dựng từ dữ liệu</h3><p class="card-subtitle">Kéo thẻ sang cột khác → gọi server; thử kéo vào "Hủy": server từ chối và thẻ tự quay về chỗ cũ</p></div></div>
+          <div class="card-body"><div id="kbDemo"></div></div>
+        </div>
+        <div class="grid gap-4 lg:grid-cols-2">
+          <div data-demo="Combobox: tùy chọn có mô tả / avatar / icon, cho phép thêm mới (data-creatable)">
+            <div class="space-y-4">
+              <div class="field"><label class="form-label">Người phụ trách</label>
+                <select data-tv-combo data-placeholder="Chọn người...">
+                  <option value=""></option>
+                  <option value="mai" data-avatar="Kim Thị Mai" data-desc="Tổ trưởng · Chuyền May 2">Kim Thị Mai</option>
+                  <option value="duc" data-avatar="Lê Minh Đức" data-desc="Kỹ thuật · Bảo trì máy">Lê Minh Đức</option>
+                  <option value="suong" data-avatar="Thạch Thị Sương" data-desc="QC · Kiểm hàng">Thạch Thị Sương</option>
+                </select></div>
+              <div class="field"><label class="form-label">Kho</label>
+                <select data-tv-combo data-placeholder="Chọn kho...">
+                  <option value=""></option>
+                  <option value="A" data-icon="fa-warehouse" data-desc="Nguyên phụ liệu">Kho A</option>
+                  <option value="B" data-icon="fa-boxes-stacked" data-desc="Thành phẩm">Kho B</option>
+                </select></div>
+              <div class="field"><label class="form-label">Nhãn (gõ tên mới để thêm)</label>
+                <select data-tv-combo data-creatable data-placeholder="Chọn hoặc thêm nhãn..." id="cbCreate">
+                  <option value=""></option><option>Khẩn</option><option>Chờ vật tư</option><option>Khách hàng</option>
+                </select></div>
+            </div>
+          </div>
+          <div data-demo="Nhắc tên @ trong bình luận · Chế độ gọn · Bàn phím">
+            <div class="space-y-4">
+              <div class="input-box input-box-col">
+                <textarea id="mentionBox" placeholder="Gõ @ để nhắc tên, vd: @mai"></textarea>
+                <div class="input-box-footer"><span class="text-xs text-slate-400" id="mentionInfo">Chưa nhắc ai</span><button type="button" class="btn btn-primary btn-sm ml-auto">Gửi</button></div>
+              </div>
+              <div class="field field-horizontal"><div class="field-content"><label class="form-label">Chế độ hiển thị gọn</label><p class="field-desc">Ô nhập, nút, bảng thấp hơn – cho màn hình nhập liệu dày đặc.</p></div>
+                <input type="checkbox" class="form-switch" id="densitySw" onchange="TXTV.density.set(this.checked ? 'compact' : 'comfortable')"></div>
+              <div class="callout text-[13px]"><b>Bàn phím:</b> trong modal, phím <span class="kbd">Tab</span> chỉ chạy vòng trong hộp; trong dropdown dùng <span class="kbd">↓</span> <span class="kbd">↑</span> <span class="kbd">Enter</span> <span class="kbd">Esc</span>.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- ===================== NAVIGATION ===================== -->
       <section id="navigation" class="space-y-4">
         <div class="page-header mb-0"><div><h2 class="page-title">Điều hướng</h2><p class="page-subtitle">Breadcrumb, Tabs, Pills, Pagination, Steps, Navbar</p></div></div>
@@ -1593,7 +1682,7 @@ new TXTV.DataTable(el, { filters, columnToggle, expandRow, totals, stateKey }) �
       </section>
     </main>
 
-    <footer class="app-footer">© 2026 Nhà máy Túi xách Trà Vinh – Chi nhánh 7, Công ty Cổ phần Đầu tư Thái Bình (TBS Group) · TXTV v1.5</footer>
+    <footer class="app-footer">© 2026 Nhà máy Túi xách Trà Vinh – Chi nhánh 7, Công ty Cổ phần Đầu tư Thái Bình (TBS Group) · TXTV v1.6</footer>
     <button class="no-print" data-tv-backtop aria-label="Lên đầu trang"><i class="fa-solid fa-arrow-up"></i></button>
   </div>
 </div>
@@ -2129,6 +2218,121 @@ new TXTV.DataTable(el, { filters, columnToggle, expandRow, totals, stateKey }) �
     var acts = ['duyệt phiếu PX2611-00', 'nhập kho lô PO-26', 'sửa định mức TX-0', 'xuất Excel báo cáo tuần '];
     return '<div class="flex gap-3"><span class="w-12 shrink-0 tabular-nums text-slate-400">' + String(7 + Math.floor(i / 3)).padStart(2, '0') + ':' + String((i * 17) % 60).padStart(2, '0') + '</span><span>' + ['An', 'Mai', 'Đức', 'Sương'][i % 4] + ' ' + acts[i % 4] + (10 + i) + '</span></div>';
   }).join('');
+
+
+  /* =====================  DEMO v1.6  ===================== */
+  // Mock txtv_crud (mô phỏng logic server trong bộ nhớ trình duyệt)
+  (function () {
+    var DB = {
+      NhaCungCap: [
+        { id: 'NCC1', maNCC: 'NCC-001', tenNCC: 'Công ty Dệt Phong Phú', loai: 'Vải', sdt: '0283 8964 116', mst: '0300399476', hanMuc: 500000000, dangHopTac: true },
+        { id: 'NCC2', maNCC: 'NCC-002', tenNCC: 'YKK Việt Nam', loai: 'Phụ liệu', sdt: '0251 3836 300', mst: '3600258890', hanMuc: 200000000, dangHopTac: true },
+        { id: 'NCC3', maNCC: 'NCC-003', tenNCC: 'Bao bì Tân Tiến', loai: 'Bao bì', sdt: '0909 123 456', mst: '0301234567', hanMuc: 80000000, dangHopTac: false }
+      ],
+      SanLuong: (function () {
+        var rows = [], lines = ['May 1', 'May 2', 'May 3', 'May 4', 'May 5', 'Cắt', 'Hoàn thiện'], prods = ['Túi tote', 'Balo PU', 'Ví da', 'Túi du lịch', 'Túi xách tay'];
+        for (var i = 1; i <= 5000; i++) {
+          var d = new Date(2026, 0, 1 + (i % 300));
+          rows.push({ id: 'SL' + i, ma: 'SL' + String(i).padStart(5, '0'), ngay: TXTV.format.isoDate(d), chuyen: lines[i % 7], sanPham: prods[(i * 3) % 5], soLuong: 150 + (i * 37) % 300, loi: (i * 7) % 12 });
+        }
+        return rows;
+      })()
+    };
+    var UNIQUE = { NhaCungCap: 'maNCC' };
+    TXTV.mocks.txtv_crud = function (action, sheet, p) {
+      var rows = DB[sheet]; if (!rows) throw new Error('Sheet "' + sheet + '" chưa được khai báo trong CRUD_CONFIG (Code.gs)');
+      if (action === 'list') return rows;
+      if (action === 'query') {
+        var r = rows.filter(function (x) { return Object.keys(p.where || {}).every(function (k) { return String(x[k]) === String(p.where[k]); }) && (!p.search || TXTV.matchText(Object.values(x).join(' '), p.search)); });
+        if (p.sort) r = TXTV.sortBy(r, p.sort, p.desc);
+        return { rows: r.slice((p.page - 1) * p.pageSize, p.page * p.pageSize), total: r.length };
+      }
+      if (action === 'save') {
+        var u = UNIQUE[sheet];
+        if (u && rows.some(function (x) { return String(x[u]).toLowerCase() === String(p[u]).toLowerCase() && x.id !== p.id; })) throw new Error('"' + p[u] + '" đã tồn tại');
+        if (p.id) { var i = rows.findIndex(function (x) { return x.id === p.id; }); rows[i] = Object.assign({}, rows[i], p); return rows[i]; }
+        p.id = 'NCC' + Date.now(); rows.push(p); return p;
+      }
+      if (action === 'delete') { DB[sheet] = rows.filter(function (x) { return x.id !== p; }); return true; }
+    };
+    TXTV.mocks.doiTrangThai = function (id, tt) { if (tt === 'Hủy') throw new Error('Bạn không có quyền hủy công việc'); return true; };
+  })();
+
+  // CRUD 1 lệnh
+  TXTV.crud('#crudDemo', {
+    sheet: 'NhaCungCap', title: 'nhà cung cấp', filters: [{ key: 'loai', label: 'Loại' }],
+    fields: [
+      { name: 'maNCC', label: 'Mã', required: true, list: true, placeholder: 'NCC-004' },
+      { name: 'tenNCC', label: 'Tên', required: true, list: true },
+      { name: 'loai', label: 'Loại', type: 'select', list: true, options: ['Vải', 'Phụ liệu', 'Bao bì'], required: true },
+      { name: 'sdt', label: 'Điện thoại', validate: 'tel', list: true },
+      { name: 'mst', label: 'Mã số thuế', validate: 'mst' },
+      { name: 'hanMuc', label: 'Hạn mức nợ', type: 'money', list: true },
+      { name: 'dangHopTac', label: 'Đang hợp tác', type: 'switch', list: true, default: true },
+      { name: 'ghiChu', label: 'Ghi chú', type: 'textarea', span: 'full' }
+    ]
+  });
+
+  // Form builder với trường có điều kiện
+  var fbApi = TXTV.formBuilder('#fbDemo', {
+    columns: 2, submitText: 'Gửi đề nghị', cancelText: 'Làm lại',
+    onCancel: function () { fbApi.reset(); },
+    fields: [
+      { section: 'Đề nghị', desc: 'Chọn loại đề nghị để hiện các trường phù hợp.' },
+      { name: 'loai', label: 'Loại đề nghị', type: 'segmented', options: ['Nghỉ phép', 'Tăng ca', 'Cấp vật tư'], span: 'full' },
+      { name: 'thoiGian', label: 'Thời gian nghỉ', type: 'daterange', required: true, showIf: function (d) { return d.loai === 'Nghỉ phép'; } },
+      { name: 'loaiPhep', label: 'Loại phép', type: 'select', options: ['Phép năm', 'Ốm', 'Việc riêng'], required: true, showIf: function (d) { return d.loai === 'Nghỉ phép'; } },
+      { name: 'ngayTC', label: 'Ngày tăng ca', type: 'date', required: true, showIf: function (d) { return d.loai === 'Tăng ca'; } },
+      { name: 'soGio', label: 'Số giờ', type: 'number', min: 1, max: 4, required: true, suffix: 'giờ', showIf: function (d) { return d.loai === 'Tăng ca'; } },
+      { name: 'vatTu', label: 'Vật tư', type: 'combo', creatable: true, options: [{ value: 'PU-102', label: 'Da PU đen', desc: 'yard' }, { value: 'KH-05', label: 'Khóa kéo YKK #5', desc: 'cái' }], required: true, showIf: function (d) { return d.loai === 'Cấp vật tư'; } },
+      { name: 'soLuong', label: 'Số lượng', type: 'number', required: true, showIf: function (d) { return d.loai === 'Cấp vật tư'; } },
+      { section: 'Thông tin thêm' },
+      { name: 'lyDo', label: 'Lý do', type: 'textarea', maxlength: 200, span: 'full', required: true },
+      { name: 'khan', label: 'Khẩn cấp', type: 'checkbox', help: 'Báo ngay cho trưởng bộ phận qua Google Chat' }
+    ],
+    onSubmit: function (data) {
+      return new Promise(function (r) { setTimeout(r, 500); }).then(function () {
+        TXTV.alert({ title: 'Dữ liệu form', html: true, type: 'success', text: '<pre class="mt-2 max-h-56 overflow-auto rounded-lg bg-slate-100 p-3 text-left text-[11px] dark:bg-slate-800">' + TXTV.escape(JSON.stringify(data, null, 2)) + '</pre>' });
+      });
+    }
+  });
+
+  // DataTable phía server
+  new TXTV.DataTable('#ssTable', {
+    serverSide: TXTV.serverSource('SanLuong'), pageSize: 10, exportable: true, exportName: 'san-luong',
+    filters: [{ key: 'chuyen', label: 'Chuyền', options: ['May 1', 'May 2', 'May 3', 'May 4', 'May 5', 'Cắt', 'Hoàn thiện'] }, { key: 'sanPham', label: 'Sản phẩm', options: ['Túi tote', 'Balo PU', 'Ví da', 'Túi du lịch', 'Túi xách tay'] }],
+    columns: [
+      { key: 'ma', label: 'Mã', width: '100px' }, { key: 'ngay', label: 'Ngày', format: 'date' }, { key: 'chuyen', label: 'Chuyền' },
+      { key: 'sanPham', label: 'Sản phẩm' }, { key: 'soLuong', label: 'Số lượng', align: 'right', format: 'number' },
+      { key: 'loi', label: 'Lỗi', align: 'right', render: function (v) { return v > 8 ? '<span class="font-semibold text-red-600">' + v + '</span>' : v; } }
+    ]
+  });
+
+  // Kanban từ dữ liệu
+  TXTV.kanban('#kbDemo', {
+    groupBy: 'trangThai',
+    columns: [{ key: 'Mới', label: 'Mới', color: 'slate' }, { key: 'Đang làm', label: 'Đang làm', color: 'sky' }, { key: 'Chờ duyệt', label: 'Chờ duyệt', color: 'amber' }, { key: 'Hoàn thành', label: 'Hoàn thành', color: 'emerald' }, { key: 'Hủy', label: 'Hủy', color: 'red' }],
+    items: [
+      { id: 1, ten: 'Vệ sinh khu vực May 1', nguoi: 'Kim Thị Mai', han: '2026-11-18', trangThai: 'Mới' },
+      { id: 2, ten: 'Cập nhật hồ sơ QC lô PO-2611', nguoi: 'Thạch Thị Sương', han: '2026-11-16', trangThai: 'Đang làm' },
+      { id: 3, ten: 'Bảo trì máy cắt số 3', nguoi: 'Lê Minh Đức', han: '2026-11-15', trangThai: 'Đang làm' },
+      { id: 4, ten: 'Kiểm kê kho phụ liệu', nguoi: 'Nguyễn Văn An', han: '2026-11-12', trangThai: 'Chờ duyệt' },
+      { id: 5, ten: 'Đào tạo an toàn PCCC', nguoi: 'Kim Thị Mai', han: '2026-11-10', trangThai: 'Hoàn thành' }
+    ],
+    card: function (it) {
+      var late = it.trangThai !== 'Hoàn thành' && new Date(it.han) < new Date();
+      return '<div class="kanban-card-title">' + TXTV.escape(it.ten) + '</div><div class="mt-2.5 flex items-center justify-between">' + TXTV.avatarHtml(it.nguoi, 'avatar-xs') +
+        '<span class="text-xs ' + (late ? 'font-semibold text-red-600' : 'text-slate-400') + '"><i class="fa-regular fa-calendar mr-1"></i>' + TXTV.format.date(it.han, 'dd/MM') + '</span></div>';
+    },
+    onMove: function (it, to) { return TXTV.run('doiTrangThai', it.id, to).then(function () { TXTV.toast.success(it.ten + ' → ' + to); }); },
+    onCardClick: function (it) { TXTV.toast(it.ten, { duration: 1500 }); }
+  });
+
+  // Nhắc tên
+  TXTV.mention('#mentionBox', { source: [{ value: 'mai', label: 'Kim Thị Mai', desc: 'Tổ trưởng' }, { value: 'duc', label: 'Lê Minh Đức', desc: 'Kỹ thuật' }, { value: 'suong', label: 'Thạch Thị Sương', desc: 'QC' }, { value: 'an', label: 'Nguyễn Văn An', desc: 'Kho' }] });
+  TXTV.$('#mentionBox').addEventListener('tv:mention', function () { TXTV.$('#mentionInfo').textContent = 'Sẽ thông báo: ' + TXTV.$('#mentionBox')._mentions.join(', '); });
+  TXTV.$('#cbCreate').addEventListener('tv:create', function (e) { TXTV.toast.success('Đã thêm nhãn "' + e.detail.label + '"'); });
+  TXTV.$('#densitySw').checked = TXTV.density.get() === 'compact';
 
   /* ---------- Biểu đồ ---------- */
   function drawCharts() {

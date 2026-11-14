@@ -7,7 +7,7 @@
 (function (global) {
   'use strict';
 
-  var TXTV = { version: '1.5.0' };
+  var TXTV = { version: '1.6.0' };
 
   /* =====================================================================
    * TIỆN ÍCH CHUNG
@@ -820,20 +820,37 @@
     var hi = -1;
     var opts = function () { return $$('option', select).filter(function (o) { return o.value !== '' || !select.hasAttribute('required'); }); };
     var placeholder = select.dataset.placeholder || (select.querySelector('option[value=""]') || {}).textContent || 'Chọn...';
+    // <option data-desc="Mô tả" data-icon="fa-box" data-avatar="Tên người">  ·  <select data-creatable> cho phép thêm mới
+    var media = function (o, small) {
+      if (o.dataset.avatar) return TXTV.avatarHtml(o.dataset.avatar, small ? 'avatar-xs' : 'avatar-xs');
+      if (o.dataset.icon) return '<i class="fa-solid ' + esc(o.dataset.icon) + ' w-4 shrink-0 text-center text-slate-400"></i>';
+      return '';
+    };
+    var creatable = select.hasAttribute('data-creatable');
     var renderToggle = function () {
       var o = select.options[select.selectedIndex];
       var t = wrap.querySelector('.combo-text');
-      if (o && o.value !== '') { t.textContent = o.textContent; t.classList.remove('placeholder'); }
+      if (o && o.value !== '') { t.innerHTML = '<span class="flex min-w-0 items-center gap-2">' + media(o, true) + '<span class="truncate">' + esc(o.textContent) + '</span></span>'; t.classList.remove('placeholder'); }
       else { t.textContent = placeholder; t.classList.add('placeholder'); }
     };
     var renderList = function () {
       var q = search.value;
-      var items = opts().filter(function (o) { return o.value !== '' && (!q || TXTV.matchText(o.textContent, q)); });
+      var items = opts().filter(function (o) { return o.value !== '' && (!q || TXTV.matchText(o.textContent + ' ' + (o.dataset.desc || ''), q)); });
       hi = items.length ? 0 : -1;
-      list.innerHTML = items.length ? items.map(function (o, i) {
+      var exact = items.some(function (o) { return TXTV.removeAccents(o.textContent).toLowerCase().trim() === TXTV.removeAccents(q).toLowerCase().trim(); });
+      list.innerHTML = (items.length ? items.map(function (o, i) {
         return '<div class="combo-option' + (o.selected ? ' selected' : '') + (i === hi ? ' highlight' : '') + '" data-value="' + esc(o.value) + '" role="option">' +
-          '<span class="truncate">' + esc(o.textContent) + '</span>' + (o.selected ? '<i class="fa-solid fa-check text-xs"></i>' : '') + '</div>';
-      }).join('') : '<div class="combo-empty">Không tìm thấy kết quả</div>';
+          '<span class="flex min-w-0 items-center gap-2.5">' + media(o) + '<span class="min-w-0"><span class="block truncate">' + esc(o.textContent) + '</span>' +
+          (o.dataset.desc ? '<span class="block truncate text-xs font-normal text-slate-400">' + esc(o.dataset.desc) + '</span>' : '') + '</span></span>' +
+          (o.selected ? '<i class="fa-solid fa-check text-xs"></i>' : '') + '</div>';
+      }).join('') : (creatable && q.trim() ? '' : '<div class="combo-empty">Không tìm thấy kết quả</div>')) +
+        (creatable && q.trim() && !exact ? '<div class="combo-option' + (items.length ? '' : ' highlight') + '" data-create="' + esc(q.trim()) + '" role="option"><span class="flex items-center gap-2.5 text-brand-700 dark:text-accent-400"><i class="fa-solid fa-plus w-4 text-center"></i> Thêm “' + esc(q.trim()) + '”</span></div>' : '');
+      if (!items.length && creatable && q.trim()) hi = 0;
+    };
+    var create = function (label) {
+      var op = document.createElement('option'); op.value = label; op.textContent = label; select.appendChild(op);
+      select.dispatchEvent(new CustomEvent('tv:create', { detail: { value: label, label: label }, bubbles: true }));
+      return label;
     };
     var panel = wrap.querySelector('.combo-panel');
     var open = function () {
@@ -856,10 +873,10 @@
       if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
         e.preventDefault(); hi = Math.max(0, Math.min(items.length - 1, hi + (e.key === 'ArrowDown' ? 1 : -1)));
         items.forEach(function (it, i) { it.classList.toggle('highlight', i === hi); }); if (items[hi]) items[hi].scrollIntoView({ block: 'nearest' });
-      } else if (e.key === 'Enter') { e.preventDefault(); if (items[hi]) choose(items[hi].dataset.value); }
+      } else if (e.key === 'Enter') { e.preventDefault(); var it = items[hi]; if (it) choose(it.dataset.create ? create(it.dataset.create) : it.dataset.value); }
       else if (e.key === 'Escape') { close(); toggle.focus(); }
     });
-    list.addEventListener('click', function (e) { var o = e.target.closest('.combo-option'); if (o) choose(o.dataset.value); });
+    list.addEventListener('click', function (e) { var o = e.target.closest('.combo-option'); if (o) choose(o.dataset.create ? create(o.dataset.create) : o.dataset.value); });
     document.addEventListener('click', function (e) { if (!wrap.contains(e.target)) close(); });
     select.addEventListener('change', renderToggle);
     renderToggle();
@@ -873,7 +890,8 @@
       var keepEmpty = select.querySelector('option[value=""]');
       select.innerHTML = (keepEmpty ? keepEmpty.outerHTML : '') + (items || []).map(function (it) {
         var v = typeof it === 'object' ? it.value : it, l = typeof it === 'object' ? (it.label || it.text || it.value) : it;
-        return '<option value="' + esc(v) + '">' + esc(l) + '</option>';
+        var ex = typeof it === 'object' ? (it.desc ? ' data-desc="' + esc(it.desc) + '"' : '') + (it.icon ? ' data-icon="' + esc(it.icon) + '"' : '') + (it.avatar ? ' data-avatar="' + esc(it.avatar) + '"' : '') : '';
+        return '<option value="' + esc(v) + '"' + ex + '>' + esc(l) + '</option>';
       }).join('');
       if (selected !== undefined) select.value = selected;
       if (select._combo) select._combo.refresh();
@@ -1022,6 +1040,7 @@
   };
   DataTable.prototype.getFiltered = function () {
     var o = this.o, q = this.query, self = this;
+    if (o.serverSide) return this.data.slice();   // server đã lọc / sắp xếp / phân trang
     var keys = o.searchKeys || o.columns.map(function (c) { return c.key; });
     var rows = this.data.filter(function (r) {
       if (o.filter && !o.filter(r)) return false;
@@ -1050,9 +1069,10 @@
   };
   DataTable.prototype.render = function () {
     var o = this.o, self = this;
-    var all = this.getFiltered(), totalPages = Math.max(1, Math.ceil(all.length / this.pageSize));
-    if (this.page > totalPages) this.page = totalPages;
-    var rows = o.pagination ? all.slice((this.page - 1) * this.pageSize, this.page * this.pageSize) : all;
+    if (o.serverSide) this._maybeFetch();
+    var all = this.getFiltered(), total = o.serverSide ? (this.total || 0) : all.length, totalPages = Math.max(1, Math.ceil(total / this.pageSize));
+    if (this.page > totalPages && !o.serverSide) this.page = totalPages;
+    var rows = o.pagination && !o.serverSide ? all.slice((this.page - 1) * this.pageSize, this.page * this.pageSize) : all;
     this._view = rows;
     var allChecked = rows.length && rows.every(function (r) { return self.selected.has(self._key(r)); });
     var cols = this._cols();
@@ -1096,14 +1116,29 @@
     }).join('') + '</tr>' : '';
     var info = this.el.querySelector('[data-dt-info]');
     if (info) {
-      var from = all.length ? (this.page - 1) * this.pageSize + 1 : 0, to = Math.min(this.page * this.pageSize, all.length);
-      info.textContent = 'Hiển thị ' + from + '–' + to + ' / ' + all.length + ' dòng' + (this.selected.size ? ' · Đã chọn ' + this.selected.size : '');
+      var from = total ? (this.page - 1) * this.pageSize + 1 : 0, to = Math.min((this.page - 1) * this.pageSize + rows.length, total);
+      info.textContent = 'Hiển thị ' + from + '–' + to + ' / ' + TXTV.format.number(total) + ' dòng' + (this.selected.size ? ' · Đã chọn ' + this.selected.size : '');
     }
     var pager = this.el.querySelector('[data-dt-pages]');
     if (pager) TXTV.pagination(pager, { page: this.page, totalPages: totalPages, onChange: function (p) { self.page = p; self.render(); } });
     TXTV.loading.block(this.el.querySelector('.table-wrapper'), this.loading && this.data.length > 0);
     return this;
   };
+  /** serverSide: gọi server khi trang / tìm kiếm / sắp xếp / bộ lọc thay đổi */
+  DataTable.prototype._params = function () {
+    var where = {}, fv = this.filterVals; Object.keys(fv).forEach(function (k) { if (fv[k] !== '' && fv[k] !== undefined) where[k] = fv[k]; });
+    return { page: this.page, pageSize: this.pageSize, search: this.query || '', searchKeys: this.o.searchKeys || null, sort: this.sortKey || '', desc: this.sortDir === -1, where: where };
+  };
+  DataTable.prototype._maybeFetch = function () {
+    var self = this, p = this._params(), key = JSON.stringify(p);
+    if (key === this._lastKey) return;
+    this._lastKey = key; this.loading = true; var my = (this._seq = (this._seq || 0) + 1);
+    Promise.resolve(this.o.serverSide(p)).then(function (res) {
+      if (my !== self._seq) return;
+      self.data = (res && res.rows) || []; self.total = (res && res.total) || 0; self.loading = false; self.render();
+    }).catch(function (e) { if (my !== self._seq) return; self.loading = false; self.data = []; self.total = 0; self.render(); TXTV.toast(e.message || String(e), { type: 'error' }); });
+  };
+  DataTable.prototype.reload = function () { this._lastKey = null; return this.render(); };
   DataTable.prototype.setData = function (rows) { this.data = (rows || []).slice(); this.selected.clear(); this.expanded.clear(); this.loading = false; this._controlsBuilt = false; return this.render(); };
   DataTable.prototype.getData = function () { return this.data.slice(); };
   DataTable.prototype.addRow = function (row, atTop) { atTop ? this.data.unshift(row) : this.data.push(row); return this.render(); };
@@ -1134,7 +1169,13 @@
   /** Xuất Excel các dòng đang lọc (hoặc truyền rows) */
   DataTable.prototype.exportExcel = function (filename, rows) {
     var cols = this._cols().filter(function (c) { return c.key && c.export !== false; });
-    return TXTV.exportExcel(rows || this.getFiltered(), cols, filename || this.o.exportName, this.o.sheetName);
+    var o = this.o, name = filename || o.exportName;
+    if (!rows && o.serverSide) {   // tải toàn bộ kết quả đang lọc để xuất
+      var p = this._params(); p.page = 1; p.pageSize = 1000000;
+      TXTV.loading.show('Đang tải dữ liệu để xuất...');
+      return Promise.resolve(o.serverSide(p)).then(function (res) { return TXTV.exportExcel(res.rows || [], cols, name, o.sheetName); }).finally(function () { TXTV.loading.hide(); });
+    }
+    return TXTV.exportExcel(rows || this.getFiltered(), cols, name, o.sheetName);
   };
   TXTV.DataTable = DataTable;
 
@@ -3422,6 +3463,373 @@
     $$('.scroll-area', root).forEach(initScrollArea);
     $$('[data-tv-check-all]', root).forEach(initCheckAll);
   }
+
+  /* #####################################################################
+   *                     MỞ RỘNG v1.6 – NĂNG SUẤT
+   * ##################################################################### */
+
+  /* =====================================================================
+   * BÀN PHÍM & TRỢ NĂNG
+   *   - Modal / drawer: Tab và Shift+Tab chỉ chạy vòng trong hộp đang mở
+   *   - Dropdown: ↓ ↑ Home End để di chuyển giữa các mục, Enter để chọn
+   * ===================================================================== */
+  var FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]):not([type=hidden]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"]), [contenteditable="true"]';
+  var visible = function (el) { return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length) && getComputedStyle(el).visibility !== 'hidden'; };
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Tab') {
+      var top = openStack[openStack.length - 1];
+      if (!top || !top.classList.contains('open')) return;
+      var f = $$(FOCUSABLE, top).filter(visible); if (!f.length) return;
+      var first = f[0], last = f[f.length - 1];
+      if (!top.contains(document.activeElement)) { e.preventDefault(); first.focus(); return; }
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      return;
+    }
+    var dd = e.target.closest && e.target.closest('.dropdown.open');
+    if (!dd || !/^(ArrowDown|ArrowUp|Home|End|Enter| )$/.test(e.key)) return;
+    var menu = dd.querySelector(':scope > .dropdown-menu'); if (!menu) return;
+    var items = $$('.dropdown-item', menu).filter(function (x) { return visible(x) && !x.hasAttribute('disabled') && !x.closest('.dropdown-sub > .dropdown-menu'); });
+    if (!items.length) return;
+    var i = items.indexOf(document.activeElement);
+    if ((e.key === 'Enter' || e.key === ' ') && i !== -1 && document.activeElement.tagName !== 'BUTTON') { e.preventDefault(); document.activeElement.click(); return; }
+    if (e.key === 'Enter' || e.key === ' ') return;
+    e.preventDefault();
+    var n = e.key === 'Home' ? 0 : e.key === 'End' ? items.length - 1 : e.key === 'ArrowDown' ? (i + 1) % items.length : (i - 1 + items.length) % items.length;
+    if (i === -1 && e.key === 'ArrowUp') n = items.length - 1;
+    items.forEach(function (x) { if (!x.hasAttribute('tabindex') && x.tagName !== 'BUTTON' && !x.hasAttribute('href')) x.setAttribute('tabindex', '-1'); });
+    items[n].focus();
+  });
+
+  /* =====================================================================
+   * MẬT ĐỘ HIỂN THỊ:  TXTV.density.set('compact' | 'comfortable')   (lưu theo trình duyệt)
+   *   compact: ô nhập, nút, bảng thấp hơn – cho màn hình nhập liệu / bảng nhiều dòng
+   * ===================================================================== */
+  TXTV.density = {
+    get: function () { return document.documentElement.classList.contains('density-compact') ? 'compact' : 'comfortable'; },
+    set: function (d) { document.documentElement.classList.toggle('density-compact', d === 'compact'); TXTV.storage.set('txtv-density', d); },
+    toggle: function () { TXTV.density.set(TXTV.density.get() === 'compact' ? 'comfortable' : 'compact'); }
+  };
+  if (TXTV.storage.get('txtv-density') === 'compact') document.documentElement.classList.add('density-compact');
+
+  /* =====================================================================
+   * FORM BUILDER – dựng form từ khai báo JSON
+   *   var f = TXTV.formBuilder('#el', {
+   *     columns: 2,                       // số cột trên màn hình rộng
+   *     fields: [
+   *       { section: 'Thông tin chung', desc: 'Mô tả nhóm' },
+   *       { name: 'maVT', label: 'Mã vật tư', required: true, pattern: '[A-Z0-9-]+', help: 'Viết hoa, không dấu' },
+   *       { name: 'nhom', label: 'Nhóm', type: 'select', options: ['Vải', 'Phụ liệu'] },
+   *       { name: 'donGia', label: 'Đơn giá', type: 'money', suffix: '₫' },
+   *       { name: 'ghiChu', label: 'Ghi chú', type: 'textarea', span: 'full', showIf: d => d.nhom === 'Vải' }
+   *     ],
+   *     values: {...}, submitText: 'Lưu', cancelText: 'Hủy', onSubmit: data => TXTV.run('luu', data), onCancel() {}
+   *   });
+   *   f.getData() / f.setData(obj) / f.validate() / f.reset() / f.form
+   *
+   *   type: text | email | tel | url | password | number | money | textarea | editor | select | combo | multiselect |
+   *         date | daterange | time | month | checkbox | switch | radio | checkboxes | segmented | tags | rating | color | hidden
+   *   thuộc tính: name, label, type, required, placeholder, help, options ([..] hoặc [{value,label,desc}]), min, max, step,
+   *         minlength, maxlength, pattern, validate ('phone'|'cccd'|'mst'|'email'|'url'), span ('full'|2), default, disabled,
+   *         readonly, prefix, suffix, icon, rows, decimals, showIf(data) -> boolean
+   * ===================================================================== */
+  var optList = function (opts) { return (opts || []).map(function (o) { return typeof o === 'object' ? o : { value: o, label: o }; }); };
+  function fieldHtml(f, idp) {
+    var id = idp + f.name, t = f.type || 'text', req = f.required ? ' required' : '';
+    var common = ' name="' + esc(f.name) + '" id="' + id + '"' + req + (f.disabled ? ' disabled' : '') + (f.readonly ? ' readonly' : '') +
+      (f.placeholder ? ' placeholder="' + esc(f.placeholder) + '"' : '') + (f.pattern ? ' pattern="' + esc(f.pattern) + '"' : '') +
+      (f.title ? ' title="' + esc(f.title) + '"' : '') + (f.validate ? ' data-tv-validate="' + esc(f.validate) + '"' : '') +
+      (f.minlength ? ' minlength="' + f.minlength + '"' : '') + (f.maxlength ? ' maxlength="' + f.maxlength + '"' : '') +
+      (f.min !== undefined ? ' min="' + f.min + '" data-min="' + esc(f.min) + '"' : '') + (f.max !== undefined ? ' max="' + f.max + '" data-max="' + esc(f.max) + '"' : '') +
+      (f.error ? ' data-error="' + esc(f.error) + '"' : '');
+    var opts = optList(f.options), ctl;
+    var optionTags = function (withEmpty) {
+      return (withEmpty ? '<option value="">' + esc(f.placeholder || '-- Chọn --') + '</option>' : '') + opts.map(function (o) {
+        return '<option value="' + esc(o.value) + '"' + (o.desc ? ' data-desc="' + esc(o.desc) + '"' : '') + (o.icon ? ' data-icon="' + esc(o.icon) + '"' : '') + (o.avatar ? ' data-avatar="' + esc(o.avatar) + '"' : '') + '>' + esc(o.label) + '</option>';
+      }).join('');
+    };
+    switch (t) {
+      case 'textarea': ctl = '<textarea class="form-control" rows="' + (f.rows || 3) + '"' + common + (f.maxlength ? ' data-tv-counter' : '') + ' data-tv-autosize></textarea>'; break;
+      case 'editor': ctl = '<div class="editor" data-tv-editor data-name="' + esc(f.name) + '" data-placeholder="' + esc(f.placeholder || '') + '"></div>'; break;
+      case 'select': ctl = '<select class="form-control"' + common + '>' + optionTags(true) + '</select>'; break;
+      case 'combo': ctl = '<select data-tv-combo' + common + (f.creatable ? ' data-creatable' : '') + (f.placeholder ? ' data-placeholder="' + esc(f.placeholder) + '"' : '') + '>' + optionTags(true) + '</select>'; break;
+      case 'multiselect': ctl = '<select multiple data-tv-combo' + common + (f.placeholder ? ' data-placeholder="' + esc(f.placeholder) + '"' : '') + '>' + optionTags(false) + '</select>'; break;
+      case 'date': ctl = '<input class="form-control" data-tv-datepicker' + common + '>'; break;
+      case 'daterange': ctl = '<input class="form-control" data-tv-datepicker data-mode="range"' + common + '>'; break;
+      case 'time': ctl = '<input class="form-control" data-tv-timepicker' + (f.step ? ' data-step="' + f.step + '"' : '') + common + '>'; break;
+      case 'month': ctl = '<input class="form-control" data-tv-monthpicker' + common + '>'; break;
+      case 'money': case 'number':
+        ctl = '<input class="form-control text-right" inputmode="decimal" data-tv-mask="number"' + (f.decimals ? ' data-decimals="' + f.decimals + '"' : '') + common + '>';
+        if (t === 'money' && !f.suffix) f = Object.assign({}, f, { suffix: '₫' });
+        break;
+      case 'checkbox': case 'switch':
+        return '<label class="check-item" data-field="' + esc(f.name) + '"><input type="checkbox" class="' + (t === 'switch' ? 'form-switch' : 'form-check-input') + '"' + common + '><div><div class="check-item-title">' + esc(f.label) + '</div>' +
+          (f.help ? '<div class="check-item-desc">' + esc(f.help) + '</div>' : '') + '</div></label>';
+      case 'radio': case 'checkboxes':
+        ctl = '<div class="flex flex-wrap gap-x-5 gap-y-2.5 pt-0.5">' + opts.map(function (o, i) {
+          return '<label class="form-check"><input type="' + (t === 'radio' ? 'radio' : 'checkbox') + '" class="form-check-input" name="' + esc(f.name) + '" value="' + esc(o.value) + '"' + (i === 0 && f.required && t === 'radio' ? ' required' : '') + '> ' + esc(o.label) + '</label>';
+        }).join('') + '</div>'; break;
+      case 'segmented':
+        ctl = '<div class="segmented">' + opts.map(function (o, i) { return '<label><input type="radio" name="' + esc(f.name) + '" value="' + esc(o.value) + '"' + (i === 0 ? ' checked' : '') + '><span>' + esc(o.label) + '</span></label>'; }).join('') + '</div>'; break;
+      case 'tags': ctl = '<div class="tag-input" data-tv-tags data-name="' + esc(f.name) + '" data-placeholder="' + esc(f.placeholder || 'Nhập rồi Enter...') + '"></div>'; break;
+      case 'rating': ctl = '<div class="rating rating-input" data-tv-rating data-name="' + esc(f.name) + '" data-max="' + (f.max || 5) + '"></div>'; break;
+      case 'color': ctl = '<div data-tv-swatches data-name="' + esc(f.name) + '"' + (f.options ? ' data-colors="' + esc(opts.map(function (o) { return o.value; }).join(',')) + '"' : '') + ' data-custom></div>'; break;
+      case 'hidden': return '<input type="hidden" name="' + esc(f.name) + '" data-field="' + esc(f.name) + '">';
+      default: ctl = '<input class="form-control" type="' + esc(t) + '"' + common + '>';
+    }
+    if (f.prefix || f.suffix || f.icon) {
+      var inner = ctl.replace('class="form-control', 'class="');
+      ctl = '<div class="input-box">' + (f.icon ? '<span class="input-addon"><i class="fa-solid ' + esc(f.icon) + '"></i></span>' : '') +
+        (f.prefix ? '<span class="input-addon">' + esc(f.prefix) + '</span>' : '') + inner + (f.suffix ? '<span class="input-addon">' + esc(f.suffix) + '</span>' : '') + '</div>';
+    }
+    return '<div class="field" data-field="' + esc(f.name) + '">' + (f.label ? '<label class="form-label' + (f.required ? ' required' : '') + '" for="' + id + '">' + esc(f.label) + '</label>' : '') +
+      ctl + (f.help ? '<p class="field-desc">' + esc(f.help) + '</p>' : '') + '</div>';
+  }
+  TXTV.formBuilder = function (el, o) {
+    el = $(el); o = Object.assign({ columns: 2, fields: [], submitText: 'Lưu', cancelText: null }, o || {});
+    var idp = TXTV.uid('fb') + '-', cols = Math.max(1, Math.min(4, o.columns));
+    var GRID = { 1: '', 2: ' sm:grid-cols-2', 3: ' sm:grid-cols-3', 4: ' sm:grid-cols-4' }, SPAN = { 2: 'sm:col-span-2', 3: 'sm:col-span-3', 4: 'sm:col-span-4' };
+    var gridCls = 'grid gap-x-5 gap-y-5' + GRID[cols];
+    var html = '', open = false, conds = [];
+    var openGrid = function () { if (!open) { html += '<div class="' + gridCls + '">'; open = true; } };
+    var closeGrid = function () { if (open) { html += '</div>'; open = false; } };
+    o.fields.forEach(function (f) {
+      if (f.section !== undefined) { closeGrid(); html += '<div class="fb-section"><div class="fieldset-legend">' + esc(f.section) + '</div>' + (f.desc ? '<p class="field-desc mt-1">' + esc(f.desc) + '</p>' : '') + '</div>'; return; }
+      openGrid();
+      var span = f.span === 'full' ? SPAN[cols] : (f.span > 1 ? SPAN[Math.min(f.span, cols)] : '');
+      var h = fieldHtml(f, idp);
+      html += span ? h.replace(/^<(div|label) class="/, '<$1 class="' + span + ' ') : h;
+      if (f.showIf) conds.push(f);
+    });
+    closeGrid();
+    var form = TXTV.html('<form class="fb space-y-6" novalidate>' + html +
+      (o.submitText !== false ? '<div class="form-actions">' + (o.cancelText ? '<button type="button" class="btn btn-ghost" data-fb-cancel>' + esc(o.cancelText) + '</button>' : '') +
+        '<button type="submit" class="btn btn-primary" data-fb-submit>' + esc(o.submitText) + '</button></div>' : '') + '</form>');
+    el.innerHTML = ''; el.appendChild(form);
+    TXTV.init(form);
+    var applyConds = function () {
+      if (!conds.length) return;
+      var d = TXTV.form.serialize(form);
+      conds.forEach(function (f) {
+        var show = !!f.showIf(d);
+        $$('[data-field="' + f.name + '"]', form).forEach(function (w) {
+          w.classList.toggle('hidden', !show);
+          $$('input, select, textarea', w).forEach(function (i) { i.disabled = !show || !!f.disabled; });
+        });
+      });
+    };
+    form.addEventListener('change', applyConds); form.addEventListener('input', TXTV.debounce(applyConds, 150));
+    var defaults = {}; o.fields.forEach(function (f) { if (f.name && f.default !== undefined) defaults[f.name] = f.default; });
+    var api = {
+      form: form,
+      getData: function () { return TXTV.form.serialize(form); },
+      setData: function (v) { TXTV.form.fill(form, Object.assign({}, defaults, v || {})); applyConds(); return api; },
+      validate: function () { return TXTV.form.validate(form); },
+      reset: function () { TXTV.form.reset(form); TXTV.form.fill(form, defaults); applyConds(); return api; },
+      submitButton: form.querySelector('[data-fb-submit]')
+    };
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (!api.validate()) return;
+      var data = api.getData();
+      if (!o.onSubmit) return;
+      var btn = api.submitButton;
+      if (btn) TXTV.btnLoading(btn, true);
+      Promise.resolve(o.onSubmit(data, api)).catch(function (err) { if (err) TXTV.toast(err.message || String(err), { type: 'error' }); })
+        .finally(function () { if (btn) TXTV.btnLoading(btn, false); });
+    });
+    var cancel = form.querySelector('[data-fb-cancel]'); if (cancel) cancel.addEventListener('click', function () { if (o.onCancel) o.onCancel(); });
+    api.setData(o.values);
+    return api;
+  };
+
+  /* =====================================================================
+   * NGUỒN DỮ LIỆU PHÍA SERVER cho DataTable (sheet lớn: chỉ tải từng trang)
+   *   new TXTV.DataTable('#t', { columns, serverSide: TXTV.serverSource('VatTu'), filters: [{ key, label, options: [...] }] })
+   *   Server: hàm dùng chung txtv_crud('query', sheet, q) trong TXTV_Server.gs (sheet phải khai báo trong TXTV.crudConfig)
+   *   Hoặc tự viết: serverSide: p => TXTV.run('timKiem', p)   // p = { page, pageSize, search, sort, desc, where }  -> { rows, total }
+   * ===================================================================== */
+  TXTV.serverSource = function (sheet, fnName) {
+    return function (p) { return TXTV.run(fnName || 'txtv_crud', 'query', sheet, p); };
+  };
+
+  /* =====================================================================
+   * CRUD GENERATOR – 1 lệnh ra trọn màn hình danh mục
+   *   TXTV.crud('#el', {
+   *     sheet: 'VatTu', title: 'vật tư',                 // server: txtv_crud + TXTV.crudConfig.VatTu
+   *     fields: [ { name: 'maVT', label: 'Mã', required: true, list: true }, { name: 'tenVT', label: 'Tên', list: true, span: 'full' }, ... ],
+   *     columns: [...]  (mặc định: các field có list: true),  filters: [{ key: 'nhom', label: 'Nhóm' }],
+   *     can: { create: true, edit: true, delete: true }, serverSide: false, pageSize: 10, formColumns: 2,
+   *     confirmDelete: row => 'Xóa ' + row.maVT + '?', onSaved(row), onDeleted(row)
+   *   })  -> { table, reload(), openForm(row) }
+   * ===================================================================== */
+  TXTV.crud = function (el, o) {
+    el = $(el);
+    o = Object.assign({ idField: 'id', server: 'txtv_crud', title: 'mục', can: { create: true, edit: true, delete: true }, formColumns: 2, pageSize: 10, exportable: true }, o || {});
+    var can = Object.assign({ create: true, edit: true, delete: true }, o.can);
+    var fields = o.fields.filter(function (f) { return f.name; });
+    var columns = o.columns || fields.filter(function (f) { return f.list; }).map(function (f) {
+      var c = { key: f.name, label: f.label };
+      if (f.type === 'money') { c.format = 'currency'; c.align = 'right'; }
+      else if (f.type === 'number') { c.format = 'number'; c.align = 'right'; }
+      else if (f.type === 'date') c.format = 'date';
+      else if (f.type === 'checkbox' || f.type === 'switch') c.render = function (v) { return v === true || v === 'TRUE' ? '<i class="fa-solid fa-check text-emerald-600"></i>' : ''; };
+      if (f.listRender) c.render = f.listRender;
+      return c;
+    });
+    if (can.edit || can.delete) columns = columns.concat([{ key: '', label: '', noSort: true, export: false, width: '88px', align: 'right', render: function (v, r) {
+      return (can.edit ? '<button type="button" class="btn btn-ghost btn-icon btn-sm" data-crud-edit="' + esc(r[o.idField]) + '" data-tv-tip="Sửa"><i class="fa-solid fa-pen"></i></button>' : '') +
+        (can.delete ? '<button type="button" class="btn btn-ghost btn-icon btn-sm text-red-600" data-crud-del="' + esc(r[o.idField]) + '" data-tv-tip="Xóa"><i class="fa-solid fa-trash"></i></button>' : '');
+    } }]);
+    var mid = TXTV.uid('crud');
+    el.innerHTML = '<div data-crud-table></div>' +
+      '<div class="modal" id="' + mid + '" role="dialog" aria-modal="true"><div class="modal-backdrop"></div><div class="modal-dialog' + (o.formColumns > 1 ? ' max-w-2xl' : '') + '">' +
+      '<div class="modal-header"><h3 class="modal-title" data-crud-title></h3><button type="button" class="modal-close" data-tv-dismiss="modal" aria-label="Đóng"><i class="fa-solid fa-xmark"></i></button></div>' +
+      '<div class="modal-body" data-crud-form></div></div></div>';
+    var modal = el.querySelector('#' + mid), editing = null;
+    var server = function () { return TXTV.run.apply(TXTV, [o.server].concat(Array.prototype.slice.call(arguments))); };
+    var table = new TXTV.DataTable(el.querySelector('[data-crud-table]'), {
+      columns: columns, rowKey: o.idField, pageSize: o.pageSize, filters: o.filters || [], exportable: o.exportable, exportName: o.exportName || o.sheet,
+      searchPlaceholder: 'Tìm ' + o.title + '...', emptyText: 'Chưa có ' + o.title + ' nào', columnToggle: o.columnToggle, expandRow: o.expandRow,
+      serverSide: o.serverSide ? TXTV.serverSource(o.sheet, o.server) : null,
+      toolbar: can.create ? '<button type="button" class="btn btn-primary btn-sm" data-crud-new><i class="fa-solid fa-plus"></i> Thêm ' + esc(o.title) + '</button>' : '',
+      onRowClick: can.edit ? function (row) { api.openForm(row); } : null
+    });
+    var fb = TXTV.formBuilder(el.querySelector('[data-crud-form]'), {
+      fields: o.fields, columns: o.formColumns, submitText: 'Lưu', cancelText: 'Hủy',
+      onCancel: function () { TXTV.modal.close(modal); },
+      onSubmit: function (data) {
+        if (editing) data[o.idField] = editing[o.idField];
+        return server('save', o.sheet, data).then(function (saved) {
+          if (o.serverSide) table.reload(); else if (editing) table.updateRow(saved[o.idField], saved); else table.addRow(saved, true);
+          TXTV.toast.success('Đã lưu ' + o.title + (saved[fields[0].name] ? ' ' + saved[fields[0].name] : ''));
+          TXTV.modal.close(modal); if (o.onSaved) o.onSaved(saved);
+        });
+      }
+    });
+    var api = {
+      table: table, form: fb,
+      reload: function () {
+        if (o.serverSide) return table.reload();
+        table.setLoading(true);
+        return server('list', o.sheet).then(function (rows) { table.setData(rows); }).catch(function (e) { TXTV.toast.error(e.message); table.setData([]); });
+      },
+      openForm: function (row) {
+        editing = row || null; fb.reset(); if (row) fb.setData(row);
+        el.querySelector('[data-crud-title]').textContent = (row ? 'Sửa ' : 'Thêm ') + o.title;
+        TXTV.modal.open(modal);
+      }
+    };
+    var rowById = function (id) { return table.getData().filter(function (r) { return String(r[o.idField]) === String(id); })[0]; };
+    el.addEventListener('click', function (e) {
+      if (e.target.closest('[data-crud-new]')) { api.openForm(null); return; }
+      var ed = e.target.closest('[data-crud-edit]'); if (ed) { api.openForm(rowById(ed.dataset.crudEdit)); return; }
+      var del = e.target.closest('[data-crud-del]'); if (!del) return;
+      var row = rowById(del.dataset.crudDel);
+      TXTV.confirm({ title: o.confirmDelete ? o.confirmDelete(row) : 'Xóa ' + o.title + ' này?', text: 'Dữ liệu đã xóa không thể khôi phục.', type: 'danger', confirmText: 'Xóa' }).then(function (ok) {
+        if (!ok) return;
+        TXTV.call(o.server, ['delete', o.sheet, row[o.idField]], { loading: 'Đang xóa...', success: 'Đã xóa ' + o.title }).then(function () {
+          if (o.serverSide) table.reload(); else table.removeRow(row[o.idField]); if (o.onDeleted) o.onDeleted(row);
+        }).catch(function () {});
+      });
+    });
+    api.reload();
+    return api;
+  };
+
+  /* =====================================================================
+   * KANBAN TỪ DỮ LIỆU
+   *   var kb = TXTV.kanban('#el', {
+   *     columns: [{ key: 'Mới', label: 'Mới', color: 'slate' }, { key: 'Đang làm', label: 'Đang làm', color: 'sky' }, ...],
+   *     items: rows, groupBy: 'trangThai', idKey: 'id',
+   *     card: item => '<div class="kanban-card-title">' + TXTV.escape(item.ten) + '</div>',
+   *     onMove: (item, toKey, fromKey) => TXTV.run('doiTrangThai', item.id, toKey),   // Promise lỗi -> tự trả thẻ về chỗ cũ
+   *     onCardClick: item => {}
+   *   });   kb.setItems(rows) / kb.addItem(item) / kb.updateItem(item) / kb.removeItem(id)
+   * ===================================================================== */
+  var KB_DOT = { slate: 'bg-slate-400', sky: 'bg-sky-500', amber: 'bg-amber-500', emerald: 'bg-emerald-500', red: 'bg-red-500', brand: 'bg-brand-600', violet: 'bg-violet-500' };
+  TXTV.kanban = function (el, o) {
+    el = $(el); o = Object.assign({ idKey: 'id', groupBy: 'trangThai', items: [] }, o || {});
+    var items = o.items.slice(), group = TXTV.uid('kb');
+    var cardHtml = function (it) {
+      return '<div class="kanban-card" data-id="' + esc(it[o.idKey]) + '" tabindex="0">' + (o.card ? o.card(it) : '<div class="kanban-card-title">' + esc(it.title || it.ten || it[o.idKey]) + '</div>') + '</div>';
+    };
+    var render = function () {
+      el.classList.add('kanban');
+      el.innerHTML = o.columns.map(function (c) {
+        var list = items.filter(function (it) { return String(it[o.groupBy]) === String(c.key); });
+        return '<div class="kanban-col"><div class="kanban-head"><span class="dot ' + (KB_DOT[c.color] || 'bg-slate-400') + '"></span>' + esc(c.label || c.key) + '<span class="kanban-count">' + list.length + '</span></div>' +
+          '<div class="kanban-list" data-tv-sortable="' + group + '" data-key="' + esc(c.key) + '">' + list.map(cardHtml).join('') + '</div></div>';
+      }).join('');
+      TXTV.init(el);
+    };
+    var find = function (id) { return items.filter(function (it) { return String(it[o.idKey]) === String(id); })[0]; };
+    el.addEventListener('tv:sort', function (e) {
+      var d = e.detail; if (d.from === d.to) return;
+      var it = find(d.id); if (!it) return;
+      var fromKey = d.from.dataset.key, toKey = d.to.dataset.key;
+      it[o.groupBy] = toKey;
+      if (!o.onMove) return;
+      d.item.style.opacity = '.6';
+      Promise.resolve(o.onMove(it, toKey, fromKey)).then(function () { d.item.style.opacity = ''; })
+        .catch(function (err) { it[o.groupBy] = fromKey; render(); TXTV.toast(err && err.message ? err.message : 'Không chuyển được', { type: 'error' }); });
+    });
+    el.addEventListener('click', function (e) { var c = e.target.closest('.kanban-card'); if (c && o.onCardClick) o.onCardClick(find(c.dataset.id)); });
+    el.addEventListener('keydown', function (e) { var c = e.target.closest('.kanban-card'); if (c && e.key === 'Enter' && o.onCardClick) o.onCardClick(find(c.dataset.id)); });
+    render();
+    return {
+      setItems: function (rows) { items = (rows || []).slice(); render(); },
+      addItem: function (it) { items.push(it); render(); },
+      updateItem: function (it) { items = items.map(function (x) { return String(x[o.idKey]) === String(it[o.idKey]) ? Object.assign({}, x, it) : x; }); render(); },
+      removeItem: function (id) { items = items.filter(function (x) { return String(x[o.idKey]) !== String(id); }); render(); },
+      getItems: function () { return items.slice(); }
+    };
+  };
+
+  /* =====================================================================
+   * NHẮC TÊN @ trong ô nhập / textarea
+   *   TXTV.mention('#binhLuan', { source: [{ value: 'an@tbs.vn', label: 'Nguyễn Văn An' }] | q => Promise, trigger: '@' })
+   *   el._mentions -> danh sách value đã nhắc (để gửi thông báo)
+   * ===================================================================== */
+  TXTV.mention = function (input, o) {
+    input = $(input); o = Object.assign({ trigger: '@', limit: 8 }, o || {});
+    var wrap = input.parentElement; if (getComputedStyle(wrap).position === 'static') wrap.style.position = 'relative';
+    var panel = document.createElement('div'); panel.className = 'autocomplete-panel hidden'; wrap.appendChild(panel);
+    var items = [], hi = 0, start = -1, seq = 0;
+    input._mentions = [];
+    var close = function () { panel.classList.add('hidden'); start = -1; };
+    var draw = function () {
+      if (!items.length) { close(); return; }
+      panel.innerHTML = items.map(function (it, i) { return '<div class="combo-option justify-start' + (i === hi ? ' highlight' : '') + '" data-i="' + i + '">' + TXTV.avatarHtml(it.label, 'avatar-xs') + '<span class="truncate">' + esc(it.label) + '</span>' + (it.desc ? '<span class="ml-auto truncate text-xs text-slate-400">' + esc(it.desc) + '</span>' : '') + '</div>'; }).join('');
+      panel.classList.remove('hidden');
+    };
+    var check = function () {
+      var pos = input.selectionStart, before = input.value.slice(0, pos), m = before.match(new RegExp('(^|\\s)' + o.trigger.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '([^\\s' + o.trigger + ']{0,30})$'));
+      if (!m) { close(); return; }
+      start = pos - m[2].length - 1; var q = m[2], my = ++seq;
+      Promise.resolve(typeof o.source === 'function' ? o.source(q) : (o.source || []).filter(function (it) { return !q || TXTV.matchText(it.label, q); })).then(function (res) {
+        if (my !== seq) return; items = (res || []).slice(0, o.limit); hi = 0; draw();
+      });
+    };
+    var pick = function (it) {
+      var pos = input.selectionStart, ins = o.trigger + it.label + ' ';
+      input.value = input.value.slice(0, start) + ins + input.value.slice(pos);
+      var c = start + ins.length; input.setSelectionRange(c, c); input.focus();
+      if (input._mentions.indexOf(it.value) === -1) input._mentions.push(it.value);
+      close(); input.dispatchEvent(new CustomEvent('tv:mention', { detail: it, bubbles: true })); input.dispatchEvent(new Event('input', { bubbles: true }));
+    };
+    input.addEventListener('input', check);
+    input.addEventListener('click', check);
+    input.addEventListener('keydown', function (e) {
+      if (panel.classList.contains('hidden')) return;
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); hi = (hi + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length; draw(); }
+      else if (e.key === 'Enter' || e.key === 'Tab') { e.preventDefault(); pick(items[hi]); }
+      else if (e.key === 'Escape') close();
+    });
+    panel.addEventListener('mousedown', function (e) { e.preventDefault(); var it = e.target.closest('[data-i]'); if (it) pick(items[+it.dataset.i]); });
+    input.addEventListener('blur', function () { setTimeout(close, 120); });
+    return { close: close, mentions: function () { return input._mentions.slice(); } };
+  };
 
   /* =====================================================================
    * HIỆN CODE MẪU (dùng trong trang tài liệu) – <div data-tv-demo> ... </div>
