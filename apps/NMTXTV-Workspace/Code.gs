@@ -3,7 +3,7 @@
  * Cổng truy cập các ứng dụng nội bộ của Nhà máy Túi xách Trà Vinh.
  */
 
-var PAGES = { Index: 'NMTXTV Digital Workspace' };
+var PAGES = { Index: '' };   // '' = tiêu đề tab chỉ là tên app
 
 /** Logo ở góc sidebar (bản cho nền tối) */
 var LOGO_URL = 'https://cdn.jsdelivr.net/gh/nmtxtravinh/nmtxtravinh-assets@main/logos/TBS-Group-logo-dark-bg.png';
@@ -36,7 +36,7 @@ function doGet(e) {
   TXTV.config.appName = 'NMTXTV Digital Workspace';
   TXTV.config.faviconUrl = LOGO_URL;
   var page = (e && e.parameter && e.parameter.page) || 'Index';
-  if (!PAGES[page]) return TXTV.errorPage(404);
+  if (!Object.prototype.hasOwnProperty.call(PAGES, page)) return TXTV.errorPage(404);
   return TXTV.render(page, { PARAMS: (e && e.parameter) || {}, LOGO_URL: LOGO_URL }, PAGES[page]);
 }
 

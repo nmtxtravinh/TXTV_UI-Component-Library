@@ -3,11 +3,24 @@
 <head>
   <?!= include('TXTV_Head'); ?>
   <style type="text/tailwindcss">
-    .ws-logo { @apply h-9 w-auto max-w-[72px] shrink-0 object-contain; }
+    .ws-logo { @apply h-8 w-auto max-w-[64px] shrink-0 object-contain; }
     .app.sidebar-collapsed .ws-logo { @apply lg:max-w-[40px]; }
 
-    .app-tile { @apply flex w-full min-w-0 items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 text-left transition-colors hover:border-brand-300 hover:bg-brand-50/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-brand-700 dark:hover:bg-slate-800/60; }
-    .app-icon { @apply grid h-11 w-11 shrink-0 place-items-center rounded-lg text-lg text-white; }
+    /* Menu: mục đang chọn nhẹ nhàng, icon accent; nhãn nhóm thưa hơn */
+    .app-sidebar .sidebar-nav { @apply space-y-1 px-3 py-4; }
+    .app-sidebar .nav-section-title { @apply px-3 pb-2 pt-5 text-[10.5px] tracking-[0.08em] text-white/35; }
+    .app-sidebar .nav-section-title:first-child { @apply pt-0; }
+    .app-sidebar .nav-link { @apply h-10 py-0 font-medium text-white/65 hover:bg-white/[0.06]; }
+    .app-sidebar .nav-link > i { @apply text-[14px] text-white/45; }
+    .app-sidebar .nav-link:hover > i { @apply text-white/80; }
+    .app-sidebar .nav-link.active { @apply bg-white/10 font-semibold text-white hover:bg-white/10; }
+    .app-sidebar .nav-link.active > i { @apply text-accent-400; }
+    .app.sidebar-collapsed .nav-section-title { @apply lg:block lg:h-px lg:overflow-hidden lg:bg-white/10 lg:p-0 lg:text-transparent; }
+
+    .app-grid { @apply grid gap-3; grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); }
+
+    .app-tile { @apply flex w-full min-w-0 items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-left transition-colors hover:border-brand-300 hover:bg-brand-50/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-brand-700 dark:hover:bg-slate-800/60; }
+    .app-icon { @apply grid h-10 w-10 shrink-0 place-items-center rounded-lg text-base text-white; }
     .app-name { @apply block truncate text-sm font-semibold text-slate-900 dark:text-white; }
     .app-go { @apply ml-auto shrink-0 text-xs text-slate-300 dark:text-slate-600; }
     .app-tile:hover .app-go { @apply text-brand-600 dark:text-accent-400; }
@@ -20,16 +33,18 @@
     <div class="sidebar-brand">
       <img class="ws-logo" src="<?= LOGO_URL ?>" alt="TBS Group" onerror="this.outerHTML='&lt;div class=&quot;sidebar-logo&quot;&gt;TBS&lt;/div&gt;'">
       <div class="sidebar-brand-text">
-        <div class="text-sm font-bold">Digital Workspace</div>
-        <div class="text-[11px] text-white/50">Nhà máy Túi xách Trà Vinh</div>
+        <div class="text-[13px] font-semibold leading-tight">Digital Workspace</div>
+        <div class="text-[11px] text-white/45">NM Túi xách Trà Vinh</div>
       </div>
     </div>
     <nav class="sidebar-nav" id="nav">
+      <div class="nav-section-title">Làm việc</div>
       <button type="button" class="nav-link" data-view="home"><i class="fa-solid fa-house"></i><span class="nav-label">Trang chủ</span></button>
       <button type="button" class="nav-link" data-view="app"><i class="fa-solid fa-table-cells-large"></i><span class="nav-label">App</span></button>
       <button type="button" class="nav-link" data-view="tienich"><i class="fa-solid fa-toolbox"></i><span class="nav-label">Tiện ích</span></button>
       <button type="button" class="nav-link" data-view="tailieu"><i class="fa-solid fa-folder-open"></i><span class="nav-label">Tài liệu</span></button>
       <button type="button" class="nav-link" data-view="baocao"><i class="fa-solid fa-chart-column"></i><span class="nav-label">Báo cáo</span></button>
+      <div class="nav-section-title">Kết nối</div>
       <button type="button" class="nav-link" data-view="danhba"><i class="fa-solid fa-address-book"></i><span class="nav-label">Danh bạ</span></button>
       <button type="button" class="nav-link" data-view="thongbao"><i class="fa-solid fa-bell"></i><span class="nav-label">Thông báo</span></button>
       <button type="button" class="nav-link" data-view="tintuc"><i class="fa-solid fa-newspaper"></i><span class="nav-label">Tin tức</span></button>
@@ -117,7 +132,7 @@
         var items = apps.filter(function (a) { return a.group === g.id; });
         if (!items.length) return '';
         return '<div><h2 class="group-title">' + TXTV.escape(g.name) + '</h2>' +
-          '<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">' + items.map(tile).join('') + '</div></div>';
+          '<div class="app-grid">' + items.map(tile).join('') + '</div></div>';
       }).join('') || '<div class="empty-state"><div class="empty-state-icon"><i class="fa-solid fa-magnifying-glass"></i></div>' +
         '<div class="empty-state-title">Không tìm thấy ứng dụng</div></div>';
     }

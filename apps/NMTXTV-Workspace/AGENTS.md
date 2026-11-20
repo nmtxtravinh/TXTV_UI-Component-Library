@@ -25,7 +25,8 @@
 - Không emoji, không chữ in hoa toàn bộ trừ nhãn nhóm nhỏ.
 
 ## Bố cục
-- Mật độ vừa phải: ô app cao ~68px, lưới 1/2/3/4 cột theo bề rộng.
+- Mật độ vừa phải: ô app cao ~64px, rộng tối thiểu 230px, lưới tự thêm cột (auto-fill), không kéo giãn thẻ.
+- Sidebar chia nhóm "Làm việc" / "Kết nối"; mục đang chọn nền trắng mờ + icon accent.
 - Mỗi màn hình chỉ có thứ cần dùng: tìm kiếm + danh sách. Không thêm thống kê, banner, "chào mừng" khi chưa có yêu cầu.
 - Chạy được ở 390px, không tràn ngang.
 
