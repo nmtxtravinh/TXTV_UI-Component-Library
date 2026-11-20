@@ -5,10 +5,13 @@
 
 var PAGES = { Index: 'NMTXTV Digital Workspace' };
 
+/** Logo ở góc sidebar (ảnh vuông, nên dùng link ảnh trên Drive/website công ty) */
+var LOGO_URL = 'https://www.google.com/s2/favicons?domain=tbsgroup.vn&sz=128';
+
 /**
  * Danh mục ứng dụng.
  *  - url: để trống khi chưa có liên kết; điền link Web App / trang đích để mở được.
- *  - scope: 'noibo' (nội bộ nhà máy) | 'nganh' (dùng chung toàn ngành).
+ *  - scope: 'noibo' | 'nganh' | 'chuoi' | 'bo' – hiện thành badge (khai báo trong Index.html, biến SCOPE).
  *  - color: mã màu ô icon (mỗi app một màu).
  */
 var APP_GROUPS = [
@@ -33,7 +36,7 @@ function doGet(e) {
   TXTV.config.appName = 'NMTXTV Digital Workspace';
   var page = (e && e.parameter && e.parameter.page) || 'Index';
   if (!PAGES[page]) return TXTV.errorPage(404);
-  return TXTV.render(page, { PARAMS: (e && e.parameter) || {} }, PAGES[page]);
+  return TXTV.render(page, { PARAMS: (e && e.parameter) || {}, LOGO_URL: LOGO_URL }, PAGES[page]);
 }
 
 /** Dữ liệu khối App, chèn thẳng vào trang khi render (không cần gọi server lần nữa) */

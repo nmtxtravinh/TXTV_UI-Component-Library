@@ -4,7 +4,7 @@ Cổng truy cập các ứng dụng nội bộ của Nhà máy Túi xách Trà V
 
 | File | Vai trò |
 |---|---|
-| `Code.gs` | `doGet()`, danh mục app (`APP_GROUPS`, `APPS`) |
+| `Code.gs` | `doGet()`, logo (`LOGO_URL`), danh mục app (`APP_GROUPS`, `APPS`) |
 | `Index.html` | Giao diện workspace |
 | `appsscript.json` | Manifest |
 | `build.py` | Xem trước / đóng gói |
@@ -18,7 +18,9 @@ Mở `Code.gs`, điền `url` cho app tương ứng:
 { id: 'luong', group: 'nhansu', name: 'Phiếu lương', scope: 'noibo', icon: 'fa-money-check-dollar', color: '#4F46E5', url: 'https://script.google.com/a/macros/.../exec' },
 ```
 
-App chưa có `url` vẫn hiển thị, bấm vào sẽ báo "chưa có liên kết". App có `url` mở trong tab mới.
+App chưa có `url` vẫn hiển thị nhưng không bấm được. App có `url` mở trong tab mới.
+
+Đổi logo: sửa `LOGO_URL` trong `Code.gs` (link ảnh vuông, công khai).
 
 ## Xem trước
 

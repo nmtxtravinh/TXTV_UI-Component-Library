@@ -3,55 +3,37 @@
 <head>
   <?!= include('TXTV_Head'); ?>
   <style type="text/tailwindcss">
-    /* Sidebar sáng, trung tính – màu brand chỉ dùng cho logo và mục đang chọn */
-    .ws .app-sidebar { @apply border-r border-slate-200 bg-white text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300; }
-    .ws .sidebar-brand, .ws .sidebar-footer { @apply border-slate-200 dark:border-slate-800; }
-    .ws .nav-link { @apply text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white; }
-    .ws .nav-link > i { @apply text-slate-400 dark:text-slate-500; }
-    .ws .nav-link.active { @apply bg-slate-100 font-semibold text-slate-900 hover:bg-slate-100 dark:bg-slate-800 dark:text-white; }
-    .ws .nav-link.active > i { @apply text-brand-700 dark:text-accent-400; }
-    .ws .nav-soon { @apply ml-auto text-[11px] font-normal text-slate-400 dark:text-slate-500; }
-    .ws .app-topbar { @apply bg-white dark:bg-slate-900; }
-    .ws .avatar { @apply bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-100; }
+    .sidebar-logo { @apply overflow-hidden p-1; }
+    .sidebar-logo > img { @apply h-full w-full object-contain; }
 
-    .app-tile { @apply flex w-full min-w-0 items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 text-left transition-colors hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-slate-700 dark:hover:bg-slate-800/60; }
+    .app-tile { @apply flex w-full min-w-0 items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 text-left transition-colors hover:border-brand-300 hover:bg-brand-50/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-brand-700 dark:hover:bg-slate-800/60; }
     .app-icon { @apply grid h-11 w-11 shrink-0 place-items-center rounded-lg text-lg text-white; }
-    .app-name { @apply truncate text-sm font-semibold text-slate-900 dark:text-white; }
-    .app-meta { @apply mt-0.5 truncate text-xs text-slate-500 dark:text-slate-400; }
+    .app-name { @apply block truncate text-sm font-semibold text-slate-900 dark:text-white; }
     .app-go { @apply ml-auto shrink-0 text-xs text-slate-300 dark:text-slate-600; }
-    .app-tile:hover .app-go { @apply text-slate-500 dark:text-slate-300; }
-    .group-title { @apply mb-3 flex items-baseline gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400; }
+    .app-tile:hover .app-go { @apply text-brand-600 dark:text-accent-400; }
+    .group-title { @apply mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-brand-800 dark:text-accent-400; }
   </style>
 </head>
 <body>
-<div class="app ws">
+<div class="app">
   <aside class="app-sidebar">
     <div class="sidebar-brand">
-      <div class="sidebar-logo bg-brand-900 text-white">TBS</div>
+      <div class="sidebar-logo"><img src="<?= LOGO_URL ?>" alt="TBS" onerror="this.replaceWith('TBS')"></div>
       <div class="sidebar-brand-text">
-        <div class="text-sm font-bold text-slate-900 dark:text-white">Digital Workspace</div>
-        <div class="text-[11px] text-slate-500">NM Túi xách Trà Vinh</div>
+        <div class="text-sm font-bold">Digital Workspace</div>
+        <div class="text-[11px] text-white/50">Nhà máy Túi xách Trà Vinh</div>
       </div>
     </div>
     <nav class="sidebar-nav" id="nav">
-      <button type="button" class="nav-link" data-view="home"><i class="fa-solid fa-house"></i><span class="nav-label">Trang chủ</span><span class="nav-soon nav-label">Sắp có</span></button>
+      <button type="button" class="nav-link" data-view="home"><i class="fa-solid fa-house"></i><span class="nav-label">Trang chủ</span></button>
       <button type="button" class="nav-link" data-view="app"><i class="fa-solid fa-table-cells-large"></i><span class="nav-label">App</span></button>
-      <button type="button" class="nav-link" data-view="tienich"><i class="fa-solid fa-toolbox"></i><span class="nav-label">Tiện ích</span><span class="nav-soon nav-label">Sắp có</span></button>
-      <button type="button" class="nav-link" data-view="tailieu"><i class="fa-solid fa-folder-open"></i><span class="nav-label">Tài liệu</span><span class="nav-soon nav-label">Sắp có</span></button>
-      <button type="button" class="nav-link" data-view="baocao"><i class="fa-solid fa-chart-column"></i><span class="nav-label">Báo cáo</span><span class="nav-soon nav-label">Sắp có</span></button>
-      <button type="button" class="nav-link" data-view="danhba"><i class="fa-solid fa-address-book"></i><span class="nav-label">Danh bạ</span><span class="nav-soon nav-label">Sắp có</span></button>
-      <button type="button" class="nav-link" data-view="thongbao"><i class="fa-solid fa-bell"></i><span class="nav-label">Thông báo</span><span class="nav-soon nav-label">Sắp có</span></button>
-      <button type="button" class="nav-link" data-view="tintuc"><i class="fa-solid fa-newspaper"></i><span class="nav-label">Tin tức</span><span class="nav-soon nav-label">Sắp có</span></button>
+      <button type="button" class="nav-link" data-view="tienich"><i class="fa-solid fa-toolbox"></i><span class="nav-label">Tiện ích</span></button>
+      <button type="button" class="nav-link" data-view="tailieu"><i class="fa-solid fa-folder-open"></i><span class="nav-label">Tài liệu</span></button>
+      <button type="button" class="nav-link" data-view="baocao"><i class="fa-solid fa-chart-column"></i><span class="nav-label">Báo cáo</span></button>
+      <button type="button" class="nav-link" data-view="danhba"><i class="fa-solid fa-address-book"></i><span class="nav-label">Danh bạ</span></button>
+      <button type="button" class="nav-link" data-view="thongbao"><i class="fa-solid fa-bell"></i><span class="nav-label">Thông báo</span></button>
+      <button type="button" class="nav-link" data-view="tintuc"><i class="fa-solid fa-newspaper"></i><span class="nav-label">Tin tức</span></button>
     </nav>
-    <div class="sidebar-footer">
-      <div class="flex items-center gap-3 p-1">
-        <div class="avatar avatar-sm"><?= USER.initials ?></div>
-        <div class="sidebar-hide-collapsed min-w-0 text-xs">
-          <div class="truncate font-semibold capitalize text-slate-900 dark:text-white"><?= USER.name ?></div>
-          <div class="truncate text-slate-500"><?= USER.email ?></div>
-        </div>
-      </div>
-    </div>
   </aside>
   <div class="app-backdrop"></div>
 
@@ -59,35 +41,36 @@
     <header class="app-topbar">
       <button class="btn btn-ghost btn-icon" data-tv-toggle="sidebar" aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
       <span class="truncate text-sm font-semibold text-slate-900 dark:text-white" id="topTitle"></span>
-      <div class="ml-auto flex items-center gap-1">
+      <div class="ml-auto flex items-center gap-1" id="acct" data-email="<?= USER.email ?>">
         <button class="btn btn-ghost btn-icon" data-tv-toggle="theme" aria-label="Đổi giao diện sáng/tối"><i data-tv-theme-icon class="fa-solid fa-moon"></i></button>
+        <a class="btn btn-primary btn-sm" id="btnLogin" href="https://accounts.google.com/AccountChooser?continue=<?= BASE_URL ?>" target="_top" hidden><i class="fa-solid fa-right-to-bracket"></i> Đăng nhập</a>
+        <div class="dropdown" id="userMenu" hidden>
+          <button type="button" class="avatar avatar-sm" data-tv-toggle="dropdown" aria-label="Tài khoản"><?= USER.initials ?></button>
+          <div class="dropdown-menu">
+            <div class="px-3 py-2 text-xs">
+              <div class="truncate font-semibold capitalize text-slate-900 dark:text-white"><?= USER.name ?></div>
+              <div class="truncate text-slate-500"><?= USER.email ?></div>
+            </div>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="https://accounts.google.com/Logout" target="_top"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</a>
+          </div>
+        </div>
       </div>
     </header>
 
     <main class="app-content">
-      <!-- Khối App -->
       <section id="view-app" hidden>
-        <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-          <div class="input-icon w-full sm:w-80">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input id="q" type="search" class="form-control" placeholder="Tìm ứng dụng" autocomplete="off" aria-label="Tìm ứng dụng">
-          </div>
-          <div class="segmented sm:ml-auto" id="scope" role="radiogroup" aria-label="Phạm vi">
-            <label><input type="radio" name="scope" value="" checked><span>Tất cả</span></label>
-            <label><input type="radio" name="scope" value="noibo"><span>Nội bộ</span></label>
-            <label><input type="radio" name="scope" value="nganh"><span>Ngành</span></label>
-          </div>
+        <div class="input-icon mb-6 w-full sm:w-80">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input id="q" type="search" class="form-control" placeholder="Tìm ứng dụng" autocomplete="off" aria-label="Tìm ứng dụng">
         </div>
         <div id="appList" class="space-y-8"></div>
       </section>
 
-      <!-- Các khối chưa làm -->
-      <section id="view-soon" hidden>
+      <section id="view-other" hidden>
         <div class="empty-state">
-          <div class="empty-state-icon"><i class="fa-solid" id="soonIcon"></i></div>
-          <div class="empty-state-title" id="soonTitle"></div>
-          <p class="empty-state-text">Mục này đang được xây dựng.</p>
-          <button type="button" class="btn btn-secondary mt-4" data-view="app">Mở danh sách App</button>
+          <div class="empty-state-icon"><i class="fa-solid" id="otherIcon"></i></div>
+          <div class="empty-state-title" id="otherTitle"></div>
         </div>
       </section>
     </main>
@@ -99,36 +82,44 @@
   var WS = <?!= wsData() ?>;
 
   (function () {
-    var SCOPE = { noibo: 'Nội bộ', nganh: 'Ngành' };
-    var state = { view: 'app', q: '', scope: '' };
+    // Phạm vi app -> badge (thêm phạm vi mới tại đây)
+    var SCOPE = {
+      noibo: ['Nội bộ', 'badge-brand'],
+      nganh: ['Ngành', 'badge-info'],
+      chuoi: ['Chuỗi', 'badge-purple'],
+      bo:    ['Bộ', 'badge-warning']
+    };
+    var state = { view: 'app', q: '' };
     var listEl = document.getElementById('appList');
     var qEl = document.getElementById('q');
+
+    var acct = document.getElementById('acct');
+    var loggedIn = !!acct.getAttribute('data-email');
+    document.getElementById('userMenu').hidden = !loggedIn;
+    document.getElementById('btnLogin').hidden = loggedIn;
 
     function navItem(view) { return document.querySelector('#nav [data-view="' + view + '"]'); }
 
     function tile(a) {
-      var meta = SCOPE[a.scope] || '';
+      var s = SCOPE[a.scope];
       var inner =
         '<span class="app-icon" style="background:' + TXTV.escape(a.color) + '"><i class="fa-solid ' + TXTV.escape(a.icon) + '"></i></span>' +
-        '<span class="min-w-0"><span class="app-name block">' + TXTV.escape(a.name) + '</span>' +
-        '<span class="app-meta block">' + meta + (a.url ? '' : ' · Chưa có liên kết') + '</span></span>' +
-        (a.url ? '<i class="app-go fa-solid fa-arrow-up-right-from-square"></i>' : '');
-      if (a.url) return '<a class="app-tile" href="' + TXTV.escape(a.url) + '" target="_blank" rel="noopener">' + inner + '</a>';
-      return '<button type="button" class="app-tile no-link" data-app="' + TXTV.escape(a.id) + '">' + inner + '</button>';
+        '<span class="min-w-0"><span class="app-name">' + TXTV.escape(a.name) + '</span>' +
+        (s ? '<span class="badge ' + s[1] + ' mt-1">' + s[0] + '</span>' : '') + '</span>';
+      if (!a.url) return '<div class="app-tile">' + inner + '</div>';
+      return '<a class="app-tile" href="' + TXTV.escape(a.url) + '" target="_blank" rel="noopener">' + inner +
+        '<i class="app-go fa-solid fa-arrow-up-right-from-square"></i></a>';
     }
 
     function renderApps() {
-      var apps = WS.apps.filter(function (a) {
-        return (!state.scope || a.scope === state.scope) && (!state.q || TXTV.matchText(a.name, state.q));
-      });
-      var html = WS.groups.map(function (g) {
+      var apps = WS.apps.filter(function (a) { return !state.q || TXTV.matchText(a.name, state.q); });
+      listEl.innerHTML = WS.groups.map(function (g) {
         var items = apps.filter(function (a) { return a.group === g.id; });
         if (!items.length) return '';
-        return '<div><h2 class="group-title">' + TXTV.escape(g.name) + '<span class="font-normal normal-case tracking-normal text-slate-400">' + items.length + '</span></h2>' +
+        return '<div><h2 class="group-title">' + TXTV.escape(g.name) + '</h2>' +
           '<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">' + items.map(tile).join('') + '</div></div>';
-      }).join('');
-      listEl.innerHTML = html || '<div class="empty-state"><div class="empty-state-icon"><i class="fa-solid fa-magnifying-glass"></i></div>' +
-        '<div class="empty-state-title">Không tìm thấy ứng dụng</div><p class="empty-state-text">Thử từ khoá khác hoặc chọn “Tất cả”.</p></div>';
+      }).join('') || '<div class="empty-state"><div class="empty-state-icon"><i class="fa-solid fa-magnifying-glass"></i></div>' +
+        '<div class="empty-state-title">Không tìm thấy ứng dụng</div></div>';
     }
 
     function show(view, push) {
@@ -139,28 +130,20 @@
       var label = nav.querySelector('.nav-label').textContent;
       document.getElementById('topTitle').textContent = label === 'App' ? 'Ứng dụng' : label;
       document.getElementById('view-app').hidden = view !== 'app';
-      document.getElementById('view-soon').hidden = view === 'app';
-      if (view !== 'app') {
-        document.getElementById('soonTitle').textContent = label;
-        document.getElementById('soonIcon').className = nav.querySelector('i').className;
-      }
+      document.getElementById('view-other').hidden = view === 'app';
+      document.getElementById('otherTitle').textContent = label;
+      document.getElementById('otherIcon').className = nav.querySelector('i').className;
       if (push) TXTV.url.set(view === 'app' ? {} : { view: view }, true);
       TXTV.sidebar.close();
     }
 
-    document.addEventListener('click', function (e) {
+    document.getElementById('nav').addEventListener('click', function (e) {
       var v = e.target.closest('[data-view]');
-      if (v) { show(v.getAttribute('data-view'), true); return; }
-      var t = e.target.closest('[data-app]');
-      if (t) {
-        var a = WS.apps.filter(function (x) { return x.id === t.getAttribute('data-app'); })[0];
-        TXTV.toast.info(a.name + ' chưa có liên kết');
-      }
+      if (v) show(v.getAttribute('data-view'), true);
     });
 
     qEl.addEventListener('input', function () { state.q = qEl.value.trim(); renderApps(); });
     qEl.addEventListener('keydown', function (e) { if (e.key === 'Escape') { qEl.value = ''; state.q = ''; renderApps(); } });
-    document.getElementById('scope').addEventListener('change', function (e) { state.scope = e.target.value; renderApps(); });
     document.addEventListener('keydown', function (e) {
       if (e.key === '/' && state.view === 'app' && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) { e.preventDefault(); qEl.focus(); }
     });

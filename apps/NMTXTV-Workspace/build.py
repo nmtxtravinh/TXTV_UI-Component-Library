@@ -41,13 +41,18 @@ def ws_data():
     return '(function () { ' + ' '.join(parts) + ' return { groups: APP_GROUPS, apps: APPS }; })()'
 
 
+def sample():
+    m = re.search(r"var LOGO_URL = '([^']*)'", read('Code.gs'))
+    return dict(SAMPLE, LOGO_URL=m.group(1) if m else '')
+
+
 def render(name, depth=0):
     if depth > 10:
         sys.exit('include lồng quá sâu: ' + name)
     html = read(name + '.html')
     html = INCLUDE_RE.sub(lambda m: render(m.group(1), depth + 1), html)
     html = DATA_RE.sub(lambda m: ws_data(), html)
-    return PRINT_RE.sub(lambda m: SAMPLE.get(m.group(1), ''), html)
+    return PRINT_RE.sub(lambda m: sample().get(m.group(1), ''), html)
 
 
 def main():
