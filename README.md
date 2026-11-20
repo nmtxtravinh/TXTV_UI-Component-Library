@@ -37,6 +37,7 @@ src/
 ├── Mobile.html          # Mẫu nhập sản lượng theo giờ cho tablet/điện thoại: bàn phím số lớn, bảng nhập, lưu nháp, bottom nav
 ├── Settings.html        # Mẫu trang Cài đặt / Hồ sơ: tabs dọc, ảnh đại diện, đổi mật khẩu, thông báo, giao diện
 └── Error.html           # Trang lỗi / kết quả dùng chung (404, 403, 500, 503) – server: return TXTV.errorPage(404)
+apps/NMTXTV-Workspace/   # Dự án NMTXTV Digital Workspace (cổng ứng dụng nội bộ) – dùng thư viện từ src/
 tools/build_preview.py   # Tạo bản xem trước chạy ngoài Apps Script (--site: xuất site cho GitHub Pages)
 .github/workflows/pages.yml  # Tự build & đăng trang demo lên GitHub Pages
 ```
