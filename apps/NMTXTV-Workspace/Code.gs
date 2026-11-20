@@ -34,6 +34,7 @@ var APPS = [
 
 function doGet(e) {
   TXTV.config.appName = 'NMTXTV Digital Workspace';
+  TXTV.config.faviconUrl = LOGO_URL;
   var page = (e && e.parameter && e.parameter.page) || 'Index';
   if (!PAGES[page]) return TXTV.errorPage(404);
   return TXTV.render(page, { PARAMS: (e && e.parameter) || {}, LOGO_URL: LOGO_URL }, PAGES[page]);

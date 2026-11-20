@@ -105,7 +105,8 @@ clasp push
 
 ```js
 // Code.gs
-function doGet(e) {
+  TXTV.config.appName = 'Quản lý kho';
+  // TXTV.config.faviconUrl = 'https://.../logo.png';   // favicon phải là link có đuôi .png/.ico/.jpg/.gif
   TXTV.config.appName = 'Quản lý kho';
   return TXTV.render('Index', { /* biến cho template */ }, 'Trang chủ');
 }

@@ -25,7 +25,7 @@ var TXTV = {
   config: {
     appName: 'TXTV Web App',
     company: 'Nhà máy Túi xách Trà Vinh – TBS Group',
-    faviconUrl: 'https://www.google.com/s2/favicons?domain=tbsgroup.vn&sz=64',
+    faviconUrl: 'https://cdn.jsdelivr.net/gh/nmtxtravinh/nmtxtravinh-assets@main/logos/TBS-Group-logo-dark-bg.png',  // phải là link ảnh có đuôi .png/.ico/.jpg/.gif
     timezone: 'Asia/Ho_Chi_Minh'
   },
 
@@ -42,11 +42,13 @@ var TXTV = {
     t.APP = TXTV.config;
     t.USER = TXTV.getUser();
     t.BASE_URL = TXTV.getBaseUrl();
-    return t.evaluate()
+    var out = t.evaluate()
       .setTitle(title ? title + ' | ' + TXTV.config.appName : TXTV.config.appName)
-      .setFaviconUrl(TXTV.config.faviconUrl)
       .addMetaTag('viewport', 'width=device-width, initial-scale=1')
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+    // Apps Script chỉ nhận favicon có đuôi ảnh; link sai thì bỏ qua thay vì làm hỏng cả trang
+    if (TXTV.config.faviconUrl) { try { out.setFaviconUrl(TXTV.config.faviconUrl); } catch (e) {} }
+    return out;
   },
 
   /** URL Web App hiện tại (dùng để điều hướng giữa các trang: BASE_URL + '?page=...') */
