@@ -5,8 +5,8 @@
 
 var PAGES = { Index: 'NMTXTV Digital Workspace' };
 
-/** Logo ở góc sidebar (ảnh vuông, nên dùng link ảnh trên Drive/website công ty) */
-var LOGO_URL = 'https://www.google.com/s2/favicons?domain=tbsgroup.vn&sz=128';
+/** Logo ở góc sidebar (bản cho nền tối) */
+var LOGO_URL = 'https://cdn.jsdelivr.net/gh/nmtxtravinh/nmtxtravinh-assets@main/logos/TBS-Group-logo-dark-bg.png';
 
 /**
  * Danh mục ứng dụng.

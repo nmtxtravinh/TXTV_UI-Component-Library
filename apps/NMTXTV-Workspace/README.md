@@ -41,6 +41,6 @@ Thư mục `dist/` có đủ 8 file (gồm `TXTV_*` và `Error.html` lấy từ 
 - **Thủ công:** tạo project Apps Script mới, tạo file cùng tên và dán nội dung từ `dist/`.
 - **clasp:** chép `.clasp.json.example` thành `.clasp.json`, điền `scriptId`, rồi chạy `clasp push` trong thư mục này.
 
-Sau đó: Deploy → New deployment → Web app → Execute as: *Me*, Who has access: *Anyone within TBS Group*.
+Sau đó: Deploy → New deployment → Web app → Execute as: *Me*, Who has access: *Anyone*.
 
 Không cần Sheet hay quyền thêm ở giai đoạn này.
